@@ -7,5 +7,14 @@ interface UserRepository {
     suspend fun isUserLoggedIn(): Boolean
     suspend fun getUser(id: Int): User
     suspend fun login(email: String, password: String): UserLoginResponseDto
-    suspend fun register(email: String, name: String, lastname: String, password: String): User
+    suspend fun register(
+        email: String,
+        name: String,
+        lastname: String,
+        birthdate: String,
+        weight: Double,
+        height: Double,
+        gender: String,
+        password: String
+    ): User
 }

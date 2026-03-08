@@ -8,6 +8,11 @@ fun UserDto.toDomain(): User {
         id = this.id,
         email = this.email,
         name = this.name,
-        lastname = this.lastname
+        lastname = this.lastname,
+        birthdate = this.birthdate,
+        weight = this.weight,
+        height = this.height,
+        gender = this.gender,
+        age = this.age
     )
 }

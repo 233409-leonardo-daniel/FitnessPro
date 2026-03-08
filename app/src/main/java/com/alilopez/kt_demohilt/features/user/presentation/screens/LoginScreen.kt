@@ -17,13 +17,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.core.components.InputFitness
 import com.alilopez.kt_demohilt.features.user.presentation.viewmodels.LoginViewModel
 
 @Composable
 fun LoginScreen(
-    viewModel: LoginViewModel,
+    viewModel: LoginViewModel = hiltViewModel(),
     onClickLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
     modifier: Modifier = Modifier

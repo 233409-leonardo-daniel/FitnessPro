@@ -56,14 +56,14 @@ android {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_RICK", "\"https://rickandmortyapi.com/api/\"")
             buildConfigField("String", "BASE_URL_JSON", "\"https://jsonplaceholder.typicode.com/\"")
-            resValue("string", "app_name", "Demo (DEV)")
+            resValue("string", "app_name", "FitnessPro (DEV)")
         }
 
         create("prod") {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_RICK", "\"https://rickandmortyapi.com/api/\"")
             buildConfigField("String", "BASE_URL_JSON", "\"https://jsonplaceholder.typicode.com/\"")
-            resValue("string", "app_name", "Demo")
+            resValue("string", "app_name", "FitnessPro")
         }
     }
 }
@@ -99,6 +99,7 @@ dependencies {
     implementation(libs.com.squareup.retrofit2.retrofit)            // Retrofit
     implementation(libs.com.squareup.retrofit2.converter.json)      // JSON
     implementation(libs.io.coil.kt.coil.compose)                    // Coil
+    implementation(libs.io.coil.kt.coil.gif)                        // Coil Gif
     implementation(libs.androidx.navigation.compose)                // Navigation
     implementation(libs.androidx.compose.material.icons.extended)   // Icons extendend
     // Hilt
@@ -110,9 +111,6 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     ksp(libs.room.compiler) // <--- Importante usar KSP
-
-    // Coil GIF (mencionado en el build.gradle del usuario)
-    implementation("io.coil-kt:coil-gif:2.7.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

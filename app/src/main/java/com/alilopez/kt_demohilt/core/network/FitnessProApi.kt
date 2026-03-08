@@ -53,14 +53,35 @@ interface FitnessProApi {
         @Path("recipe_id") recipeId: Int
     )
 
-    @GET("exercises")
-    suspend fun getExercises(
+    @GET("exercises/remote")
+    suspend fun getExercisesRemote(
         @Query("limit") limit: Int
     ): ExercisesResponse
 
-    @GET("exercises/filter")
-    suspend fun getExercisesByBodyPart(
+    @GET("exercises/bodyPart")
+    suspend fun getExercisesByBodyPartRemote(
         @Query("limit") limit: Int,
         @Query("bodyParts") bodyPart: String
     ): ExercisesResponse
+
+    @GET("exercises/local")
+    suspend fun getExercisesLocal(): ExercisesResponse
+
+//    @POST("exercises/local")
+//    suspend fun addExerciseLocal(
+//        @Body exercise: ExerciseRequest
+//    )
+
+    @GET("exercises/local/user/{user_id}")
+    suspend fun getExercisesLocalByUserId(
+        @Path("user_id") userId: Int
+    ): ExercisesResponse
+
+//    @PUT("exercises/local/{exercise_id}")
+//    suspend fun updateExerciseLocal(
+//        @Path("exercise_id") exerciseId: Int,
+//        @Body exercise: ExerciseRequest
+//    )
+
+
 }
