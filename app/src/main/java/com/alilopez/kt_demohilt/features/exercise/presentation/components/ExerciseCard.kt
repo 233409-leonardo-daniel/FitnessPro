@@ -86,7 +86,7 @@ fun ExerciseCard(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Instructions:",
+                    "Instrucciones:",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
                     color = Color(0xFFE53935)

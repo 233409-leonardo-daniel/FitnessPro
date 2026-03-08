@@ -29,6 +29,18 @@ class RegisterViewModel @Inject constructor(
     private val _lastname = MutableStateFlow("")
     val lastname: StateFlow<String> = _lastname.asStateFlow()
 
+    private val _birthdate = MutableStateFlow("")
+    val birthdate: StateFlow<String> = _birthdate.asStateFlow()
+
+    private val _weight = MutableStateFlow("")
+    val weight: StateFlow<String> = _weight.asStateFlow()
+
+    private val _height = MutableStateFlow("")
+    val height: StateFlow<String> = _height.asStateFlow()
+
+    private val _gender = MutableStateFlow("")
+    val gender: StateFlow<String> = _gender.asStateFlow()
+
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
 
@@ -44,19 +56,61 @@ class RegisterViewModel @Inject constructor(
         _lastname.value = lastname
     }
 
+    fun onBirthdateChange(birthdate: String) {
+        _birthdate.value = birthdate
+    }
+
+    fun onWeightChange(weight: String) {
+        _weight.value = weight
+    }
+
+    fun onHeightChange(height: String) {
+        _height.value = height
+    }
+
+    fun onGenderChange(gender: String) {
+        _gender.value = gender
+    }
+
     fun onPasswordChange(password: String) {
         _password.value = password
     }
 
     fun onRegisterClick() {
         viewModelScope.launch {
+            val weightValue = _weight.value.toDoubleOrNull()
+            val heightValue = _height.value.toDoubleOrNull()
+
+            if (
+                _email.value.isBlank() ||
+                _name.value.isBlank() ||
+                _lastname.value.isBlank() ||
+                _birthdate.value.isBlank() ||
+                _gender.value.isBlank() ||
+                _password.value.isBlank() ||
+                weightValue == null ||
+                heightValue == null
+            ) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Completa todos los campos con valores validos"
+                    )
+                }
+                return@launch
+            }
+
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
                 userRegisterUseCase(
-                    email = _email.value,
-                    name = _name.value,
-                    lastname = _lastname.value,
+                    email = _email.value.trim(),
+                    name = _name.value.trim(),
+                    lastname = _lastname.value.trim(),
+                    birthdate = _birthdate.value.trim(),
+                    weight = weightValue,
+                    height = heightValue,
+                    gender = _gender.value.trim(),
                     password = _password.value
                 )
 

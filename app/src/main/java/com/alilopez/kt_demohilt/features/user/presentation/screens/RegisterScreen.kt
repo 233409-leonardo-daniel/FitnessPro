@@ -1,11 +1,13 @@
 package com.alilopez.kt_demohilt.features.user.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -13,6 +15,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,13 +25,18 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.core.components.InputFitness
 import com.alilopez.kt_demohilt.features.user.presentation.viewmodels.RegisterViewModel
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RegisterScreen(
-    viewModel: RegisterViewModel,
+    viewModel: RegisterViewModel = hiltViewModel(),
     onRegisterSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
     modifier: Modifier = Modifier
@@ -40,7 +50,15 @@ fun RegisterScreen(
     val email by viewModel.email.collectAsStateWithLifecycle()
     val name by viewModel.name.collectAsStateWithLifecycle()
     val lastname by viewModel.lastname.collectAsStateWithLifecycle()
+    val birthdate by viewModel.birthdate.collectAsStateWithLifecycle()
+    val weight by viewModel.weight.collectAsStateWithLifecycle()
+    val height by viewModel.height.collectAsStateWithLifecycle()
+    val gender by viewModel.gender.collectAsStateWithLifecycle()
     val password by viewModel.password.collectAsStateWithLifecycle()
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    val datePickerState = rememberDatePickerState()
+    val dateFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
     // Navegar cuando el registro sea exitoso
     LaunchedEffect(uiState.isRegistered) {
@@ -115,6 +133,63 @@ fun RegisterScreen(
                     value = lastname,
                     onValueChange = { viewModel.onLastnameChange(it) },
                     placeholder = "Apellido",
+                    leadingIcon = Icons.Default.Person,
+                    keyboardType = KeyboardType.Text
+                )
+
+                // Birthdate Input (calendar + green style)
+                InputFitness(
+                    value = birthdate,
+                    onValueChange = {},
+                    placeholder = "Fecha de nacimiento (YYYY-MM-DD)",
+                    leadingIcon = Icons.Default.DateRange,
+                    readOnly = true,
+                    trailingIcon = Icons.Default.DateRange,
+                    onTrailingIconClick = { showDatePicker = true },
+                    modifier = Modifier.clickable { showDatePicker = true }
+                )
+
+                if (showDatePicker) {
+                    DatePickerDialog(
+                        onDismissRequest = { showDatePicker = false },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                datePickerState.selectedDateMillis?.let { selectedMillis ->
+                                    viewModel.onBirthdateChange(dateFormatter.format(Date(selectedMillis)))
+                                }
+                                showDatePicker = false
+                            }) {
+                                Text("Aceptar")
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = { showDatePicker = false }) {
+                                Text("Cancelar")
+                            }
+                        }
+                    ) {
+                        DatePicker(state = datePickerState)
+                    }
+                }
+
+                InputFitness(
+                    value = weight,
+                    onValueChange = { viewModel.onWeightChange(it) },
+                    placeholder = "Peso (ej. 70)",
+                    keyboardType = KeyboardType.Decimal
+                )
+
+                InputFitness(
+                    value = height,
+                    onValueChange = { viewModel.onHeightChange(it) },
+                    placeholder = "Altura (ej. 1.75)",
+                    keyboardType = KeyboardType.Decimal
+                )
+
+                InputFitness(
+                    value = gender,
+                    onValueChange = { viewModel.onGenderChange(it) },
+                    placeholder = "Genero",
                     leadingIcon = Icons.Default.Person,
                     keyboardType = KeyboardType.Text
                 )

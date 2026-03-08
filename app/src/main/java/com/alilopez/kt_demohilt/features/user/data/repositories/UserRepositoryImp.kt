@@ -16,12 +16,20 @@ class UserRepositoryImp @Inject constructor(
         email: String,
         name: String,
         lastname: String,
+        birthdate: String,
+        weight: Double,
+        height: Double,
+        gender: String,
         password: String
     ): User {
         val userCreateDto = UserCreateDto(
             email = email,
             name = name,
             lastname = lastname,
+            birthdate = birthdate,
+            weight = weight,
+            height = height,
+            gender = gender,
             password = password
         )
 

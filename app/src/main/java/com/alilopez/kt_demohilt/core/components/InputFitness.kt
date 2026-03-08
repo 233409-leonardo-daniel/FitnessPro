@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
@@ -15,7 +16,6 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
@@ -27,7 +27,10 @@ fun InputFitness(
     modifier: Modifier = Modifier,
     isPassword: Boolean = false,
     leadingIcon: ImageVector? = null,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    readOnly: Boolean = false,
+    trailingIcon: ImageVector? = null,
+    onTrailingIconClick: (() -> Unit)? = null
 ) {
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -42,6 +45,7 @@ fun InputFitness(
         value = value ?: "",
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
+        readOnly = readOnly,
         placeholder = {
             Text(
                 text = placeholder,
@@ -56,6 +60,25 @@ fun InputFitness(
                     contentDescription = null,
                     tint = placeholderColor
                 )
+            }
+        },
+        trailingIcon = trailingIcon?.let {
+            {
+                if (onTrailingIconClick != null) {
+                    IconButton(onClick = onTrailingIconClick) {
+                        Icon(
+                            imageVector = it,
+                            contentDescription = null,
+                            tint = placeholderColor
+                        )
+                    }
+                } else {
+                    Icon(
+                        imageVector = it,
+                        contentDescription = null,
+                        tint = placeholderColor
+                    )
+                }
             }
         },
         visualTransformation = if (isPassword) {

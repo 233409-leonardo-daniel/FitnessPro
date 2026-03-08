@@ -11,15 +11,15 @@ class ExercisesRepositoryImpl @Inject constructor(
 ) : ExerciseRepository {
 
     override suspend fun getExercises(): List<Exercise> {
-        val response = api.getExercises(
-            limit = 25
+        val response = api.getExercisesRemote(
+            limit = 2
         )
         return response.data.map { it.toDomain() }
     }
 
     override suspend fun getExercisesByBodyPart(bodyPart: String): List<Exercise> {
-        val response = api.getExercisesByBodyPart(
-            limit = 25,
+        val response = api.getExercisesByBodyPartRemote(
+            limit = 5,
             bodyPart = bodyPart
         )
         return response.data.map { it.toDomain() }
