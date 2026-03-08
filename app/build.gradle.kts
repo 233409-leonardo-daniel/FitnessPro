@@ -21,6 +21,13 @@ android {
         versionName = "1.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+
+        // Cargar propiedades desde local.properties (adaptado del proyecto original)
+        val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
+        buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("backend_url", "http://10.0.2.2:8000/api/")}\"")
+        buildConfigField("String", "API_HOST", "\"${properties.getProperty("host", "exercisedb.p.rapidapi.com")}\"")
+        buildConfigField("String", "API_KEY", "\"${properties.getProperty("key", "")}\"")
+        buildConfigField("String", "EXERCISE_DB_URL", "\"${properties.getProperty("url", "https://exercisedb-api.vercel.app/api/v1/")}\"")
     }
 
     buildTypes {
@@ -42,8 +49,6 @@ android {
         buildConfig = true  //Habilitar variables
         resValues = true
     }
-
-
 
     flavorDimensions.add("environment")
     productFlavors {
@@ -106,6 +111,8 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler) // <--- Importante usar KSP
 
+    // Coil GIF (mencionado en el build.gradle del usuario)
+    implementation("io.coil-kt:coil-gif:2.7.0")
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
