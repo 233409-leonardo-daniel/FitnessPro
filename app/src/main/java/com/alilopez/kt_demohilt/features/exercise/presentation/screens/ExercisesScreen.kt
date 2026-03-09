@@ -1,10 +1,12 @@
 package com.alilopez.kt_demohilt.features.exercise.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -37,27 +39,44 @@ val bodyParts = listOf(
 @Composable
 fun ExercisesScreen(
     onNavigateToRecipes: () -> Unit,
+    onNavigateToAddExercise: () -> Unit,
     viewModel: ExerciseViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isDarkTheme = isSystemInDarkTheme()
+
+    val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
+    val topBarColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    val accentColor = Color(0xFF10B981)
+    val dropdownBackground = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val clearButtonColor = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
-        containerColor = Color(0xFF121212),
+        containerColor = backgroundColor,
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("FitnessPro", fontWeight = FontWeight.ExtraBold, color = Color.White) },
+                title = { Text("FitnessPro", fontWeight = FontWeight.ExtraBold, color = textColor) },
                 actions = {
+                    IconButton(onClick = onNavigateToAddExercise) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Add Exercise",
+                            tint = accentColor
+                        )
+                    }
                     IconButton(onClick = onNavigateToRecipes) {
                         Icon(
                             imageVector = Icons.Default.Restaurant,
                             contentDescription = "Go to Recipes",
-                            tint = Color.White
+                            tint = accentColor
                         )
                     }
                 },
                 colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                    containerColor = Color(0xFF1E1E1E)
+                    containerColor = topBarColor
                 )
             )
         }
@@ -66,20 +85,20 @@ fun ExercisesScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(Color(0xFF121212))
+                .background(backgroundColor)
         ) {
             when {
                 uiState.isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFFE53935)
+                        color = accentColor
                     )
                 }
                 uiState.error != null -> {
                     Text(
                         text = uiState.error ?: "Error",
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFFE53935)
+                        color = accentColor
                     )
                 }
                 else -> {
@@ -95,7 +114,7 @@ fun ExercisesScreen(
                                     onClick = { viewModel.toggleFilter() },
                                     modifier = Modifier.weight(1f),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFE53935)
+                                        containerColor = accentColor
                                     )
                                 ) {
                                     Text("Filter body parts", color = Color.White)
@@ -106,11 +125,11 @@ fun ExercisesScreen(
                                     Button(
                                         onClick = { viewModel.clearFilters() },
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = Color(0xFF424242)
+                                            containerColor = clearButtonColor
                                         )
                                     ) {
                                         @Suppress("DEPRECATION")
-                                        Text("Clear", color = Color.White)
+                                        Text("Clear", color = textColor)
                                     }
                                 }
                             }
@@ -120,7 +139,7 @@ fun ExercisesScreen(
                                 onDismissRequest = { viewModel.toggleFilter() },
                                 modifier = Modifier
                                     .fillMaxWidth(0.8f)
-                                    .background(Color(0xFF1E1E1E))
+                                    .background(dropdownBackground)
                             ) {
                                 bodyParts.forEach { bodyPart ->
                                     DropdownMenuItem(
@@ -132,12 +151,12 @@ fun ExercisesScreen(
                                                         viewModel.onBodyPartChecked(bodyPart, it)
                                                     },
                                                     colors = CheckboxDefaults.colors(
-                                                        checkedColor = Color(0xFFE53935),
-                                                        uncheckedColor = Color.Gray
+                                                        checkedColor = accentColor,
+                                                        uncheckedColor = secondaryTextColor
                                                     )
                                                 )
                                                 Spacer(Modifier.width(8.dp))
-                                                Text(bodyPart.replaceFirstChar { it.uppercase() }, color = Color.White)
+                                                Text(bodyPart.replaceFirstChar { it.uppercase() }, color = textColor)
                                             }
                                         },
                                         onClick = {
@@ -153,7 +172,7 @@ fun ExercisesScreen(
                                         .fillMaxWidth()
                                         .padding(8.dp),
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = Color(0xFFE53935)
+                                        containerColor = accentColor
                                     )
                                 ) {
                                     Text("Apply filters", color = Color.White)
@@ -172,7 +191,7 @@ fun ExercisesScreen(
                                         text = "Mis Ejercicios",
                                         style = MaterialTheme.typography.titleLarge,
                                         fontWeight = FontWeight.Bold,
-                                        color = Color.White,
+                                        color = textColor,
                                         modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
                                     )
                                 }
@@ -197,7 +216,7 @@ fun ExercisesScreen(
                                     text = "Ejercicios Recomendados",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
-                                    color = Color.White,
+                                    color = textColor,
                                     modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
                                 )
                             }

@@ -6,6 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseScreen
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeScreen
@@ -66,12 +67,21 @@ fun NavigationWrapper() {
         }
 
         composable<Exercises> {
-            ExercisesScreen(onNavigateToRecipes = {
-                navController.navigate(Home) {
-                    popUpTo(Home) { inclusive = false }
-                    launchSingleTop = true
+            ExercisesScreen(
+                onNavigateToRecipes = {
+                    navController.navigate(Home) {
+                        popUpTo(Home) { inclusive = false }
+                        launchSingleTop = true
+                    }
+                },
+                onNavigateToAddExercise = {
+                    navController.navigate(AddExercise)
                 }
-            })
+            )
+        }
+
+        composable<AddExercise> {
+            AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
         }
     }
 }

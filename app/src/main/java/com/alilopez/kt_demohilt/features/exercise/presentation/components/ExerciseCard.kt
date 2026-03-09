@@ -3,6 +3,7 @@ package com.alilopez.kt_demohilt.features.exercise.presentation.components
 import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -49,14 +50,24 @@ fun ExerciseCard(
     exerciseType: String? = null,
     difficulty: String? = null
 ) {
+    val isDarkTheme = isSystemInDarkTheme()
+
+    val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    val accentColor = Color(0xFF10B981)
+
     Card(
         modifier = modifier
             .fillMaxWidth()
             .padding(8.dp),
-        shape = RoundedCornerShape(12.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp,
+            pressedElevation = 4.dp
+        ),
         colors = CardDefaults.cardColors(
-            containerColor = Color(0xFF1E1E1E)
+            containerColor = cardBackgroundColor
         )
     ) {
         Column(
@@ -71,7 +82,7 @@ fun ExerciseCard(
                     contentDescription = "Imagen de $name",
                     modifier = Modifier
                         .size(180.dp)
-                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                     contentScale = ContentScale.Crop
                 )
             }
@@ -87,7 +98,7 @@ fun ExerciseCard(
                     fontWeight = FontWeight.Bold,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis,
-                    color = Color.White
+                    color = textColor
                 )
 
                 // Badges para ejercicios locales
@@ -100,7 +111,7 @@ fun ExerciseCard(
                             Box(
                                 modifier = Modifier
                                     .background(
-                                        Color(0xFFE53935).copy(alpha = 0.2f),
+                                        accentColor.copy(alpha = 0.2f),
                                         shape = RoundedCornerShape(8.dp)
                                     )
                                     .padding(horizontal = 10.dp, vertical = 4.dp)
@@ -109,7 +120,7 @@ fun ExerciseCard(
                                     text = exerciseType,
                                     style = MaterialTheme.typography.labelSmall,
                                     fontWeight = FontWeight.SemiBold,
-                                    color = Color(0xFFE53935)
+                                    color = accentColor
                                 )
                             }
                         }
@@ -139,7 +150,7 @@ fun ExerciseCard(
                         "Instrucciones:",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
-                        color = Color(0xFFE53935)
+                        color = accentColor
                     )
                     Spacer(modifier = Modifier.height(4.dp))
                     instructions.forEachIndexed { index, instruction ->
@@ -150,7 +161,7 @@ fun ExerciseCard(
                             Box(
                                 modifier = Modifier
                                     .size(8.dp)
-                                    .background(Color(0xFFE53935), shape = CircleShape)
+                                    .background(accentColor, shape = CircleShape)
                                     .align(Alignment.CenterVertically)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
@@ -159,7 +170,7 @@ fun ExerciseCard(
                                 style = MaterialTheme.typography.bodyMedium,
                                 maxLines = 3,
                                 overflow = TextOverflow.Ellipsis,
-                                color = Color(0xFFB0B0B0)
+                                color = secondaryTextColor
                             )
                         }
                     }

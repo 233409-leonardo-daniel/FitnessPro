@@ -80,10 +80,22 @@ interface FitnessProApi {
     @GET("exercises/local")
     suspend fun getExercisesLocal(): List<LocalExerciseDto>
 
-//    @POST("exercises/local")
-//    suspend fun addExerciseLocal(
-//        @Body exercise: ExerciseRequest
-//    )
+    @Multipart
+    @POST("exercises/local")
+    suspend fun createLocalExercise(
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("user_id") userId: RequestBody,
+        @Part("scheduled_days") scheduledDays: RequestBody?,
+        @Part("bodyparts") bodyparts: RequestBody?,
+        @Part("equipment") equipment: RequestBody?,
+        @Part("target_muscles") targetMuscles: RequestBody?,
+        @Part("secondary_muscles") secondaryMuscles: RequestBody?,
+        @Part("exercise_type") exerciseType: RequestBody?,
+        @Part("instructions") instructions: RequestBody?,
+        @Part("difficulty") difficulty: RequestBody?,
+        @Part image: MultipartBody.Part?
+    ): LocalExerciseDto
 
     @GET("exercises/local/user/{user_id}")
     suspend fun getExercisesLocalByUserId(
