@@ -31,6 +31,24 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.1.0] - 2026-03-08
+
+### Added
+- Soporte para ejercicios locales del usuario via `api/exercises/local`.
+- `LocalExerciseDto` con campos: `description`, `user_id`, `scheduled_days`, `image_url`, `bodyparts`, `equipments`, `targetMuscles`, `secondaryMuscles`, `exercise_type`, `instructions`, `difficulty`.
+- Mapper `LocalExerciseDto.toDomain()` para convertir ejercicios locales a la entidad `Exercise`.
+- `GetLocalExercisesUseCase` para obtener ejercicios propios del usuario.
+- `getLocalExercises()` en `ExerciseRepository` y `ExercisesRepositoryImpl`.
+- Seccion "Mis Ejercicios" en `ExercisesScreen` mostrando ejercicios locales con badges de tipo y dificultad.
+
+### Changed
+- Entidad `Exercise` extendida con campos opcionales: `description`, `userId`, `scheduledDays`, `bodyparts`, `equipments`, `secondaryMuscles`, `exerciseType`, `difficulty`, `isLocal`.
+- `ExercisesUiState` ahora incluye `localExercises` para mantener los ejercicios locales separados de los remotos.
+- `ExerciseViewModel` carga ambos tipos de ejercicios en `init`.
+- `ExerciseCard` actualizado con parametros opcionales `isLocal`, `exerciseType`, `difficulty`; muestra badges y oculta imagen cuando esta vacia.
+- Endpoints `exercises/local` y `exercises/local/user/{user_id}` en `FitnessProApi` ahora retornan `List<LocalExerciseDto>` en vez de `ExercisesResponse`.
+
+
 ## [3.0.0] - 2026-03-08
 
 ### Added

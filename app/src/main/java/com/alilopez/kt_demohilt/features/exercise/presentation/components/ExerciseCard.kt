@@ -44,7 +44,10 @@ fun ExerciseCard(
     name: String,
     imageUrl: String,
     modifier: Modifier = Modifier,
-    instructions: List<String>
+    instructions: List<String>,
+    isLocal: Boolean = false,
+    exerciseType: String? = null,
+    difficulty: String? = null
 ) {
     Card(
         modifier = modifier
@@ -61,15 +64,17 @@ fun ExerciseCard(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            AsyncImage(
-                model = imageUrl,
-                imageLoader = gifImageLoader(LocalContext.current),
-                contentDescription = "Imagen de $name",
-                modifier = Modifier
-                    .size(180.dp)
-                    .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
-                contentScale = ContentScale.Crop
-            )
+            if (imageUrl.isNotBlank()) {
+                AsyncImage(
+                    model = imageUrl,
+                    imageLoader = gifImageLoader(LocalContext.current),
+                    contentDescription = "Imagen de $name",
+                    modifier = Modifier
+                        .size(180.dp)
+                        .clip(RoundedCornerShape(topStart = 12.dp, topEnd = 12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            }
 
             Column(
                 modifier = Modifier
@@ -84,33 +89,79 @@ fun ExerciseCard(
                     overflow = TextOverflow.Ellipsis,
                     color = Color.White
                 )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    "Instrucciones:",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = Color(0xFFE53935)
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                instructions.forEachIndexed { index, instruction ->
+
+                // Badges para ejercicios locales
+                if (isLocal) {
+                    Spacer(modifier = Modifier.height(8.dp))
                     Row(
-                        verticalAlignment = Alignment.Top,
-                        modifier = Modifier.padding(vertical = 2.dp)
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .background(Color(0xFFE53935), shape = CircleShape)
-                                .align(Alignment.CenterVertically)
-                        )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text(
-                            text = instruction,
-                            style = MaterialTheme.typography.bodyMedium,
-                            maxLines = 3,
-                            overflow = TextOverflow.Ellipsis,
-                            color = Color(0xFFB0B0B0)
-                        )
+                        if (!exerciseType.isNullOrBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        Color(0xFFE53935).copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = exerciseType,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFFE53935)
+                                )
+                            }
+                        }
+                        if (!difficulty.isNullOrBlank()) {
+                            Box(
+                                modifier = Modifier
+                                    .background(
+                                        Color(0xFF10B981).copy(alpha = 0.2f),
+                                        shape = RoundedCornerShape(8.dp)
+                                    )
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text(
+                                    text = difficulty,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.SemiBold,
+                                    color = Color(0xFF10B981)
+                                )
+                            }
+                        }
+                    }
+                }
+
+                if (instructions.isNotEmpty()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        "Instrucciones:",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = Color(0xFFE53935)
+                    )
+                    Spacer(modifier = Modifier.height(4.dp))
+                    instructions.forEachIndexed { index, instruction ->
+                        Row(
+                            verticalAlignment = Alignment.Top,
+                            modifier = Modifier.padding(vertical = 2.dp)
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(Color(0xFFE53935), shape = CircleShape)
+                                    .align(Alignment.CenterVertically)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = instruction,
+                                style = MaterialTheme.typography.bodyMedium,
+                                maxLines = 3,
+                                overflow = TextOverflow.Ellipsis,
+                                color = Color(0xFFB0B0B0)
+                            )
+                        }
                     }
                 }
 

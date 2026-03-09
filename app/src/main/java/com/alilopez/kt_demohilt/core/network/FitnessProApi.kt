@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.core.network
 
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExercisesResponse
+import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.LocalExerciseDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
@@ -77,7 +78,7 @@ interface FitnessProApi {
     ): ExercisesResponse
 
     @GET("exercises/local")
-    suspend fun getExercisesLocal(): ExercisesResponse
+    suspend fun getExercisesLocal(): List<LocalExerciseDto>
 
 //    @POST("exercises/local")
 //    suspend fun addExerciseLocal(
@@ -87,7 +88,7 @@ interface FitnessProApi {
     @GET("exercises/local/user/{user_id}")
     suspend fun getExercisesLocalByUserId(
         @Path("user_id") userId: Int
-    ): ExercisesResponse
+    ): List<LocalExerciseDto>
 
 //    @PUT("exercises/local/{exercise_id}")
 //    suspend fun updateExerciseLocal(

@@ -91,6 +91,8 @@ class AddRecipeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
+
+
             try {
                 val imageFile = if (_photoTaken.value) cameraPhotoManager.getPhotoFile() else null
 

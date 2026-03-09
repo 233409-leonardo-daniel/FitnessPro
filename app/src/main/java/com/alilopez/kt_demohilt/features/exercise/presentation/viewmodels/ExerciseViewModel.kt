@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByBodyPartUseCase
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetLocalExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -15,13 +16,15 @@ import javax.inject.Inject
 @HiltViewModel
 class ExerciseViewModel @Inject constructor(
     private val getExercisesUseCase: GetExercisesUseCase,
-    private val getExercisesByBodyPartUseCase: GetExercisesByBodyPartUseCase
+    private val getExercisesByBodyPartUseCase: GetExercisesByBodyPartUseCase,
+    private val getLocalExercisesUseCase: GetLocalExercisesUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExercisesUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
         loadExercises()
+        loadLocalExercises()
     }
 
     fun loadExercises() {
@@ -36,6 +39,22 @@ class ExerciseViewModel @Inject constructor(
                     },
                     onFailure = { error ->
                         currentState.copy(isLoading = false, error = error.message)
+                    }
+                )
+            }
+        }
+    }
+
+    fun loadLocalExercises() {
+        viewModelScope.launch {
+            val result = getLocalExercisesUseCase()
+            _uiState.update { currentState ->
+                result.fold(
+                    onSuccess = { list ->
+                        currentState.copy(localExercises = list)
+                    },
+                    onFailure = { _ ->
+                        currentState.copy(localExercises = emptyList())
                     }
                 )
             }

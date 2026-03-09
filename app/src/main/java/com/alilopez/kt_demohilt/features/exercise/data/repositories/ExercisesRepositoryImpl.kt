@@ -24,5 +24,9 @@ class ExercisesRepositoryImpl @Inject constructor(
         )
         return response.data.map { it.toDomain() }
     }
+
+    override suspend fun getLocalExercises(): List<Exercise> {
+        return api.getExercisesLocal().map { it.toDomain() }
+    }
 }
 

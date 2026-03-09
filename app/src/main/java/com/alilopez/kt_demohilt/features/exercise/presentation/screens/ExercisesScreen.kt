@@ -165,6 +165,42 @@ fun ExercisesScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(8.dp)
                         ) {
+                            // Sección: Mis Ejercicios (locales)
+                            if (uiState.localExercises.isNotEmpty()) {
+                                item {
+                                    Text(
+                                        text = "Mis Ejercicios",
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.White,
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                                    )
+                                }
+                                items(uiState.localExercises) { exercise ->
+                                    ExerciseCard(
+                                        name = exercise.name,
+                                        imageUrl = exercise.gifUrl,
+                                        instructions = exercise.instructions,
+                                        isLocal = true,
+                                        exerciseType = exercise.exerciseType,
+                                        difficulty = exercise.difficulty
+                                    )
+                                }
+                                item {
+                                    Spacer(modifier = Modifier.height(16.dp))
+                                }
+                            }
+
+                            // Sección: Ejercicios Remotos
+                            item {
+                                Text(
+                                    text = "Ejercicios Recomendados",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color.White,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 12.dp)
+                                )
+                            }
                             items(uiState.exercises) { exercise ->
                                 ExerciseCard(
                                     name = exercise.name,
