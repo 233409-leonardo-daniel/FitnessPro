@@ -46,7 +46,7 @@ fun RecipeCard(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(16.dp),
-        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
+        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
     ) {
 
         Column {
@@ -90,7 +90,7 @@ fun RecipeCard(
                 modifier = Modifier.padding(18.dp)
             ) {
 
-                // TITLE
+                // TITLE + ACTIONS
                 Row(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -106,7 +106,7 @@ fun RecipeCard(
                     IconButton(onClick = onEdit) {
                         Icon(
                             imageVector = Icons.Default.Edit,
-                            contentDescription = null,
+                            contentDescription = "Editar receta",
                             tint = accentColor
                         )
                     }
@@ -114,7 +114,7 @@ fun RecipeCard(
                     IconButton(onClick = onDelete) {
                         Icon(
                             imageVector = Icons.Default.Delete,
-                            contentDescription = null,
+                            contentDescription = "Eliminar receta",
                             tint = Color(0xFFEF4444)
                         )
                     }
@@ -132,7 +132,7 @@ fun RecipeCard(
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // INGREDIENTS
+                // INGREDIENTES TITLE
                 Text(
                     text = "Ingredientes",
                     fontWeight = FontWeight.SemiBold,
@@ -144,7 +144,7 @@ fun RecipeCard(
 
                 val ingredientsList = recipe.ingredients.split(",")
 
-                ingredientsList.take(3).forEach {
+                ingredientsList.forEach {
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -165,16 +165,6 @@ fun RecipeCard(
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
-                }
-
-                if (ingredientsList.size > 3) {
-                    Spacer(modifier = Modifier.height(6.dp))
-
-                    Text(
-                        text = "Ver más (${ingredientsList.size - 3})",
-                        color = accentColor,
-                        fontSize = 13.sp
-                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -202,16 +192,7 @@ fun RecipeCard(
                             text = recipe.instructions,
                             fontSize = 13.sp,
                             color = secondaryTextColor,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis
-                        )
-
-                        Spacer(modifier = Modifier.height(8.dp))
-
-                        Text(
-                            text = "Ver pasos completos",
-                            color = accentColor,
-                            fontSize = 13.sp
+                            lineHeight = 18.sp
                         )
                     }
                 }
