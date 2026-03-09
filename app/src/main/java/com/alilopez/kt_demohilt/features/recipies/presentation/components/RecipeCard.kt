@@ -1,5 +1,6 @@
 package com.alilopez.kt_demohilt.features.recipies.presentation.components
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -31,6 +32,7 @@ fun RecipeCard(
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
+
     val isDarkTheme = isSystemInDarkTheme()
 
     val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -42,159 +44,203 @@ fun RecipeCard(
     Card(
         onClick = onClick,
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = cardBackgroundColor
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 2.dp,
-            pressedElevation = 4.dp
-        ),
-        shape = RoundedCornerShape(16.dp)
+        colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
+        shape = RoundedCornerShape(16.dp),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp)
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-        ) {
-            // Imagen de la receta
-            if (!recipe.imageUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(recipe.imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = recipe.name,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(180.dp)
-                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
-                    contentScale = ContentScale.Crop
-                )
+
+        Column {
+
+            // IMAGE + BADGE
+            Box {
+
+                if (!recipe.imageUrl.isNullOrBlank()) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(recipe.imageUrl)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = recipe.name,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp),
+                        contentScale = ContentScale.Crop
+                    )
+                }
+
+                if (!recipe.mealType.isNullOrBlank()) {
+                    Surface(
+                        color = accentColor,
+                        shape = RoundedCornerShape(50),
+                        modifier = Modifier
+                            .align(Alignment.TopEnd)
+                            .padding(12.dp)
+                    ) {
+                        Text(
+                            text = recipe.mealType,
+                            color = Color.White,
+                            fontSize = 12.sp,
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 4.dp)
+                        )
+                    }
+                }
             }
 
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(20.dp)
+                modifier = Modifier.padding(18.dp)
             ) {
-                // Header: Nombre de la receta con iconos de acción
+
+                // TITLE
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
+
                     Text(
                         text = recipe.name,
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColor,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
 
-                    Row(
-                        horizontalArrangement = Arrangement.spacedBy(4.dp)
-                    ) {
-                        // Botón editar
-                        IconButton(
-                            onClick = onEdit,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Edit,
-                                contentDescription = "Editar receta",
-                                tint = accentColor,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                    IconButton(onClick = onEdit) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = null,
+                            tint = accentColor
+                        )
+                    }
 
-                        // Botón eliminar
-                        IconButton(
-                            onClick = onDelete,
-                            modifier = Modifier.size(40.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Delete,
-                                contentDescription = "Eliminar receta",
-                                tint = Color(0xFFEF4444),
-                                modifier = Modifier.size(20.dp)
-                            )
-                        }
+                    IconButton(onClick = onDelete) {
+                        Icon(
+                            imageVector = Icons.Default.Delete,
+                            contentDescription = null,
+                            tint = Color(0xFFEF4444)
+                        )
                     }
                 }
 
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(6.dp))
 
-                // Descripción
+                // DESCRIPTION
                 Text(
                     text = recipe.description,
                     fontSize = 14.sp,
                     color = secondaryTextColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
                     lineHeight = 20.sp
                 )
 
-                // Tipo de comida
-                if (!recipe.mealType.isNullOrBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    SuggestionChip(
-                        onClick = {},
-                        label = {
-                            Text(
-                                text = recipe.mealType,
-                                fontSize = 12.sp,
-                                color = accentColor
-                            )
-                        },
-                        shape = RoundedCornerShape(8.dp)
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // INGREDIENTS
+                Text(
+                    text = "Ingredientes",
+                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 14.sp,
+                    color = textColor
+                )
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                val ingredientsList = recipe.ingredients.split(",")
+
+                ingredientsList.take(3).forEach {
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+
+                        Box(
+                            modifier = Modifier
+                                .size(6.dp)
+                                .clip(RoundedCornerShape(50))
+                                .background(accentColor)
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp))
+
+                        Text(
+                            text = it.trim(),
+                            fontSize = 13.sp,
+                            color = secondaryTextColor
+                        )
+                    }
+
+                    Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                if (ingredientsList.size > 3) {
+                    Spacer(modifier = Modifier.height(6.dp))
+
+                    Text(
+                        text = "Ver más (${ingredientsList.size - 3})",
+                        color = accentColor,
+                        fontSize = 13.sp
                     )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                // Divider
-                HorizontalDivider(
-                    thickness = 1.dp,
-                    color = dividerColor
-                )
+                // INSTRUCTIONS BOX
+                Surface(
+                    color = if (isDarkTheme) Color(0xFF334155) else Color(0xFFF8FAFC),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
 
-                Spacer(modifier = Modifier.height(12.dp))
+                    Column(
+                        modifier = Modifier.padding(14.dp)
+                    ) {
 
-                // Footer: Información adicional
+                        Text(
+                            text = "INSTRUCCIONES",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 12.sp,
+                            color = secondaryTextColor
+                        )
+
+                        Spacer(modifier = Modifier.height(6.dp))
+
+                        Text(
+                            text = recipe.instructions,
+                            fontSize = 13.sp,
+                            color = secondaryTextColor,
+                            maxLines = 2,
+                            overflow = TextOverflow.Ellipsis
+                        )
+
+                        Spacer(modifier = Modifier.height(8.dp))
+
+                        Text(
+                            text = "Ver pasos completos",
+                            color = accentColor,
+                            fontSize = 13.sp
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                HorizontalDivider(color = dividerColor)
+
+                Spacer(modifier = Modifier.height(10.dp))
+
+                // FOOTER
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    // Ingredientes e instrucciones
-                    Column(modifier = Modifier.weight(1f)) {
-                        Text("Ingredientes: ${recipe.ingredients}", fontSize = 12.sp, color = secondaryTextColor, fontWeight = FontWeight.Medium)
-                        Spacer(modifier = Modifier.height(4.dp))
-                        Spacer(modifier = Modifier.height(2.dp))
-                        Text("Instrucciones: ${recipe.instructions}", fontSize = 12.sp, color = secondaryTextColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    }
 
-                    // Días programados
-                    if (recipe.scheduledDays.isNotEmpty()) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(6.dp)
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.DateRange,
-                                contentDescription = null,
-                                tint = secondaryTextColor,
-                                modifier = Modifier.size(16.dp)
-                            )
-                            Text(
-                                text = recipe.scheduledDays.joinToString(", "),
-                                fontSize = 12.sp,
-                                color = secondaryTextColor,
-                                fontWeight = FontWeight.Medium
-                            )
-                        }
-                    }
+                    Icon(
+                        imageVector = Icons.Default.DateRange,
+                        contentDescription = null,
+                        tint = secondaryTextColor,
+                        modifier = Modifier.size(16.dp)
+                    )
+
+                    Spacer(modifier = Modifier.width(6.dp))
+
+                    Text(
+                        text = recipe.scheduledDays.joinToString(", "),
+                        fontSize = 12.sp,
+                        color = secondaryTextColor
+                    )
                 }
             }
         }
