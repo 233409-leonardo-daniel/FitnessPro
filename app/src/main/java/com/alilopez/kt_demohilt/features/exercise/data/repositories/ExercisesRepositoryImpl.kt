@@ -25,3 +25,4 @@ class ExercisesRepositoryImpl @Inject constructor(
         return response.data.map { it.toDomain() }
     }
 }
+

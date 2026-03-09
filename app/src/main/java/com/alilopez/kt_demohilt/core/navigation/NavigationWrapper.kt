@@ -6,7 +6,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
-import com.alilopez.kt_demohilt.features.recipies.presentation.HomeScreen
+import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen

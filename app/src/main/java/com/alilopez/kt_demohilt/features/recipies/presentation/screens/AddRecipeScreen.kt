@@ -39,10 +39,13 @@ fun AddRecipeScreen(
     val placeholderColor = if (isDarkTheme) Color(0xFF64748B) else Color(0xFF94A3B8)
 
     var recipeName by remember { mutableStateOf("") }
-    var recipeDate by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var ingredients by remember { mutableStateOf("") }
     var instructions by remember { mutableStateOf("") }
+    var mealType by remember { mutableStateOf("") }
+
+    val daysOfWeek = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+    var selectedDays by remember { mutableStateOf<List<String>>(emptyList()) }
 
     // Observar cuando se crea exitosamente la receta
     LaunchedEffect(uiState.recipeCreated) {
@@ -113,12 +116,12 @@ fun AddRecipeScreen(
                     )
                 }
 
-                // Date
+                // Meal Type
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "FECHA (OPCIONAL)",
+                        text = "TIPO DE COMIDA (OPCIONAL)",
                         fontSize = 12.sp,
                         fontWeight = FontWeight.Bold,
                         color = labelColor,
@@ -126,10 +129,50 @@ fun AddRecipeScreen(
                         modifier = Modifier.padding(start = 4.dp)
                     )
                     InputFitness(
-                        value = recipeDate,
-                        onValueChange = { recipeDate = it },
-                        placeholder = "YYYY-MM-DD"
+                        value = mealType,
+                        onValueChange = { mealType = it },
+                        placeholder = "e.g. Cena, Almuerzo, Desayuno"
                     )
+                }
+
+                // Scheduled Days
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "DÍAS PROGRAMADOS (OPCIONAL)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = labelColor,
+                        letterSpacing = 1.2.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+                    daysOfWeek.forEach { day ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Checkbox(
+                                checked = selectedDays.contains(day),
+                                onCheckedChange = { checked ->
+                                    selectedDays = if (checked) {
+                                        selectedDays + day
+                                    } else {
+                                        selectedDays - day
+                                    }
+                                },
+                                colors = CheckboxDefaults.colors(
+                                    checkedColor = Color(0xFF10B981),
+                                    uncheckedColor = labelColor
+                                )
+                            )
+                            Text(
+                                text = day,
+                                fontSize = 14.sp,
+                                color = textColor
+                            )
+                        }
+                    }
                 }
 
                 // Description
@@ -285,7 +328,8 @@ fun AddRecipeScreen(
                             ingredients = ingredients,
                             instructions = instructions,
                             userId = 1,
-                            scheduledDatetime = recipeDate.ifEmpty { null }
+                            scheduledDays = selectedDays,
+                            mealType = mealType.ifEmpty { null }
                         )
                     },
                     modifier = Modifier

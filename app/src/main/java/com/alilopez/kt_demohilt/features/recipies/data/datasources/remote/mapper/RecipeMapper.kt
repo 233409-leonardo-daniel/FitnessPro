@@ -11,6 +11,8 @@ fun RecipeDto.toDomain(): Recipe {
         ingredients = this.ingredients,
         instructions = this.instructions,
         userId = this.userId,
-        scheduledDatetime = this.scheduledDatetime
+        scheduledDays = this.scheduledDays,
+        mealType = this.mealType,
+        imageUrl = this.imageUrl
     )
 }

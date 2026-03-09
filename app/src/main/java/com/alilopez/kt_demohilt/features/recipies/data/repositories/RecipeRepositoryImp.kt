@@ -20,7 +20,9 @@ class RecipeRepositoryImp @Inject constructor(
         ingredients: String,
         instructions: String,
         userId: Int?,
-        scheduledDatetime: String?
+        scheduledDays: List<String>,
+        mealType: String?,
+        imageUrl: String?
     ): Recipe {
         val recipeCreateDto = RecipeCreateDto(
             name = name,
@@ -28,7 +30,9 @@ class RecipeRepositoryImp @Inject constructor(
             ingredients = ingredients,
             instructions = instructions,
             userId = userId,
-            scheduledDatetime = scheduledDatetime
+            scheduledDays = scheduledDays,
+            mealType = mealType,
+            imageUrl = imageUrl
         )
         return fitnessProApi.createRecipe(recipeCreateDto).toDomain()
     }
@@ -40,7 +44,9 @@ class RecipeRepositoryImp @Inject constructor(
         ingredients: String,
         instructions: String,
         userId: Int?,
-        scheduledDatetime: String?
+        scheduledDays: List<String>,
+        mealType: String?,
+        imageUrl: String?
     ): Recipe {
         val recipeCreateDto = RecipeCreateDto(
             name = name,
@@ -48,7 +54,9 @@ class RecipeRepositoryImp @Inject constructor(
             ingredients = ingredients,
             instructions = instructions,
             userId = userId,
-            scheduledDatetime = scheduledDatetime
+            scheduledDays = scheduledDays,
+            mealType = mealType,
+            imageUrl = imageUrl
         )
         return fitnessProApi.updateRecipe(recipeId, recipeCreateDto).toDomain()
     }

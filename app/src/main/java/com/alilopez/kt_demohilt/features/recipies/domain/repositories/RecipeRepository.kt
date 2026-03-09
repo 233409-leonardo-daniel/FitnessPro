@@ -11,7 +11,9 @@ interface RecipeRepository {
         ingredients: String,
         instructions: String,
         userId: Int?,
-        scheduledDatetime: String?
+        scheduledDays: List<String>,
+        mealType: String?,
+        imageUrl: String?
     ): Recipe
 
     suspend fun updateRecipe(
@@ -21,7 +23,9 @@ interface RecipeRepository {
         ingredients: String,
         instructions: String,
         userId: Int?,
-        scheduledDatetime: String?
+        scheduledDays: List<String>,
+        mealType: String?,
+        imageUrl: String?
     ): Recipe
 
     suspend fun deleteRecipe(recipeId: Int)

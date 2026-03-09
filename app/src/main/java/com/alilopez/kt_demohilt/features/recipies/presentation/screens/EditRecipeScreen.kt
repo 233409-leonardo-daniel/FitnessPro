@@ -60,10 +60,13 @@ fun EditRecipeScreen(
     val isStillLoading = uiState.isLoading || (!hasAttemptedLoad && recipe == null)
 
     var recipeName by remember(recipe) { mutableStateOf(recipe?.name ?: "") }
-    var recipeDate by remember(recipe) { mutableStateOf(recipe?.scheduledDatetime ?: "") }
     var description by remember(recipe) { mutableStateOf(recipe?.description ?: "") }
     var ingredients by remember(recipe) { mutableStateOf(recipe?.ingredients ?: "") }
     var instructions by remember(recipe) { mutableStateOf(recipe?.instructions ?: "") }
+    var mealType by remember(recipe) { mutableStateOf(recipe?.mealType ?: "") }
+
+    val daysOfWeek = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
+    var selectedDays by remember(recipe) { mutableStateOf(recipe?.scheduledDays ?: emptyList()) }
 
     // Observar cuando se actualiza exitosamente la receta
     LaunchedEffect(uiState.recipeUpdated) {
@@ -199,12 +202,12 @@ fun EditRecipeScreen(
                         )
                     }
 
-                    // Date
+                    // Meal Type
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
                         Text(
-                            text = "FECHA (OPCIONAL)",
+                            text = "TIPO DE COMIDA (OPCIONAL)",
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Bold,
                             color = labelColor,
@@ -212,10 +215,50 @@ fun EditRecipeScreen(
                             modifier = Modifier.padding(start = 4.dp)
                         )
                         InputFitness(
-                            value = recipeDate,
-                            onValueChange = { recipeDate = it },
-                            placeholder = "YYYY-MM-DD"
+                            value = mealType,
+                            onValueChange = { mealType = it },
+                            placeholder = "e.g. Cena, Almuerzo, Desayuno"
                         )
+                    }
+
+                    // Scheduled Days
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "DÍAS PROGRAMADOS (OPCIONAL)",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = labelColor,
+                            letterSpacing = 1.2.sp,
+                            modifier = Modifier.padding(start = 4.dp)
+                        )
+                        daysOfWeek.forEach { day ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Checkbox(
+                                    checked = selectedDays.contains(day),
+                                    onCheckedChange = { checked ->
+                                        selectedDays = if (checked) {
+                                            selectedDays + day
+                                        } else {
+                                            selectedDays - day
+                                        }
+                                    },
+                                    colors = CheckboxDefaults.colors(
+                                        checkedColor = Color(0xFF10B981),
+                                        uncheckedColor = labelColor
+                                    )
+                                )
+                                Text(
+                                    text = day,
+                                    fontSize = 14.sp,
+                                    color = textColor
+                                )
+                            }
+                        }
                     }
 
                     // Description
@@ -372,7 +415,9 @@ fun EditRecipeScreen(
                                 ingredients = ingredients,
                                 instructions = instructions,
                                 userId = recipe?.userId,
-                                scheduledDatetime = recipeDate.ifEmpty { null }
+                                scheduledDays = selectedDays,
+                                mealType = mealType.ifEmpty { null },
+                                imageUrl = recipe?.imageUrl
                             )
                         },
                         modifier = Modifier

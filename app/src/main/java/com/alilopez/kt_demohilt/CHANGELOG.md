@@ -2,6 +2,26 @@
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-03-09
+
+### Fixed
+- Se corrigio un error de UI en `HomeScreen` donde las cards de recetas y ejercicios no se mostraban correctamente
+- Se ajusto la entidad de receta para aceptar imagenes y se corrigio el mapeo en `HomeViewModel` para mostrar las imagenes en las cards.
+
+## [2.1.0] - 2026-03-08
+
+### Added
+- Nueva pantalla `HomeScreen` que combina recetas y ejercicios en una sola vista con scroll vertical.
+- `HomeViewModel` con inyeccion de `GetRecipiesUseCase` y `GetExercisesUseCase` para cargar ambos datos al iniciar.
+- `HomeUIState` con estados separados de carga/error para recetas y ejercicios.
+- Cards compactas de receta (`HomeRecipeCard`) y ejercicio (`HomeExerciseCard`) con estilo verde uniforme.
+- Seccion "Recetas Guardadas" con acceso a agregar/editar recetas desde Home.
+- Seccion "Recomendados para ti" mostrando los primeros 5 ejercicios con GIF y musculos objetivo.
+
+### Changed
+- Flujo de navegacion post-login ahora dirige a `HomeScreen` en lugar de la pantalla de recetas individual.
+- `NavigationWrapper` actualizado para importar `HomeScreen` desde `features.home.presentation.screens`.
+
 ## [2.0.0] - 2026-03-08
 
 ### Fixed

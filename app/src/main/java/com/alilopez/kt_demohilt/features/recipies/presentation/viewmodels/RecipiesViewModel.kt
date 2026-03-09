@@ -51,7 +51,9 @@ class RecipiesViewModel @Inject constructor(
         ingredients: String,
         instructions: String,
         userId: Int? = null,
-        scheduledDatetime: String? = null
+        scheduledDays: List<String> = emptyList(),
+        mealType: String? = null,
+        imageUrl: String? = null
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -63,7 +65,9 @@ class RecipiesViewModel @Inject constructor(
                     ingredients = ingredients,
                     instructions = instructions,
                     userId = userId,
-                    scheduledDatetime = scheduledDatetime
+                    scheduledDays = scheduledDays,
+                    mealType = mealType,
+                    imageUrl = imageUrl
                 )
 
                 // Actualizar la lista de recetas añadiendo la nueva receta
@@ -94,7 +98,9 @@ class RecipiesViewModel @Inject constructor(
         ingredients: String,
         instructions: String,
         userId: Int? = null,
-        scheduledDatetime: String? = null
+        scheduledDays: List<String> = emptyList(),
+        mealType: String? = null,
+        imageUrl: String? = null
     ) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -107,7 +113,9 @@ class RecipiesViewModel @Inject constructor(
                     ingredients = ingredients,
                     instructions = instructions,
                     userId = userId,
-                    scheduledDatetime = scheduledDatetime
+                    scheduledDays = scheduledDays,
+                    mealType = mealType,
+                    imageUrl = imageUrl
                 )
 
                 // Actualizar la lista de recetas reemplazando la receta actualizada
