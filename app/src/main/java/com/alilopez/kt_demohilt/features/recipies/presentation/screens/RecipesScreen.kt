@@ -26,7 +26,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
-import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipiesViewModel
+import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipesListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,7 +35,7 @@ fun RecipesScreen(
     onNavigateToEditRecipe: (Int) -> Unit,
     onNavigateToExercises: () -> Unit,
     modifier: Modifier = Modifier,
-    viewModel: RecipiesViewModel = hiltViewModel()
+    viewModel: RecipesListViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()

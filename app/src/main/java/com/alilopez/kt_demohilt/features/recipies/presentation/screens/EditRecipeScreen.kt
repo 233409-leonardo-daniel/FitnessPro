@@ -3,6 +3,7 @@ package com.alilopez.kt_demohilt.features.recipies.presentation.screens
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -22,17 +23,24 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.core.components.InputFitness
-import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipiesViewModel
+import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.EditRecipeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditRecipeScreen(
     recipeId: Int,
     onNavigateBack: () -> Unit,
-    viewModel: RecipiesViewModel = hiltViewModel()
+    viewModel: EditRecipeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+
+    val name by viewModel.name.collectAsStateWithLifecycle()
+    val description by viewModel.description.collectAsStateWithLifecycle()
+    val ingredients by viewModel.ingredients.collectAsStateWithLifecycle()
+    val instructions by viewModel.instructions.collectAsStateWithLifecycle()
+    val selectedMealType by viewModel.selectedMealType.collectAsStateWithLifecycle()
+    val selectedDays by viewModel.selectedDays.collectAsStateWithLifecycle()
 
     // Colores uniformes con LoginScreen
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
@@ -42,31 +50,13 @@ fun EditRecipeScreen(
     val textFieldBorder = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
     val placeholderColor = if (isDarkTheme) Color(0xFF64748B) else Color(0xFF94A3B8)
 
-    // Estado local para saber si ya se intentó cargar las recetas
-    var hasAttemptedLoad by remember { mutableStateOf(false) }
-
-    // Cargar recetas si la lista está vacía
-    LaunchedEffect(Unit) {
-        if (uiState.recipies.isEmpty()) {
-            viewModel.getRecipies()
-        }
-        hasAttemptedLoad = true
-    }
-
-    // Encontrar la receta a editar
-    val recipe = uiState.recipies.find { it.id == recipeId }
-
-    // Determinar si aún está cargando
-    val isStillLoading = uiState.isLoading || (!hasAttemptedLoad && recipe == null)
-
-    var recipeName by remember(recipe) { mutableStateOf(recipe?.name ?: "") }
-    var description by remember(recipe) { mutableStateOf(recipe?.description ?: "") }
-    var ingredients by remember(recipe) { mutableStateOf(recipe?.ingredients ?: "") }
-    var instructions by remember(recipe) { mutableStateOf(recipe?.instructions ?: "") }
-    var mealType by remember(recipe) { mutableStateOf(recipe?.mealType ?: "") }
-
+    val mealTypeOptions = listOf("Desayuno", "Almuerzo", "Cena", "Snack")
     val daysOfWeek = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
-    var selectedDays by remember(recipe) { mutableStateOf(recipe?.scheduledDays ?: emptyList()) }
+
+    // Cargar la receta al entrar
+    LaunchedEffect(Unit) {
+        viewModel.loadRecipe(recipeId)
+    }
 
     // Observar cuando se actualiza exitosamente la receta
     LaunchedEffect(uiState.recipeUpdated) {
@@ -111,8 +101,8 @@ fun EditRecipeScreen(
                 .padding(innerPadding)
         ) {
             when {
-                // Mostrar loading mientras se cargan las recetas o aún no se ha intentado cargar
-                isStillLoading -> {
+                // Mostrar loading mientras se cargan las recetas
+                uiState.isLoading && uiState.recipe == null -> {
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -136,7 +126,7 @@ fun EditRecipeScreen(
                 }
 
                 // Mostrar mensaje si no se encuentra la receta después de cargar
-                recipe == null -> {
+                uiState.recipe == null -> {
                     Column(
                         modifier = Modifier
                             .align(Alignment.Center)
@@ -171,7 +161,7 @@ fun EditRecipeScreen(
                 // Mostrar formulario cuando se encuentra la receta
                 else -> {
                     AnimatedVisibility(
-                        visible = recipe != null,
+                        visible = uiState.recipe != null,
                         enter = fadeIn(),
                         exit = fadeOut()
                     ) {
@@ -196,13 +186,13 @@ fun EditRecipeScreen(
                             modifier = Modifier.padding(start = 4.dp)
                         )
                         InputFitness(
-                            value = recipeName,
-                            onValueChange = { recipeName = it },
+                            value = name,
+                            onValueChange = { viewModel.onNameChange(it) },
                             placeholder = "e.g. Grilled Salmon Salad"
                         )
                     }
 
-                    // Meal Type
+                    // Meal Type - Radio Buttons
                     Column(
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
@@ -214,11 +204,32 @@ fun EditRecipeScreen(
                             letterSpacing = 1.2.sp,
                             modifier = Modifier.padding(start = 4.dp)
                         )
-                        InputFitness(
-                            value = mealType,
-                            onValueChange = { mealType = it },
-                            placeholder = "e.g. Cena, Almuerzo, Desayuno"
-                        )
+                        mealTypeOptions.forEach { option ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable {
+                                        viewModel.onMealTypeChange(if (selectedMealType == option) null else option)
+                                    }
+                            ) {
+                                RadioButton(
+                                    selected = selectedMealType == option,
+                                    onClick = {
+                                        viewModel.onMealTypeChange(if (selectedMealType == option) null else option)
+                                    },
+                                    colors = RadioButtonDefaults.colors(
+                                        selectedColor = Color(0xFF10B981),
+                                        unselectedColor = labelColor
+                                    )
+                                )
+                                Text(
+                                    text = option,
+                                    fontSize = 14.sp,
+                                    color = textColor
+                                )
+                            }
+                        }
                     }
 
                     // Scheduled Days
@@ -240,13 +251,7 @@ fun EditRecipeScreen(
                             ) {
                                 Checkbox(
                                     checked = selectedDays.contains(day),
-                                    onCheckedChange = { checked ->
-                                        selectedDays = if (checked) {
-                                            selectedDays + day
-                                        } else {
-                                            selectedDays - day
-                                        }
-                                    },
+                                    onCheckedChange = { viewModel.onDayToggle(day) },
                                     colors = CheckboxDefaults.colors(
                                         checkedColor = Color(0xFF10B981),
                                         uncheckedColor = labelColor
@@ -275,7 +280,7 @@ fun EditRecipeScreen(
                         )
                         OutlinedTextField(
                             value = description,
-                            onValueChange = { description = it },
+                            onValueChange = { viewModel.onDescriptionChange(it) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(120.dp),
@@ -313,7 +318,7 @@ fun EditRecipeScreen(
                         )
                         OutlinedTextField(
                             value = ingredients,
-                            onValueChange = { ingredients = it },
+                            onValueChange = { viewModel.onIngredientsChange(it) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(120.dp),
@@ -351,7 +356,7 @@ fun EditRecipeScreen(
                         )
                         OutlinedTextField(
                             value = instructions,
-                            onValueChange = { instructions = it },
+                            onValueChange = { viewModel.onInstructionsChange(it) },
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .height(180.dp),
@@ -407,23 +412,11 @@ fun EditRecipeScreen(
 
                     // Update Button
                     Button(
-                        onClick = {
-                            viewModel.updateRecipe(
-                                recipeId = recipeId,
-                                name = recipeName,
-                                description = description,
-                                ingredients = ingredients,
-                                instructions = instructions,
-                                userId = recipe?.userId,
-                                scheduledDays = selectedDays,
-                                mealType = mealType.ifEmpty { null },
-                                imageUrl = recipe?.imageUrl
-                            )
-                        },
+                        onClick = { viewModel.updateRecipe(recipeId) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(56.dp),
-                        enabled = !uiState.isLoading && recipeName.isNotBlank() &&
+                        enabled = !uiState.isLoading && name.isNotBlank() &&
                                 description.isNotBlank() && ingredients.isNotBlank() &&
                                 instructions.isNotBlank(),
                         shape = RoundedCornerShape(12.dp),
