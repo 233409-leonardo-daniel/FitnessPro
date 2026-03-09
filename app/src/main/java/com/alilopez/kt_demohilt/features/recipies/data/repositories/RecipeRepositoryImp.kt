@@ -5,6 +5,11 @@ import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.domain.repositories.RecipeRepository
+import okhttp3.MediaType.Companion.toMediaTypeOrNull
+import okhttp3.MultipartBody
+import okhttp3.RequestBody.Companion.asRequestBody
+import okhttp3.RequestBody.Companion.toRequestBody
+import java.io.File
 import javax.inject.Inject
 
 class RecipeRepositoryImp @Inject constructor(
@@ -22,19 +27,34 @@ class RecipeRepositoryImp @Inject constructor(
         userId: Int?,
         scheduledDays: List<String>,
         mealType: String?,
-        imageUrl: String?
+        imageFile: File?
     ): Recipe {
-        val recipeCreateDto = RecipeCreateDto(
-            name = name,
-            description = description,
-            ingredients = ingredients,
-            instructions = instructions,
-            userId = userId,
-            scheduledDays = scheduledDays,
-            mealType = mealType,
-            imageUrl = imageUrl
-        )
-        return fitnessProApi.createRecipe(recipeCreateDto).toDomain()
+        val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
+        val descriptionPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
+        val ingredientsPart = ingredients.toRequestBody("text/plain".toMediaTypeOrNull())
+        val instructionsPart = instructions.toRequestBody("text/plain".toMediaTypeOrNull())
+        val userIdPart = userId?.toString()?.toRequestBody("text/plain".toMediaTypeOrNull())
+        val scheduledDaysPart = if (scheduledDays.isNotEmpty()) {
+            scheduledDays.joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
+        } else null
+        val mealTypePart = mealType?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        val imagePart = imageFile?.let { file ->
+            val mediaType = "image/*".toMediaTypeOrNull()
+            val requestFile = file.asRequestBody(mediaType)
+            MultipartBody.Part.createFormData("image", file.name, requestFile)
+        }
+
+        return fitnessProApi.createRecipe(
+            name = namePart,
+            description = descriptionPart,
+            ingredients = ingredientsPart,
+            instructions = instructionsPart,
+            userId = userIdPart,
+            scheduledDays = scheduledDaysPart,
+            mealType = mealTypePart,
+            image = imagePart
+        ).toDomain()
     }
 
     override suspend fun updateRecipe(

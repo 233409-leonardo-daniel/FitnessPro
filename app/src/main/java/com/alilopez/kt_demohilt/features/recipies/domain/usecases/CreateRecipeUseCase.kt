@@ -2,6 +2,7 @@ package com.alilopez.kt_demohilt.features.recipies.domain.usecases
 
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.domain.repositories.RecipeRepository
+import java.io.File
 import javax.inject.Inject
 
 class CreateRecipeUseCase @Inject constructor(
@@ -15,7 +16,7 @@ class CreateRecipeUseCase @Inject constructor(
         userId: Int? = null,
         scheduledDays: List<String> = emptyList(),
         mealType: String? = null,
-        imageUrl: String? = null
+        imageFile: File? = null
     ): Recipe {
         return recipeRepository.createRecipe(
             name = name,
@@ -25,7 +26,7 @@ class CreateRecipeUseCase @Inject constructor(
             userId = userId,
             scheduledDays = scheduledDays,
             mealType = mealType,
-            imageUrl = imageUrl
+            imageFile = imageFile
         )
     }
 }

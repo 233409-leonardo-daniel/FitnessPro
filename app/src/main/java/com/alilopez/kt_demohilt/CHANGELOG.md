@@ -2,7 +2,55 @@
 
 ## [Unreleased]
 
-## [2.1.1] - 2026-03-09
+
+## Cómo usar este archivo
+1. Al terminar un cambio importante, añade una entrada nueva arriba en "Historial de cambios".
+2. Sigue el formato de la plantilla (versión/fecha, tipo, breve detalle, archivos tocados, autor, issue).
+3. Cuando el cambio requiera actualizar la versión, sigue las reglas en la sección "Versionamiento...".
+4. No borres entradas antiguas; sólo añade nuevas.
+
+---
+
+## Versionamiento y reglas para cambiar versión
+
+Usamos un esquema simple tipo SemVer: MAJOR.MINOR.PATCH (ej. 0.1.0).
+
+- Bump PATCH (ej. 0.1.1) = Corrección de bugs o cambios pequeños que no añaden features.
+- Bump MINOR (ej. 0.2.0) = Nueva funcionalidad que no rompe compatibilidad (feature visible, nuevos endpoints, UI importante).
+- Bump MAJOR (ej. 1.0.0) = Cambio incompatible que rompe flujos existentes, reestructura DB o cambia contratos de API.
+
+Reglas prácticas:
+- Si el cambio es solo CSS o texto, solo añade entrada y no cambies versión (opcional: PATCH).
+- Si agregas una nueva API o endpoint, sube MINOR.
+- Si arreglas un bug visible o typo en lógica, sube PATCH.
+- Si cambias la estructura de la base de datos o rompes endpoints, sube MAJOR.
+
+Cómo cambiar la versión en el changelog:
+- Edita la línea "Versión actual" al inicio con la nueva versión.
+- Añade una entrada nueva con la versión y fecha en la parte superior del "Historial de cambios".
+
+(Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
+
+## [3.0.0] - 2026-03-08
+
+### Added
+- Soporte de creacion de recetas via `multipart/form-data` con `@Multipart` en `FitnessProApi` para enviar campos `Form` e imagen (`image`).
+- Integracion de camara como hardware real para recetas mediante `CameraPhotoManager` y `AndroidCameraPhotoManager`.
+- Configuracion de `FileProvider` (`@xml/file_paths`) y permiso `CAMERA` en `AndroidManifest.xml` para captura segura de fotos.
+- Nuevos estados de pantalla separados: `AddRecipeUIState`, `EditRecipeUIState` y `RecipesListUIState`.
+
+### Changed
+- Entidad y mapeo de receta alineados con API: `scheduled_days`, `meal_type` e `image_url`.
+- Flujo de creacion de receta migrado de `@Body` JSON a request multipart con `RequestBody`/`MultipartBody.Part`.
+- `AddRecipeScreen` ahora permite tomar foto con camara y previsualizarla antes de guardar.
+- Tipo de comida en formularios de recetas actualizado a seleccion unica (radio buttons) para evitar texto libre.
+
+### Refactored
+- Separacion de responsabilidades en recetas: `RecipesListViewModel`, `AddRecipeViewModel` y `EditRecipeViewModel`.
+- Adopcion del patron de estado de `LoginViewModel`: variables de formulario en `StateFlow` independientes y `uiState` solo para loading/error/eventos.
+- Las screens de recetas consumen estado con `collectAsStateWithLifecycle` y delegan mutaciones al ViewModel.
+
+## [2.1.1] - 2026-03-08
 
 ### Fixed
 - Se corrigio un error de UI en `HomeScreen` donde las cards de recetas y ejercicios no se mostraban correctamente

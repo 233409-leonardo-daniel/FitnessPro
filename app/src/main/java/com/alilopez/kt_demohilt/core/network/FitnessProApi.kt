@@ -6,13 +6,17 @@ import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserLoginResponseDto
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.http.Body
 import retrofit2.http.DELETE
 import retrofit2.http.Field
 import retrofit2.http.FormUrlEncoded
 import retrofit2.http.GET
+import retrofit2.http.Multipart
 import retrofit2.http.POST
 import retrofit2.http.PUT
+import retrofit2.http.Part
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -37,9 +41,17 @@ interface FitnessProApi {
         @Body user: UserCreateDto
     ): UserDto
 
+    @Multipart
     @POST("recipes")
     suspend fun createRecipe(
-        @Body recipe: RecipeCreateDto
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("ingredients") ingredients: RequestBody,
+        @Part("instructions") instructions: RequestBody,
+        @Part("user_id") userId: RequestBody?,
+        @Part("scheduled_days") scheduledDays: RequestBody?,
+        @Part("meal_type") mealType: RequestBody?,
+        @Part image: MultipartBody.Part?
     ): RecipeDto
 
     @PUT("recipes/{recipe_id}")

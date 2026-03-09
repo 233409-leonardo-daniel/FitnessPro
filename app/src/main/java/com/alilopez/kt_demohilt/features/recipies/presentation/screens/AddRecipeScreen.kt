@@ -1,5 +1,10 @@
 package com.alilopez.kt_demohilt.features.recipies.presentation.screens
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -12,23 +17,37 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.alilopez.kt_demohilt.core.components.InputFitness
-import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipiesViewModel
+import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.AddRecipeViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddRecipeScreen(
     onNavigateBack: () -> Unit,
-    viewModel: RecipiesViewModel = hiltViewModel()
+    viewModel: AddRecipeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+
+    val name by viewModel.name.collectAsStateWithLifecycle()
+    val description by viewModel.description.collectAsStateWithLifecycle()
+    val ingredients by viewModel.ingredients.collectAsStateWithLifecycle()
+    val instructions by viewModel.instructions.collectAsStateWithLifecycle()
+    val selectedMealType by viewModel.selectedMealType.collectAsStateWithLifecycle()
+    val selectedDays by viewModel.selectedDays.collectAsStateWithLifecycle()
+    val photoUri by viewModel.photoUri.collectAsStateWithLifecycle()
+    val photoTaken by viewModel.photoTaken.collectAsStateWithLifecycle()
 
     // Colores uniformes con LoginScreen
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
@@ -38,14 +57,25 @@ fun AddRecipeScreen(
     val textFieldBorder = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
     val placeholderColor = if (isDarkTheme) Color(0xFF64748B) else Color(0xFF94A3B8)
 
-    var recipeName by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var ingredients by remember { mutableStateOf("") }
-    var instructions by remember { mutableStateOf("") }
-    var mealType by remember { mutableStateOf("") }
-
+    val mealTypeOptions = listOf("Desayuno", "Almuerzo", "Cena")
     val daysOfWeek = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
-    var selectedDays by remember { mutableStateOf<List<String>>(emptyList()) }
+
+    // Launcher para tomar foto con la cámara
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        viewModel.onPhotoTaken(success)
+    }
+
+    // Launcher para solicitar permiso de cámara
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            val uri = viewModel.createPhotoUri()
+            takePictureLauncher.launch(uri)
+        }
+    }
 
     // Observar cuando se crea exitosamente la receta
     LaunchedEffect(uiState.recipeCreated) {
@@ -97,6 +127,67 @@ fun AddRecipeScreen(
                     .padding(bottom = 80.dp),
                 verticalArrangement = Arrangement.spacedBy(24.dp)
             ) {
+                // Foto de la receta (Cámara)
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "FOTO DE LA RECETA (OPCIONAL)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = labelColor,
+                        letterSpacing = 1.2.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .clip(RoundedCornerShape(12.dp))
+                            .border(
+                                width = 1.dp,
+                                color = if (photoTaken) Color(0xFF10B981) else textFieldBorder,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .clickable {
+                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                            },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        if (photoTaken && photoUri != null) {
+                            AsyncImage(
+                                model = ImageRequest.Builder(LocalContext.current)
+                                    .data(photoUri)
+                                    .crossfade(true)
+                                    .build(),
+                                contentDescription = "Foto tomada",
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .clip(RoundedCornerShape(12.dp)),
+                                contentScale = ContentScale.Crop
+                            )
+                        } else {
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally,
+                                verticalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.AddAPhoto,
+                                    contentDescription = "Tomar foto",
+                                    tint = labelColor,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                                Text(
+                                    text = "Toca para tomar una foto",
+                                    fontSize = 14.sp,
+                                    color = placeholderColor
+                                )
+                            }
+                        }
+                    }
+                }
+
                 // Recipe Name
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -110,13 +201,13 @@ fun AddRecipeScreen(
                         modifier = Modifier.padding(start = 4.dp)
                     )
                     InputFitness(
-                        value = recipeName,
-                        onValueChange = { recipeName = it },
+                        value = name,
+                        onValueChange = { viewModel.onNameChange(it) },
                         placeholder = "e.g. Grilled Salmon Salad"
                     )
                 }
 
-                // Meal Type
+                // Meal Type - Radio Buttons
                 Column(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
@@ -128,11 +219,32 @@ fun AddRecipeScreen(
                         letterSpacing = 1.2.sp,
                         modifier = Modifier.padding(start = 4.dp)
                     )
-                    InputFitness(
-                        value = mealType,
-                        onValueChange = { mealType = it },
-                        placeholder = "e.g. Cena, Almuerzo, Desayuno"
-                    )
+                    mealTypeOptions.forEach { option ->
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable {
+                                    viewModel.onMealTypeChange(if (selectedMealType == option) null else option)
+                                }
+                        ) {
+                            RadioButton(
+                                selected = selectedMealType == option,
+                                onClick = {
+                                    viewModel.onMealTypeChange(if (selectedMealType == option) null else option)
+                                },
+                                colors = RadioButtonDefaults.colors(
+                                    selectedColor = Color(0xFF10B981),
+                                    unselectedColor = labelColor
+                                )
+                            )
+                            Text(
+                                text = option,
+                                fontSize = 14.sp,
+                                color = textColor
+                            )
+                        }
+                    }
                 }
 
                 // Scheduled Days
@@ -154,13 +266,7 @@ fun AddRecipeScreen(
                         ) {
                             Checkbox(
                                 checked = selectedDays.contains(day),
-                                onCheckedChange = { checked ->
-                                    selectedDays = if (checked) {
-                                        selectedDays + day
-                                    } else {
-                                        selectedDays - day
-                                    }
-                                },
+                                onCheckedChange = { viewModel.onDayToggle(day) },
                                 colors = CheckboxDefaults.colors(
                                     checkedColor = Color(0xFF10B981),
                                     uncheckedColor = labelColor
@@ -189,7 +295,7 @@ fun AddRecipeScreen(
                     )
                     OutlinedTextField(
                         value = description,
-                        onValueChange = { description = it },
+                        onValueChange = { viewModel.onDescriptionChange(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp),
@@ -227,7 +333,7 @@ fun AddRecipeScreen(
                     )
                     OutlinedTextField(
                         value = ingredients,
-                        onValueChange = { ingredients = it },
+                        onValueChange = { viewModel.onIngredientsChange(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(120.dp),
@@ -265,7 +371,7 @@ fun AddRecipeScreen(
                     )
                     OutlinedTextField(
                         value = instructions,
-                        onValueChange = { instructions = it },
+                        onValueChange = { viewModel.onInstructionsChange(it) },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp),
@@ -321,21 +427,11 @@ fun AddRecipeScreen(
 
                 // Save Button
                 Button(
-                    onClick = {
-                        viewModel.createRecipe(
-                            name = recipeName,
-                            description = description,
-                            ingredients = ingredients,
-                            instructions = instructions,
-                            userId = 1,
-                            scheduledDays = selectedDays,
-                            mealType = mealType.ifEmpty { null }
-                        )
-                    },
+                    onClick = { viewModel.createRecipe() },
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = !uiState.isLoading && recipeName.isNotBlank() &&
+                    enabled = !uiState.isLoading && name.isNotBlank() &&
                              description.isNotBlank() && ingredients.isNotBlank() &&
                              instructions.isNotBlank(),
                     shape = RoundedCornerShape(12.dp),
