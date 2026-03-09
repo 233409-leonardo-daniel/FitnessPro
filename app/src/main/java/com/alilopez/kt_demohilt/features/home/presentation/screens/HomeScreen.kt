@@ -16,13 +16,13 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -50,14 +50,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
-import coil.request.ImageRequest
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.gifImageLoader
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
-import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
+import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -90,6 +89,13 @@ fun HomeScreen(
                     )
                 },
                 actions = {
+                    IconButton(onClick = { viewModel.loadData() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Actualizar contenido",
+                            tint = accentColor
+                        )
+                    }
                     IconButton(onClick = onNavigateToExercises) {
                         Icon(
                             imageVector = Icons.Default.FitnessCenter,
@@ -185,11 +191,10 @@ fun HomeScreen(
                 }
             } else {
                 items(uiState.recipes) { recipe ->
-                    HomeRecipeCard(
+                    RecipeCard(
                         recipe = recipe,
                         onEdit = { onNavigateToEditRecipe(recipe.id) },
-                        isDarkTheme = isDarkTheme,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )
                 }
             }
@@ -251,104 +256,6 @@ fun HomeScreen(
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
                     )
                 }
-            }
-        }
-    }
-}
-
-// ── Card compacta de receta para Home ──
-@Composable
-private fun HomeRecipeCard(
-    recipe: Recipe,
-    onEdit: () -> Unit,
-    isDarkTheme: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
-    val accentColor = Color(0xFF10B981)
-
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Imagen de la receta
-            if (!recipe.imageUrl.isNullOrBlank()) {
-                AsyncImage(
-                    model = ImageRequest.Builder(LocalContext.current)
-                        .data(recipe.imageUrl)
-                        .crossfade(true)
-                        .build(),
-                    contentDescription = recipe.name,
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(RoundedCornerShape(12.dp)),
-                    contentScale = ContentScale.Crop
-                )
-            } else {
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .clip(CircleShape)
-                        .background(accentColor.copy(alpha = 0.15f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text("🍽", fontSize = 22.sp)
-                }
-            }
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            // Info
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = recipe.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = recipe.description,
-                    fontSize = 13.sp,
-                    color = secondaryTextColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 18.sp
-                )
-                if (recipe.scheduledDays.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            tint = accentColor,
-                            modifier = Modifier.size(14.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                    }
-                }
-            }
-
-            // Acciones
-            IconButton(onClick = onEdit, modifier = Modifier.size(36.dp)) {
-                Icon(
-                    imageVector = Icons.Default.Edit,
-                    contentDescription = "Editar",
-                    tint = accentColor,
-                    modifier = Modifier.size(18.dp)
-                )
             }
         }
     }
