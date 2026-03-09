@@ -11,11 +11,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 
 @Composable
@@ -49,109 +54,146 @@ fun RecipeCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp)
         ) {
-            // Header: Nombre de la receta con iconos de acción
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = recipe.name,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.weight(1f)
+            // Imagen de la receta
+            if (!recipe.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(recipe.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = recipe.name,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp)
+                        .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
+                    contentScale = ContentScale.Crop
                 )
-
-                Row(
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
-                ) {
-                    // Botón editar
-                    IconButton(
-                        onClick = onEdit,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar receta",
-                            tint = accentColor,
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-
-                    // Botón eliminar
-                    IconButton(
-                        onClick = onDelete,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar receta",
-                            tint = Color(0xFFEF4444),
-                            modifier = Modifier.size(20.dp)
-                        )
-                    }
-                }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            // Descripción
-            Text(
-                text = recipe.description,
-                fontSize = 14.sp,
-                color = secondaryTextColor,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                lineHeight = 20.sp
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Divider
-            HorizontalDivider(
-                thickness = 1.dp,
-                color = dividerColor
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            // Footer: Información adicional
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp)
             ) {
-                // Ingredientes
-                Column() {
-                    Text("Ingredientes: ${recipe.ingredients}", fontSize = 12.sp, color = secondaryTextColor, fontWeight = FontWeight.Medium)
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Spacer(modifier = Modifier.height(2.dp))
-                    Text("Instrucciones: ${recipe.instructions}", fontSize = 12.sp, color = secondaryTextColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                // Header: Nombre de la receta con iconos de acción
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = recipe.name,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = textColor,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    ) {
+                        // Botón editar
+                        IconButton(
+                            onClick = onEdit,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar receta",
+                                tint = accentColor,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+
+                        // Botón eliminar
+                        IconButton(
+                            onClick = onDelete,
+                            modifier = Modifier.size(40.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar receta",
+                                tint = Color(0xFFEF4444),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                    }
                 }
 
-                // Fecha programada
-                if (recipe.scheduledDatetime != null) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.DateRange,
-                            contentDescription = null,
-                            tint = secondaryTextColor,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Text(
-                            text = recipe.scheduledDatetime.split("T").firstOrNull() ?: recipe.scheduledDatetime,
-                            fontSize = 12.sp,
-                            color = secondaryTextColor,
-                            fontWeight = FontWeight.Medium
-                        )
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Descripción
+                Text(
+                    text = recipe.description,
+                    fontSize = 14.sp,
+                    color = secondaryTextColor,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
+                    lineHeight = 20.sp
+                )
+
+                // Tipo de comida
+                if (!recipe.mealType.isNullOrBlank()) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    SuggestionChip(
+                        onClick = {},
+                        label = {
+                            Text(
+                                text = recipe.mealType,
+                                fontSize = 12.sp,
+                                color = accentColor
+                            )
+                        },
+                        shape = RoundedCornerShape(8.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Divider
+                HorizontalDivider(
+                    thickness = 1.dp,
+                    color = dividerColor
+                )
+
+                Spacer(modifier = Modifier.height(12.dp))
+
+                // Footer: Información adicional
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Ingredientes e instrucciones
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text("Ingredientes: ${recipe.ingredients}", fontSize = 12.sp, color = secondaryTextColor, fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.height(4.dp))
+                        Spacer(modifier = Modifier.height(2.dp))
+                        Text("Instrucciones: ${recipe.instructions}", fontSize = 12.sp, color = secondaryTextColor, maxLines = 1, overflow = TextOverflow.Ellipsis)
+                    }
+
+                    // Días programados
+                    if (recipe.scheduledDays.isNotEmpty()) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.DateRange,
+                                contentDescription = null,
+                                tint = secondaryTextColor,
+                                modifier = Modifier.size(16.dp)
+                            )
+                            Text(
+                                text = recipe.scheduledDays.joinToString(", "),
+                                fontSize = 12.sp,
+                                color = secondaryTextColor,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
                     }
                 }
             }

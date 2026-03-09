@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.gifImageLoader
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
@@ -280,15 +281,29 @@ private fun HomeRecipeCard(
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Icono decorativo
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .clip(CircleShape)
-                    .background(accentColor.copy(alpha = 0.15f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Text("🍽", fontSize = 22.sp)
+            // Imagen de la receta
+            if (!recipe.imageUrl.isNullOrBlank()) {
+                AsyncImage(
+                    model = ImageRequest.Builder(LocalContext.current)
+                        .data(recipe.imageUrl)
+                        .crossfade(true)
+                        .build(),
+                    contentDescription = recipe.name,
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(RoundedCornerShape(12.dp)),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(accentColor.copy(alpha = 0.15f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text("🍽", fontSize = 22.sp)
+                }
             }
 
             Spacer(modifier = Modifier.width(14.dp))
@@ -312,7 +327,7 @@ private fun HomeRecipeCard(
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp
                 )
-                if (recipe.scheduledDatetime != null) {
+                if (recipe.scheduledDays.isNotEmpty()) {
                     Spacer(modifier = Modifier.height(6.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
@@ -322,13 +337,6 @@ private fun HomeRecipeCard(
                             modifier = Modifier.size(14.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = recipe.scheduledDatetime.split("T").firstOrNull()
-                                ?: recipe.scheduledDatetime,
-                            fontSize = 12.sp,
-                            color = accentColor,
-                            fontWeight = FontWeight.Medium
-                        )
                     }
                 }
             }

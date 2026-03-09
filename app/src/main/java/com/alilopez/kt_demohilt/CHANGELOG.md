@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+## [2.1.1] - 2026-03-09
+
+### Fixed
+- Se corrigio un error de UI en `HomeScreen` donde las cards de recetas y ejercicios no se mostraban correctamente
+- Se ajusto la entidad de receta para aceptar imagenes y se corrigio el mapeo en `HomeViewModel` para mostrar las imagenes en las cards.
+
 ## [2.1.0] - 2026-03-08
 
 ### Added

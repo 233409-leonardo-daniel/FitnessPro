@@ -14,7 +14,9 @@ class UpdateRecipeUseCase @Inject constructor(
         ingredients: String,
         instructions: String,
         userId: Int? = null,
-        scheduledDatetime: String? = null
+        scheduledDays: List<String> = emptyList(),
+        mealType: String? = null,
+        imageUrl: String? = null
     ): Recipe {
         return recipeRepository.updateRecipe(
             recipeId = recipeId,
@@ -23,7 +25,9 @@ class UpdateRecipeUseCase @Inject constructor(
             ingredients = ingredients,
             instructions = instructions,
             userId = userId,
-            scheduledDatetime = scheduledDatetime
+            scheduledDays = scheduledDays,
+            mealType = mealType,
+            imageUrl = imageUrl
         )
     }
 }
