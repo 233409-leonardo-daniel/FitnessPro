@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.core.network
 
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExercisesResponse
+import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.LocalExerciseDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
@@ -77,17 +78,29 @@ interface FitnessProApi {
     ): ExercisesResponse
 
     @GET("exercises/local")
-    suspend fun getExercisesLocal(): ExercisesResponse
+    suspend fun getExercisesLocal(): List<LocalExerciseDto>
 
-//    @POST("exercises/local")
-//    suspend fun addExerciseLocal(
-//        @Body exercise: ExerciseRequest
-//    )
+    @Multipart
+    @POST("exercises/local")
+    suspend fun createLocalExercise(
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("user_id") userId: RequestBody,
+        @Part("scheduled_days") scheduledDays: RequestBody?,
+        @Part("bodyparts") bodyparts: RequestBody?,
+        @Part("equipment") equipment: RequestBody?,
+        @Part("target_muscles") targetMuscles: RequestBody?,
+        @Part("secondary_muscles") secondaryMuscles: RequestBody?,
+        @Part("exercise_type") exerciseType: RequestBody?,
+        @Part("instructions") instructions: RequestBody?,
+        @Part("difficulty") difficulty: RequestBody?,
+        @Part image: MultipartBody.Part?
+    ): LocalExerciseDto
 
     @GET("exercises/local/user/{user_id}")
     suspend fun getExercisesLocalByUserId(
         @Path("user_id") userId: Int
-    ): ExercisesResponse
+    ): List<LocalExerciseDto>
 
 //    @PUT("exercises/local/{exercise_id}")
 //    suspend fun updateExerciseLocal(

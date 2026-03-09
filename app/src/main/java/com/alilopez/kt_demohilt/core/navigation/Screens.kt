@@ -19,3 +19,7 @@ data class EditRecipe(val recipeId: Int)
 
 @Serializable
 object Exercises
+
+@Serializable
+object AddExercise
+

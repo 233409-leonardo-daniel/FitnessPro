@@ -1,11 +1,11 @@
-package com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels
+package com.alilopez.kt_demohilt.features.exercise.presentation.viewmodels
 
 import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.hardware.domain.CameraPhotoManager
-import com.alilopez.kt_demohilt.features.recipies.domain.usecases.CreateRecipeUseCase
-import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeUIState
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.CreateLocalExerciseUseCase
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,13 +15,13 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
-class AddRecipeViewModel @Inject constructor(
-    private val createRecipeUseCase: CreateRecipeUseCase,
+class AddExerciseViewModel @Inject constructor(
+    private val createLocalExerciseUseCase: CreateLocalExerciseUseCase,
     private val cameraPhotoManager: CameraPhotoManager
 ) : ViewModel() {
 
-    private val _uiState = MutableStateFlow(AddRecipeUIState())
-    val uiState: StateFlow<AddRecipeUIState> = _uiState.asStateFlow()
+    private val _uiState = MutableStateFlow(AddExerciseUiState())
+    val uiState: StateFlow<AddExerciseUiState> = _uiState.asStateFlow()
 
     private val _name = MutableStateFlow("")
     val name: StateFlow<String> = _name.asStateFlow()
@@ -29,14 +29,14 @@ class AddRecipeViewModel @Inject constructor(
     private val _description = MutableStateFlow("")
     val description: StateFlow<String> = _description.asStateFlow()
 
-    private val _ingredients = MutableStateFlow("")
-    val ingredients: StateFlow<String> = _ingredients.asStateFlow()
-
     private val _instructions = MutableStateFlow("")
     val instructions: StateFlow<String> = _instructions.asStateFlow()
 
-    private val _selectedMealType = MutableStateFlow<String?>(null)
-    val selectedMealType: StateFlow<String?> = _selectedMealType.asStateFlow()
+    private val _selectedExerciseType = MutableStateFlow<String?>(null)
+    val selectedExerciseType: StateFlow<String?> = _selectedExerciseType.asStateFlow()
+
+    private val _selectedDifficulty = MutableStateFlow("")
+    val selectedDifficulty: StateFlow<String> = _selectedDifficulty.asStateFlow()
 
     private val _selectedDays = MutableStateFlow<List<String>>(emptyList())
     val selectedDays: StateFlow<List<String>> = _selectedDays.asStateFlow()
@@ -55,16 +55,16 @@ class AddRecipeViewModel @Inject constructor(
         _description.value = value
     }
 
-    fun onIngredientsChange(value: String) {
-        _ingredients.value = value
-    }
-
     fun onInstructionsChange(value: String) {
         _instructions.value = value
     }
 
-    fun onMealTypeChange(mealType: String?) {
-        _selectedMealType.value = mealType
+    fun onExerciseTypeChange(type: String?) {
+        _selectedExerciseType.value = type
+    }
+
+    fun onDifficultyChange(difficulty: String) {
+        _selectedDifficulty.value = difficulty
     }
 
     fun onDayToggle(day: String) {
@@ -87,47 +87,43 @@ class AddRecipeViewModel @Inject constructor(
 
     fun hasCamera(): Boolean = cameraPhotoManager.hasCamera()
 
-    fun createRecipe() {
+    fun createExercise() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-
 
             try {
                 val imageFile = if (_photoTaken.value) cameraPhotoManager.getPhotoFile() else null
 
-                createRecipeUseCase(
+                createLocalExerciseUseCase(
                     name = _name.value,
                     description = _description.value,
-                    ingredients = _ingredients.value,
-                    instructions = _instructions.value,
                     userId = 1,
                     scheduledDays = _selectedDays.value,
-                    mealType = _selectedMealType.value,
+                    exerciseType = _selectedExerciseType.value,
+                    instructions = _instructions.value.ifBlank { null },
+                    difficulty = _selectedDifficulty.value,
                     imageFile = imageFile
                 )
 
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        recipeCreated = true
+                        exerciseCreated = true
                     )
                 }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        errorMessage = e.message ?: "Error al crear la receta"
+                        errorMessage = e.message ?: "Error al crear el ejercicio"
                     )
                 }
             }
         }
     }
 
-    fun resetRecipeCreated() {
-        _uiState.update { it.copy(recipeCreated = false) }
+    fun resetExerciseCreated() {
+        _uiState.update { it.copy(exerciseCreated = false) }
     }
 }
-
-
 
