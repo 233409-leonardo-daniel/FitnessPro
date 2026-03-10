@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
@@ -41,6 +42,7 @@ val bodyParts = listOf(
 fun ExercisesScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToAddExercise: () -> Unit,
+    onOpenDrawer: () -> Unit,
     viewModel: ExerciseViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -60,6 +62,15 @@ fun ExercisesScreen(
         topBar = {
             CenterAlignedTopAppBar(
                 title = { Text("FitnessPro", fontWeight = FontWeight.ExtraBold, color = textColor) },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Abrir menú",
+                            tint = textColor
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.loadExercises() }) {
                         Icon(
@@ -72,13 +83,6 @@ fun ExercisesScreen(
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Add Exercise",
-                            tint = accentColor
-                        )
-                    }
-                    IconButton(onClick = onNavigateToRecipes) {
-                        Icon(
-                            imageVector = Icons.Default.Restaurant,
-                            contentDescription = "Go to Recipes",
                             tint = accentColor
                         )
                     }

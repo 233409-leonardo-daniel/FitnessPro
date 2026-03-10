@@ -1,6 +1,5 @@
 package com.alilopez.kt_demohilt.features.home.presentation.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -19,9 +18,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -64,6 +62,7 @@ fun HomeScreen(
     onNavigateToAddRecipe: () -> Unit,
     onNavigateToEditRecipe: (Int) -> Unit,
     onNavigateToExercises: () -> Unit,
+    onOpenDrawer: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -88,18 +87,20 @@ fun HomeScreen(
                         color = textColor
                     )
                 },
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
+                        Icon(
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Abrir menú",
+                            tint = textColor
+                        )
+                    }
+                },
                 actions = {
                     IconButton(onClick = { viewModel.loadData() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Actualizar contenido",
-                            tint = accentColor
-                        )
-                    }
-                    IconButton(onClick = onNavigateToExercises) {
-                        Icon(
-                            imageVector = Icons.Default.FitnessCenter,
-                            contentDescription = "Ver todos los ejercicios",
                             tint = accentColor
                         )
                     }
