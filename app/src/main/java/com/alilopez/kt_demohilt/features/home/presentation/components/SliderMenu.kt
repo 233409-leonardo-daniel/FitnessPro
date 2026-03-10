@@ -3,6 +3,7 @@ package com.alilopez.kt_demohilt.features.home.presentation.components
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Restaurant
@@ -15,12 +16,14 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alilopez.kt_demohilt.core.navigation.Exercises
 import com.alilopez.kt_demohilt.core.navigation.Home
+import com.alilopez.kt_demohilt.core.navigation.WorkoutPlans
 
 @Composable
 fun SliderMenu(
     onNavigateToHome: () -> Unit,
     onNavigateToRecipes: () -> Unit,
     onNavigateToExercises: () -> Unit,
+    onNavigateToWorkoutPlans: () -> Unit,
     currentRoute: String? = null,
     onCloseDrawer: () -> Unit
 ) {
@@ -72,6 +75,18 @@ fun SliderMenu(
             selected = currentRoute == "Exercises",
             onClick = {
                 onNavigateToExercises()
+                onCloseDrawer()
+            },
+            accentColor = accentColor,
+            textColor = textColor
+        )
+
+        DrawerItem(
+            label = "Mis Rutinas",
+            icon = Icons.AutoMirrored.Filled.ListAlt,
+            selected = currentRoute == "WorkoutPlans",
+            onClick = {
+                onNavigateToWorkoutPlans()
                 onCloseDrawer()
             },
             accentColor = accentColor,

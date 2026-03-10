@@ -19,7 +19,8 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecip
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
-import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesScreen
+import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
+import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -46,10 +47,15 @@ fun NavigationWrapper() {
                         }
                     },
                     onNavigateToRecipes = {
-                        navController.navigate(Home) // Home ya muestra recetas por defecto o puedes crear una ruta específica
+                        navController.navigate(Home) 
                     },
                     onNavigateToExercises = {
                         navController.navigate(Exercises) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToWorkoutPlans = {
+                        navController.navigate(WorkoutPlans) {
                             launchSingleTop = true
                         }
                     },
@@ -128,6 +134,25 @@ fun NavigationWrapper() {
 
             composable<AddExercise> {
                 AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
+            }
+
+            composable<WorkoutPlans> {
+                WorkoutPlansScreen(
+                    onNavigateToDetail = { planId, planName ->
+                        navController.navigate(WorkoutDetail(planId, planName))
+                    },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable<WorkoutDetail> { backStackEntry ->
+                val route = backStackEntry.toRoute<WorkoutDetail>()
+                WorkoutDetailScreen(
+                    planId = route.planId,
+                    planName = route.planName,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAddExercise = { navController.navigate(AddExercise) }
+                )
             }
         }
     }

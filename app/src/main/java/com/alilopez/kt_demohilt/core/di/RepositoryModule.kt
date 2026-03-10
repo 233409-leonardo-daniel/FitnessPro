@@ -6,6 +6,8 @@ import com.alilopez.kt_demohilt.features.recipies.data.repositories.RecipeReposi
 import com.alilopez.kt_demohilt.features.recipies.domain.repositories.RecipeRepository
 import com.alilopez.kt_demohilt.features.user.data.repositories.UserRepositoryImp
 import com.alilopez.kt_demohilt.features.user.domain.repositories.UserRepository
+import com.alilopez.kt_demohilt.features.workoutplans.data.repositories.WorkoutPlanRepositoryImpl
+import com.alilopez.kt_demohilt.features.workoutplans.domain.repositories.WorkoutPlanRepository
 import dagger.Binds
 import dagger.Module
 import dagger.hilt.InstallIn
@@ -33,4 +35,10 @@ abstract class RepositoryModule {
     abstract fun bindExerciseRepository(
         exerciseRepositoryImpl: ExercisesRepositoryImpl
     ): ExerciseRepository
+
+    @Binds
+    @Singleton
+    abstract fun bindWorkoutPlanRepository(
+        workoutPlanRepositoryImpl: WorkoutPlanRepositoryImpl
+    ): WorkoutPlanRepository
 }
