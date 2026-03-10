@@ -20,7 +20,7 @@ class WorkoutPlansViewModel @Inject constructor(
     private val getUserWorkoutPlansUseCase: GetUserWorkoutPlansUseCase,
     private val createWorkoutPlanUseCase: CreateWorkoutPlanUseCase,
     private val deleteWorkoutPlanUseCase: DeleteWorkoutPlanUseCase,
-    private val userRepository: UserRepository // Para obtener el ID del usuario actual
+    private val userRepository: UserRepository
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkoutPlansUIState())
@@ -33,8 +33,6 @@ class WorkoutPlansViewModel @Inject constructor(
     fun loadWorkoutPlans() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            // Asumimos un ID de usuario por ahora o lo obtenemos del repo si está guardado
-            // En una app real, esto vendría de una sesión activa
             val userId = 1 
             
             getUserWorkoutPlansUseCase(userId).fold(
@@ -48,10 +46,10 @@ class WorkoutPlansViewModel @Inject constructor(
         }
     }
 
-    fun createPlan(name: String, description: String) {
+    fun createPlan(name: String, description: String, planType: String, isPrivate: Boolean) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            createWorkoutPlanUseCase(name, description, userId = 1).fold(
+            createWorkoutPlanUseCase(name, description, userId = 1, planType, isPrivate).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planCreated = true) }
                     loadWorkoutPlans()

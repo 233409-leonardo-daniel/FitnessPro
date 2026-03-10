@@ -25,6 +25,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.features.workoutplans.domain.entities.WorkoutPlan
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels.WorkoutPlansViewModel
 
+val exerciseTypes = listOf(
+    "FUERZA",
+    "CARDIO",
+    "PLIOMETRÍA",
+    "ESTIRAMIENTO",
+    "LEVANTAMIENTO DE PESAS",
+    "YOGA",
+    "AERÓBICOS"
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WorkoutPlansScreen(
@@ -54,20 +64,14 @@ fun WorkoutPlansScreen(
                 },
                 actions = {
                     IconButton(onClick = { viewModel.loadWorkoutPlans() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = null, tint = accentColor)
+                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = accentColor)
+                    }
+                    IconButton(onClick = { showCreateDialog = true }) {
+                        Icon(Icons.Default.Add, contentDescription = "Crear lista", tint = accentColor)
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { showCreateDialog = true },
-                containerColor = accentColor,
-                contentColor = Color.White
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Crear lista")
-            }
         }
     ) { paddingValues ->
         Box(
@@ -118,11 +122,10 @@ fun WorkoutPlansScreen(
         if (showCreateDialog) {
             CreatePlanDialog(
                 onDismiss = { showCreateDialog = false },
-                onConfirm = { name, desc ->
-                    viewModel.createPlan(name, desc)
+                onConfirm = { name, desc, type, isPrivate ->
+                    viewModel.createPlan(name, desc, type, isPrivate)
                     showCreateDialog = false
-                },
-                isDarkTheme = isDarkTheme
+                }
             )
         }
     }
@@ -150,10 +153,30 @@ fun WorkoutPlanItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(text = plan.name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = plan.name, fontWeight = FontWeight.Bold, fontSize = 18.sp, color = textColor)
+                    if (plan.isPrivate) {
+                        Spacer(Modifier.width(8.dp))
+                        Surface(
+                            color = Color.Gray.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                "Privado", 
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                                fontSize = 10.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    }
+                }
                 Text(text = plan.description, fontSize = 14.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "${plan.exercises.size} ejercicios", fontSize = 12.sp, color = Color(0xFF10B981), fontWeight = FontWeight.Medium)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(text = plan.planType, fontSize = 12.sp, color = Color(0xFF10B981), fontWeight = FontWeight.SemiBold)
+                    Spacer(Modifier.width(8.dp))
+                    Text(text = "• ${plan.exercises.size} ejercicios", fontSize = 12.sp, color = Color.Gray)
+                }
             }
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF4444))
@@ -162,20 +185,23 @@ fun WorkoutPlanItem(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun CreatePlanDialog(
     onDismiss: () -> Unit,
-    onConfirm: (String, String) -> Unit,
-    isDarkTheme: Boolean
+    onConfirm: (String, String, String, Boolean) -> Unit
 ) {
     var name by remember { mutableStateOf("") }
     var desc by remember { mutableStateOf("") }
+    var selectedType by remember { mutableStateOf(exerciseTypes[0]) }
+    var isPrivate by remember { mutableStateOf(true) }
+    var expanded by remember { mutableStateOf(false) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text("Nueva Rutina") },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
@@ -188,11 +214,53 @@ fun CreatePlanDialog(
                     label = { Text("Descripción") },
                     modifier = Modifier.fillMaxWidth()
                 )
+                
+                ExposedDropdownMenuBox(
+                    expanded = expanded,
+                    onExpandedChange = { expanded = !expanded }
+                ) {
+                    OutlinedTextField(
+                        value = selectedType,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Tipo de Plan") },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
+                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        modifier = Modifier.menuAnchor().fillMaxWidth()
+                    )
+                    ExposedDropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
+                    ) {
+                        exerciseTypes.forEach { type ->
+                            DropdownMenuItem(
+                                text = { Text(type) },
+                                onClick = {
+                                    selectedType = type
+                                    expanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text("Plan Privado")
+                    Switch(
+                        checked = isPrivate,
+                        onCheckedChange = { isPrivate = it },
+                        colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF10B981))
+                    )
+                }
             }
         },
         confirmButton = {
             Button(
-                onClick = { if (name.isNotBlank()) onConfirm(name, desc) },
+                onClick = { if (name.isNotBlank()) onConfirm(name, desc, selectedType, isPrivate) },
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
             ) {
                 Text("Crear")

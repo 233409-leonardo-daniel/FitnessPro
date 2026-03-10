@@ -7,9 +7,15 @@ import javax.inject.Inject
 class CreateWorkoutPlanUseCase @Inject constructor(
     private val repository: WorkoutPlanRepository
 ) {
-    suspend operator fun invoke(name: String, description: String, userId: Int): Result<WorkoutPlan> {
+    suspend operator fun invoke(
+        name: String, 
+        description: String, 
+        userId: Int,
+        planType: String,
+        isPrivate: Boolean
+    ): Result<WorkoutPlan> {
         return try {
-            Result.success(repository.createWorkoutPlan(name, description, userId))
+            Result.success(repository.createWorkoutPlan(name, description, userId, planType, isPrivate))
         } catch (e: Exception) {
             Result.failure(e)
         }

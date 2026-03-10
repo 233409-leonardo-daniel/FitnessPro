@@ -5,7 +5,13 @@ import com.alilopez.kt_demohilt.features.workoutplans.domain.entities.WorkoutPla
 
 interface WorkoutPlanRepository {
     suspend fun getUserWorkoutPlans(userId: Int): List<WorkoutPlan>
-    suspend fun createWorkoutPlan(name: String, description: String, userId: Int): WorkoutPlan
+    suspend fun createWorkoutPlan(
+        name: String, 
+        description: String, 
+        userId: Int,
+        planType: String,
+        isPrivate: Boolean
+    ): WorkoutPlan
     suspend fun addExerciseToPlan(planId: Int, exerciseId: Int): WorkoutPlan
     suspend fun getPlanExercises(planId: Int): List<Exercise>
     suspend fun deleteWorkoutPlan(planId: Int)

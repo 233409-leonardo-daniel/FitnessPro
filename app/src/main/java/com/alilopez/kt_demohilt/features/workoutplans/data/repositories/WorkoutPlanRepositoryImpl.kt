@@ -18,8 +18,20 @@ class WorkoutPlanRepositoryImpl @Inject constructor(
         return api.getUserWorkoutPlans(userId).map { it.toDomain() }
     }
 
-    override suspend fun createWorkoutPlan(name: String, description: String, userId: Int): WorkoutPlan {
-        val createDto = WorkoutPlanCreateDto(name = name, description = description, userId = userId)
+    override suspend fun createWorkoutPlan(
+        name: String, 
+        description: String, 
+        userId: Int,
+        planType: String,
+        isPrivate: Boolean
+    ): WorkoutPlan {
+        val createDto = WorkoutPlanCreateDto(
+            name = name, 
+            description = description, 
+            userId = userId,
+            planType = planType,
+            private = isPrivate
+        )
         return api.createWorkoutPlan(createDto).toDomain()
     }
 
