@@ -26,16 +26,26 @@ import com.alilopez.kt_demohilt.features.exercise.presentation.viewmodels.Exerci
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 
 val bodyParts = listOf(
-    "back",
-    "cardio",
-    "chest",
-    "lower arms",
-    "lower legs",
-    "neck",
-    "shoulders",
-    "upper arms",
-    "upper legs",
-    "waist"
+    "ESPALDA",
+    "PANTORRILLAS",
+    "PECHO",
+    "ANTEBRAZOS",
+    "CADERAS",
+    "CUELLO",
+    "HOMBROS",
+    "MUSLOS",
+    "CINTURA",
+    "PIERNAS",
+    "MANOS",
+    "PIES",
+    "CARA",
+    "CUERPO COMPLETO",
+    "BÍCEPS",
+    "BRAZOS",
+    "TRÍCEPS",
+    "ISQUIOTIBIALES",
+    "GLÚTEOS",
+    "CUÁDRICEPS"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -56,9 +66,9 @@ fun ExercisesScreen(
     val dropdownBackground = if (isDarkTheme) Color(0xFF1E293B) else Color.White
     val clearButtonColor = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
 
-    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
-        viewModel.syncExercises()
-    }
+//    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+//        viewModel.syncExercises()
+//    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -170,7 +180,7 @@ fun ExercisesScreen(
                                                     )
                                                 )
                                                 Spacer(Modifier.width(8.dp))
-                                                Text(bodyPart.replaceFirstChar { it.uppercase() }, color = textColor)
+                                                Text(bodyPart.lowercase().replaceFirstChar { it.uppercase() }, color = textColor)
                                             }
                                         },
                                         onClick = {
@@ -198,8 +208,7 @@ fun ExercisesScreen(
                             modifier = Modifier.fillMaxSize(),
                             contentPadding = PaddingValues(8.dp)
                         ) {
-                            // Sección: Mis Ejercicios (locales)
-                            if (uiState.localExercises.isNotEmpty()) {
+                            if (uiState.localExercises.isNotEmpty() && !uiState.isFiltered) {
                                 item {
                                     Text(
                                         text = "Mis Ejercicios",
@@ -224,10 +233,9 @@ fun ExercisesScreen(
                                 }
                             }
 
-                            // Sección: Ejercicios Remotos
                             item {
                                 Text(
-                                    text = "Ejercicios Recomendados",
+                                    text = if (uiState.isFiltered) "Resultados del filtro" else "",
                                     style = MaterialTheme.typography.titleLarge,
                                     fontWeight = FontWeight.Bold,
                                     color = textColor,

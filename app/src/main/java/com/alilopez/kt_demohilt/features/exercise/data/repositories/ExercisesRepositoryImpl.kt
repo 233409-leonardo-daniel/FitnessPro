@@ -6,6 +6,7 @@ import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.toEntity
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.mapper.toDomain
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
+import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
 import com.alilopez.kt_demohilt.features.exercise.domain.repositories.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -36,6 +37,27 @@ class ExercisesRepositoryImpl @Inject constructor(
         return response.data.map { it.toDomain() }
     }
 
+    override fun getLocalExercisesByFilter(filter: ExerciseFilter): Flow<List<Exercise>> {
+        return dao.getExercisesByFilter(
+            bodyPart = filter.bodyPart,
+            difficulty = filter.difficulty,
+            exerciseType = filter.exerciseType
+        ).map { entities -> entities.map { it.toDomain() } }
+    }
+
+    override suspend fun syncExercisesByFilter(filter: ExerciseFilter) {
+        try {
+            filter.bodyPart?.let { bodyPart ->
+                val remoteExercises = api.getExercisesLocalByBodyPart(
+                    bodyPart = bodyPart
+                )
+                val entities = remoteExercises.map { it.toDomain().toEntity() }
+                dao.insertExercises(entities)
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
     override fun getLocalExercises(): Flow<List<Exercise>> {
         return dao.getAllExercises().map { entities -> entities.map {
             it.toDomain()

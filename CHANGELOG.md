@@ -31,6 +31,12 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.2.4] - 2026-03-10
+
+### Fixed
+- Se corrigio un error de UI en `ExercisesScreen` donde los ejercicios locales no se mostraban correctamente debido a un bucle infinito al cargar los datos, ahora se cargan sin recargar la pantalla.
+- Ya funciona el Dao para obtener los ejercicios y para filtrar de manera rapida los ejercicios locales del usuario, mostrando solo los suyos en la seccion "Mis Ejercicios" y el resto en "Ejercicios Recomendados".
+
 ## [3.2.3] - 2026-03-09
 
 ### Fixed

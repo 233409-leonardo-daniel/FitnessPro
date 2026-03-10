@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.features.exercise.domain.repositories
 
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
+import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
@@ -23,4 +24,6 @@ interface ExerciseRepository {
         imageFile: File?
     ): Exercise
     suspend fun syncExercises()
+    suspend fun syncExercisesByFilter(filter: ExerciseFilter)
+    fun getLocalExercisesByFilter(filter: ExerciseFilter): Flow<List<Exercise>>
 }

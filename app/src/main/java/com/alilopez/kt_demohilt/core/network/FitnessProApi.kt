@@ -102,11 +102,9 @@ interface FitnessProApi {
         @Path("user_id") userId: Int
     ): List<LocalExerciseDto>
 
-//    @PUT("exercises/local/{exercise_id}")
-//    suspend fun updateExerciseLocal(
-//        @Path("exercise_id") exerciseId: Int,
-//        @Body exercise: ExerciseRequest
-//    )
-
+    @GET("exercises/local/bodypart/{bodypart}")
+    suspend fun getExercisesLocalByBodyPart(
+        @Path("bodypart") bodyPart: String
+    ): List<LocalExerciseDto>
 
 }
