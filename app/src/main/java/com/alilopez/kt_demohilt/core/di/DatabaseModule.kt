@@ -3,7 +3,9 @@ package com.alilopez.kt_demohilt.core.di
 import android.content.Context
 import androidx.room.Room
 import com.alilopez.kt_demohilt.core.database.AppDatabase
+import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.database.dao.PostDao
+
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -21,7 +23,7 @@ object DatabaseModule {
         return Room.databaseBuilder(
             context,
             AppDatabase::class.java,
-            "JsonPlaceHolderDB"
+            "fitnesspro_db"
         ).build()
     }
 
@@ -31,6 +33,6 @@ object DatabaseModule {
     @Provides
     fun providePostDao(db: AppDatabase) : PostDao = db.postDao()
 
-    //@Provides
-    //fun provideUserDao(db: AppDatabase): UserDao = db.userDao()
+    @Provides
+    fun provideExerciseDao(db: AppDatabase) : ExerciseDao = db.exerciseDao()
 }

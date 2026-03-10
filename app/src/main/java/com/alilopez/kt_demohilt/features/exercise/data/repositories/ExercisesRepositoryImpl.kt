@@ -1,5 +1,6 @@
 package com.alilopez.kt_demohilt.features.exercise.data.repositories
 
+import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.mapper.toDomain
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
@@ -12,7 +13,8 @@ import java.io.File
 import javax.inject.Inject
 
 class ExercisesRepositoryImpl @Inject constructor(
-    private val api: FitnessProApi
+    private val api: FitnessProApi,
+    private val dao : ExerciseDao
 ) : ExerciseRepository {
 
     override suspend fun getExercises(): List<Exercise> {

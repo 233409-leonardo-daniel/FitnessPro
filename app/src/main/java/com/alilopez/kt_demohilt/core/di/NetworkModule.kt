@@ -1,7 +1,6 @@
 package com.alilopez.kt_demohilt.core.di
 
 import com.alilopez.kt_demohilt.BuildConfig
-import com.alilopez.kt_demohilt.core.network.FitnessProApi
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -13,19 +12,13 @@ import javax.inject.Singleton
 @Module
 @InstallIn(SingletonComponent::class)
 object NetworkModule {
-
     @Provides
     @Singleton
-    fun provideRetrofit(): Retrofit {
+    @FitnessProRetrofit
+    fun provideFitnessProApi(): Retrofit {
         return Retrofit.Builder()
             .baseUrl(BuildConfig.backend_url)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
-    }
-
-    @Provides
-    @Singleton
-    fun provideFitnessProApi(retrofit: Retrofit): FitnessProApi {
-        return retrofit.create(FitnessProApi::class.java)
     }
 }
