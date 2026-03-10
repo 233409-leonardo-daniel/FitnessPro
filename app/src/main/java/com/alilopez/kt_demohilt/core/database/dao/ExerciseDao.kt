@@ -14,6 +14,5 @@ interface ExerciseDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercises(exercises: List<ExerciseEntity>)
-
-//    @Query("SELECT * FROM exercises WHERE bodyparts LIKE '%' || :bodyPart || '%'")
+    
 }

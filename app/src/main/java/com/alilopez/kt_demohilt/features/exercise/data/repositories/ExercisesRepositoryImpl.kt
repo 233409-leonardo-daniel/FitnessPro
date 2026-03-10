@@ -2,9 +2,13 @@ package com.alilopez.kt_demohilt.features.exercise.data.repositories
 
 import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
+import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.toDomain
+import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.toEntity
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.mapper.toDomain
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.domain.repositories.ExerciseRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -32,8 +36,20 @@ class ExercisesRepositoryImpl @Inject constructor(
         return response.data.map { it.toDomain() }
     }
 
-    override suspend fun getLocalExercises(): List<Exercise> {
-        return api.getExercisesLocal().map { it.toDomain() }
+    override fun getLocalExercises(): Flow<List<Exercise>> {
+        return dao.getAllExercises().map { entities -> entities.map {
+            it.toDomain()
+        } }
+    }
+
+    override suspend fun syncExercises() {
+        try {
+            val remoteExercises = api.getExercisesRemote(limit = 10).data
+            val entities = remoteExercises.map { it.toDomain().toEntity() }
+            dao.insertExercises(entities)
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
     }
 
     override suspend fun createLocalExercise(

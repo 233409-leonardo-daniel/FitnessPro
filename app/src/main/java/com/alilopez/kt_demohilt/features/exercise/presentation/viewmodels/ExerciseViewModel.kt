@@ -5,10 +5,13 @@ import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByBodyPartUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetLocalExercisesUseCase
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.SyncExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -17,7 +20,8 @@ import javax.inject.Inject
 class ExerciseViewModel @Inject constructor(
     private val getExercisesUseCase: GetExercisesUseCase,
     private val getExercisesByBodyPartUseCase: GetExercisesByBodyPartUseCase,
-    private val getLocalExercisesUseCase: GetLocalExercisesUseCase
+    private val getLocalExercisesUseCase: GetLocalExercisesUseCase,
+    private val syncExercisesUseCase: SyncExercisesUseCase
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExercisesUiState())
     val uiState = _uiState.asStateFlow()
@@ -46,19 +50,9 @@ class ExerciseViewModel @Inject constructor(
     }
 
     fun loadLocalExercises() {
-        viewModelScope.launch {
-            val result = getLocalExercisesUseCase()
-            _uiState.update { currentState ->
-                result.fold(
-                    onSuccess = { list ->
-                        currentState.copy(localExercises = list)
-                    },
-                    onFailure = { _ ->
-                        currentState.copy(localExercises = emptyList())
-                    }
-                )
-            }
-        }
+        getLocalExercisesUseCase.invoke().onEach { exercises ->
+            _uiState.update { it.copy(localExercises = exercises, isLoading = false) }
+        }.launchIn(viewModelScope)
     }
 
     private fun loadExercisesByBodyPart(bodyPart: String) {
@@ -76,6 +70,14 @@ class ExerciseViewModel @Inject constructor(
                     }
                 )
             }
+        }
+    }
+
+    fun syncExercises() {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(isSyncing = true)
+            syncExercisesUseCase()
+            _uiState.value = _uiState.value.copy(isSyncing = false)
         }
     }
 

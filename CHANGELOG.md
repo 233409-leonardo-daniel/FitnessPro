@@ -31,30 +31,26 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
-## [3.3.0] - 2026-03-08
+## [3.2.3] - 2026-03-09
+
+### Fixed
+- Se corrigio bucle infinito en `ExercisesScreen` al cargar ejercicios locales, ahora se cargan correctamente sin recargar la pantalla.
+
+## [3.2.2] - 2026-03-09
 
 ### Added
-- Soporte para grabar video (MP4) además de foto al crear un ejercicio local.
-- Métodos `createVideoUri()` y `getVideoFile()` en `CameraPhotoManager` y `AndroidCameraPhotoManager`.
-- Estados `videoUri`, `videoRecorded`, `isVideo` en `AddExerciseViewModel` con función `clearMedia()` para limpiar la selección.
-- Botones separados "Foto" y "Video" en `AddExerciseScreen` con preview de foto o indicador de video grabado.
-- Botón para limpiar media seleccionado (X rojo).
-- Detección automática de media type (`video/mp4` vs `image/*`) en `ExercisesRepositoryImpl` según extensión del archivo.
-- Programación optimista para creación de recetas y ejercicios locales: el recurso aparece inmediatamente en la lista sin esperar la respuesta del servidor.
-- `RecipeEventBus` singleton con `SharedFlow` para comunicar eventos optimistas entre `AddRecipeViewModel` y `RecipesListViewModel`.
-- `ExerciseEventBus` singleton con `SharedFlow` para comunicar eventos optimistas entre `AddExerciseViewModel` y `ExerciseViewModel`.
-- Eventos `OptimisticAdd`, `ConfirmAdd` y `RollbackAdd` para manejar el ciclo de vida optimista.
-- Snackbar de error en `RecipesScreen` y `ExercisesScreen` para notificar al usuario cuando falla la creación (rollback).
-- `clearErrorMessage()` en `RecipesListViewModel` y `clearError()` en `ExerciseViewModel`.
-- Programación optimista en `deleteRecipe`: el recurso se elimina de la lista inmediatamente y se revierte si la API falla.
+- Soporte para almacenamiento local de ejercicios usando Room.
+- Dao `LocalExerciseDao` con métodos para insertar, obtener y eliminar ejercicios locales.
 
+## [3.2.1] - 2026-03-09
+
+### Added
+- Dao de ejercicios locales `LocalExerciseDao` con Room para almacenamiento persistente en SQLite.
+- Entidad `LocalExerciseEntity` con campos: `id`, `name`, `description`, `instructions`, `exercise_type`, `difficulty`, `scheduled_days`, `image_path`.
+-
 ### Changed
-- `AddRecipeViewModel` ahora emite un recipe temporal al `RecipeEventBus`, navega de vuelta inmediatamente y confirma/revierte en background.
-- `AddExerciseViewModel` ahora emite un exercise temporal al `ExerciseEventBus`, navega de vuelta inmediatamente y confirma/revierte en background.
-- `RecipesListViewModel` escucha el `RecipeEventBus` en `init` para reflejar cambios optimistas.
-- `ExerciseViewModel` escucha el `ExerciseEventBus` en `init` para reflejar cambios optimistas.
-- La condición de error en `RecipesScreen` y `ExercisesScreen` ahora solo bloquea la UI si no hay datos cargados; los errores de rollback se muestran via Snackbar.
-
+- Refactorizado para la inyeccion de dependencias
+- 
 ## [3.2.0] - 2026-03-08
 
 ### Added

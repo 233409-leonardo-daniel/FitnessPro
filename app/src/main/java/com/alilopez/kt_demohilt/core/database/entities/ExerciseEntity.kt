@@ -18,5 +18,6 @@ data class ExerciseEntity(
     val secondaryMuscles: String,
     val exercise_type: String,
     val instruccions: String,
-    val difficulty: String
+    val difficulty: String,
+    val private: Boolean
 )

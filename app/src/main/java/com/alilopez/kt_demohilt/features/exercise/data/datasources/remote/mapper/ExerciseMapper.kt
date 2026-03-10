@@ -29,7 +29,7 @@ fun LocalExerciseDto.toDomain(): Exercise {
         secondaryMuscles = this.secondaryMuscles,
         exerciseType = this.exerciseType,
         difficulty = this.difficulty,
-        isLocal = true
+        private = true
     )
 }
 
