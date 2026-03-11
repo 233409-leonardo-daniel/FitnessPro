@@ -9,5 +9,7 @@ data class ExercisesUiState(
     val error: String? = null,
     val isRefreshing: Boolean = false,
     val isFilterExpanded: Boolean = false,
-    val selectedBodyPart: String? = null
+    val selectedBodyPart: String? = null,
+    val isSyncing: Boolean = false,
+    val isFiltered: Boolean = false
 )

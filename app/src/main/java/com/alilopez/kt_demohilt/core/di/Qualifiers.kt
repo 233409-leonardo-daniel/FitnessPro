@@ -9,3 +9,7 @@ annotation class RickAndMortyRetrofit
 @Qualifier
 @Retention(AnnotationRetention.BINARY)
 annotation class JsonPlaceHolderRetrofit
+
+@Qualifier
+@Retention(AnnotationRetention.BINARY)
+annotation class FitnessProRetrofit

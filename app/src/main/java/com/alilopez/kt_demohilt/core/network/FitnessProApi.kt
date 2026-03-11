@@ -138,4 +138,9 @@ interface FitnessProApi {
         @Path("plan_id") planId: Int,
         @Path("exercise_id") exerciseId: Int
     ): WorkoutPlanDto
+    @GET("exercises/local/bodypart/{bodypart}")
+    suspend fun getExercisesLocalByBodyPart(
+        @Path("bodypart") bodyPart: String
+    ): List<LocalExerciseDto>
+
 }
