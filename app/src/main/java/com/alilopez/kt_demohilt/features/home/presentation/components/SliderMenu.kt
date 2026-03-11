@@ -6,6 +6,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -16,6 +17,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.alilopez.kt_demohilt.core.navigation.Exercises
 import com.alilopez.kt_demohilt.core.navigation.Home
+import com.alilopez.kt_demohilt.core.navigation.RecipePlans
 import com.alilopez.kt_demohilt.core.navigation.WorkoutPlans
 
 @Composable
@@ -24,6 +26,7 @@ fun SliderMenu(
     onNavigateToRecipes: () -> Unit,
     onNavigateToExercises: () -> Unit,
     onNavigateToWorkoutPlans: () -> Unit,
+    onNavigateToRecipePlans: () -> Unit,
     currentRoute: String? = null,
     onCloseDrawer: () -> Unit
 ) {
@@ -87,6 +90,18 @@ fun SliderMenu(
             selected = currentRoute == "WorkoutPlans",
             onClick = {
                 onNavigateToWorkoutPlans()
+                onCloseDrawer()
+            },
+            accentColor = accentColor,
+            textColor = textColor
+        )
+
+        DrawerItem(
+            label = "Mis Menús",
+            icon = Icons.Default.MenuBook,
+            selected = currentRoute == "RecipePlans",
+            onClick = {
+                onNavigateToRecipePlans()
                 onCloseDrawer()
             },
             accentColor = accentColor,

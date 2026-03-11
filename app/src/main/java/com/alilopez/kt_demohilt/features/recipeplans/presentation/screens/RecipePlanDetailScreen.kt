@@ -1,4 +1,4 @@
-package com.alilopez.kt_demohilt.features.workoutplans.presentation.screens
+package com.alilopez.kt_demohilt.features.recipeplans.presentation.screens
 
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -7,6 +7,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -19,18 +20,18 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
-import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
-import com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels.WorkoutDetailViewModel
+import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
+import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
+import com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels.RecipePlanDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun WorkoutDetailScreen(
+fun RecipePlanDetailScreen(
     planId: Int,
     planName: String,
     onNavigateBack: () -> Unit,
-    onNavigateToAddExercise: () -> Unit,
-    viewModel: WorkoutDetailViewModel = hiltViewModel()
+    onNavigateToAddRecipe: () -> Unit,
+    viewModel: RecipePlanDetailViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
@@ -40,7 +41,7 @@ fun WorkoutDetailScreen(
     val accentColor = Color(0xFF10B981)
 
     LaunchedEffect(planId) {
-        viewModel.loadPlanExercises(planId)
+        viewModel.loadPlanRecipes(planId)
     }
 
     Scaffold(
@@ -55,7 +56,7 @@ fun WorkoutDetailScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.loadAvailableExercises() }) {
+                    IconButton(onClick = { viewModel.loadAvailableRecipes() }) {
                         Icon(Icons.Default.Add, contentDescription = "Agregar existente", tint = accentColor)
                     }
                 },
@@ -70,58 +71,68 @@ fun WorkoutDetailScreen(
         ) {
             if (uiState.isLoading) {
                 CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accentColor)
-            } else if (uiState.exercises.isEmpty()) {
+            } else if (uiState.recipes.isEmpty()) {
                 Column(
                     modifier = Modifier.align(Alignment.Center).padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text("Esta lista está vacía", color = textColor, fontSize = 18.sp, textAlign = TextAlign.Center)
+                    Text("Este menú está vacío", color = textColor, fontSize = 18.sp, textAlign = TextAlign.Center)
                     Spacer(modifier = Modifier.height(16.dp))
                     Button(
-                        onClick = { viewModel.loadAvailableExercises() },
+                        onClick = { viewModel.loadAvailableRecipes() },
                         colors = ButtonDefaults.buttonColors(containerColor = accentColor)
                     ) {
-                        Text("Añadir ejercicio existente")
+                        Text("Añadir receta existente")
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedButton(
-                        onClick = onNavigateToAddExercise,
+                        onClick = onNavigateToAddRecipe,
                         border = ButtonDefaults.outlinedButtonBorder(enabled = true).copy(brush = SolidColor(accentColor))
                     ) {
-                        Text("Crear ejercicio nuevo", color = accentColor)
+                        Text("Crear receta nueva", color = accentColor)
                     }
                 }
             } else {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp)
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    items(uiState.exercises) { exercise ->
-                        ExerciseCard(
-                            name = exercise.name,
-                            imageUrl = exercise.gifUrl,
-                            instructions = exercise.instructions,
-                            isLocal = exercise.userId != null,
-                            onRemoveClick = { 
-                                val id = exercise.exerciseId ?: exercise.id?.toString() ?: ""
-                                viewModel.removeExerciseFromPlan(planId, id) 
+                    items(uiState.recipes) { recipe ->
+                        Box(modifier = Modifier.fillMaxWidth()) {
+                            RecipeCard(
+                                recipe = recipe,
+                                onClick = { /* Detalle de receta opcional */ }
+                            )
+                            IconButton(
+                                onClick = { viewModel.removeRecipeFromPlan(planId, recipe.id) },
+                                modifier = Modifier
+                                    .align(Alignment.TopEnd)
+                                    .padding(8.dp)
+                                    .size(32.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = "Quitar del menú",
+                                    tint = Color.Red
+                                )
                             }
-                        )
+                        }
                     }
                     
                     item {
                         Spacer(modifier = Modifier.height(24.dp))
                         Column(modifier = Modifier.fillMaxWidth(), horizontalAlignment = Alignment.CenterHorizontally) {
                             Button(
-                                onClick = { viewModel.loadAvailableExercises() },
+                                onClick = { viewModel.loadAvailableRecipes() },
                                 colors = ButtonDefaults.buttonColors(containerColor = accentColor),
                                 modifier = Modifier.fillMaxWidth()
                             ) {
-                                Text("Añadir ejercicio existente")
+                                Text("Añadir receta existente")
                             }
                             Spacer(modifier = Modifier.height(8.dp))
-                            TextButton(onClick = onNavigateToAddExercise) {
-                                Text("¿No encuentras el ejercicio? Créalo aquí", color = accentColor)
+                            TextButton(onClick = onNavigateToAddRecipe) {
+                                Text("¿No encuentras la receta? Créala aquí", color = accentColor)
                             }
                         }
                     }
@@ -129,11 +140,11 @@ fun WorkoutDetailScreen(
             }
         }
 
-        if (uiState.isAddingExercise) {
-            AddExerciseModal(
-                exercises = uiState.availableLocalExercises,
-                onDismiss = { viewModel.closeAddExercise() },
-                onSelect = { exerciseId -> viewModel.addExerciseToPlan(planId, exerciseId) },
+        if (uiState.isAddingRecipe) {
+            AddRecipeModal(
+                recipes = uiState.availableRecipes,
+                onDismiss = { viewModel.closeAddRecipe() },
+                onSelect = { recipeId -> viewModel.addRecipeToPlan(planId, recipeId) },
                 isDarkTheme = isDarkTheme,
                 accentColor = accentColor
             )
@@ -143,10 +154,10 @@ fun WorkoutDetailScreen(
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddExerciseModal(
-    exercises: List<Exercise>,
+fun AddRecipeModal(
+    recipes: List<Recipe>,
     onDismiss: () -> Unit,
-    onSelect: (String) -> Unit,
+    onSelect: (Int) -> Unit,
     isDarkTheme: Boolean,
     accentColor: Color
 ) {
@@ -160,30 +171,27 @@ fun AddExerciseModal(
                 .padding(bottom = 32.dp)
         ) {
             Text(
-                "Selecciona un ejercicio",
+                "Selecciona una receta",
                 modifier = Modifier.padding(16.dp),
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
             
-            if (exercises.isEmpty()) {
+            if (recipes.isEmpty()) {
                 Text(
-                    "No tienes ejercicios locales disponibles para añadir.",
+                    "No tienes recetas disponibles para añadir.",
                     modifier = Modifier.padding(24.dp),
                     textAlign = TextAlign.Center
                 )
             } else {
                 LazyColumn(modifier = Modifier.fillMaxHeight(0.6f)) {
-                    items(exercises) { exercise ->
+                    items(recipes) { recipe ->
                         ListItem(
-                            headlineContent = { Text(exercise.name) },
-                            supportingContent = { Text(exercise.bodyparts.joinToString(", ")) },
+                            headlineContent = { Text(recipe.name) },
+                            supportingContent = { Text(recipe.mealType ?: "") },
                             trailingContent = {
                                 Button(
-                                    onClick = { 
-                                        val id = exercise.exerciseId ?: exercise.id?.toString() ?: ""
-                                        onSelect(id) 
-                                    },
+                                    onClick = { onSelect(recipe.id) },
                                     colors = ButtonDefaults.buttonColors(containerColor = accentColor)
                                 ) {
                                     Text("Añadir")

@@ -28,3 +28,9 @@ object WorkoutPlans
 
 @Serializable
 data class WorkoutDetail(val planId: Int, val planName: String)
+
+@Serializable
+object RecipePlans
+
+@Serializable
+data class RecipePlanDetail(val planId: Int, val planName: String)

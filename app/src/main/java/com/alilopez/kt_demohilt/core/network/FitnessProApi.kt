@@ -5,6 +5,9 @@ import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.
 import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.AddExerciseToPlanDto
 import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanCreateDto
 import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanDto
+import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.AddRecipeToPlanDto
+import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanCreateDto
+import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
@@ -138,9 +141,43 @@ interface FitnessProApi {
         @Path("plan_id") planId: Int,
         @Path("exercise_id") exerciseId: Int
     ): WorkoutPlanDto
+
     @GET("exercises/local/bodypart/{bodypart}")
     suspend fun getExercisesLocalByBodyPart(
         @Path("bodypart") bodyPart: String
     ): List<LocalExerciseDto>
 
+    // --- RECIPE PLANS ---
+
+    @GET("recipe_plans/user/{user_id}")
+    suspend fun getUserRecipePlans(
+        @Path("user_id") userId: Int
+    ): List<RecipePlanDto>
+
+    @POST("recipe_plans/")
+    suspend fun createRecipePlan(
+        @Body recipePlan: RecipePlanCreateDto
+    ): RecipePlanDto
+
+    @POST("recipe_plans/{plan_id}/recipes")
+    suspend fun addRecipeToPlan(
+        @Path("plan_id") planId: Int,
+        @Body recipe: AddRecipeToPlanDto
+    ): RecipePlanDto
+
+    @GET("recipe_plans/{plan_id}/recipes")
+    suspend fun getPlanRecipes(
+        @Path("plan_id") planId: Int
+    ): List<RecipeDto>
+
+    @DELETE("recipe_plans/{plan_id}")
+    suspend fun deleteRecipePlan(
+        @Path("plan_id") planId: Int
+    )
+
+    @DELETE("recipe_plans/{plan_id}/recipes/{recipe_id}")
+    suspend fun removeRecipeFromPlan(
+        @Path("plan_id") planId: Int,
+        @Path("recipe_id") recipeId: Int
+    ): RecipePlanDto
 }

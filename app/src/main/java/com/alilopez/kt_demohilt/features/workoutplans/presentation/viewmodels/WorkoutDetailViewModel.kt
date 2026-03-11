@@ -12,6 +12,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -43,16 +44,18 @@ class WorkoutDetailViewModel @Inject constructor(
 
     fun loadAvailableExercises() {
         viewModelScope.launch {
-            getLocalExercisesUseCase().fold(
-                onSuccess = { allLocals: List<Exercise> ->
-                    val currentIds = _uiState.value.exercises.map { it.exerciseId }
-                    val available = allLocals.filter { it.exerciseId !in currentIds }
-                    _uiState.update { it.copy(availableLocalExercises = available, isAddingExercise = true) }
-                },
-                onFailure = { error ->
-                    _uiState.update { it.copy(errorMessage = error.message) }
+            try {
+                // GetLocalExercisesUseCase ahora devuelve un Flow, usamos .first() para obtener la lista actual
+                val allLocals = getLocalExercisesUseCase().first()
+                val currentIds = _uiState.value.exercises.map { it.exerciseId ?: it.id?.toString() ?: "" }
+                val available = allLocals.filter { 
+                    val id = it.exerciseId ?: it.id?.toString() ?: ""
+                    id !in currentIds 
                 }
-            )
+                _uiState.update { it.copy(availableLocalExercises = available, isAddingExercise = true) }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(errorMessage = e.message ?: "Error al cargar ejercicios locales") }
+            }
         }
     }
 

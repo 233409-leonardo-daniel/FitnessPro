@@ -19,6 +19,8 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecip
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
+import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
+import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
@@ -56,6 +58,11 @@ fun NavigationWrapper() {
                     },
                     onNavigateToWorkoutPlans = {
                         navController.navigate(WorkoutPlans) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToRecipePlans = {
+                        navController.navigate(RecipePlans) {
                             launchSingleTop = true
                         }
                     },
@@ -152,6 +159,25 @@ fun NavigationWrapper() {
                     planName = route.planName,
                     onNavigateBack = { navController.popBackStack() },
                     onNavigateToAddExercise = { navController.navigate(AddExercise) }
+                )
+            }
+
+            composable<RecipePlans> {
+                RecipePlansScreen(
+                    onNavigateToDetail = { planId, planName ->
+                        navController.navigate(RecipePlanDetail(planId, planName))
+                    },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable<RecipePlanDetail> { backStackEntry ->
+                val route = backStackEntry.toRoute<RecipePlanDetail>()
+                RecipePlanDetailScreen(
+                    planId = route.planId,
+                    planName = route.planName,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAddRecipe = { navController.navigate(AddRecipe) }
                 )
             }
         }
