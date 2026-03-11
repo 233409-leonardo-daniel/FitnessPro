@@ -23,3 +23,8 @@ object Exercises
 @Serializable
 object AddExercise
 
+@Serializable
+object WorkoutPlans
+
+@Serializable
+data class WorkoutDetail(val planId: Int, val planName: String)

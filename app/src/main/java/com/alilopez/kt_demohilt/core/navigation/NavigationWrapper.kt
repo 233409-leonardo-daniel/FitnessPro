@@ -1,8 +1,14 @@
 package com.alilopez.kt_demohilt.core.navigation
 
+import androidx.compose.material3.DrawerValue
+import androidx.compose.material3.ModalNavigationDrawer
+import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
+import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
@@ -12,76 +18,142 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
+import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
+import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
+import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
+import kotlinx.coroutines.launch
 
 @Composable
 fun NavigationWrapper() {
     val navController = rememberNavController()
+    val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
+    val scope = rememberCoroutineScope()
+    val navBackStackEntry by navController.currentBackStackEntryAsState()
+    val currentRoute = navBackStackEntry?.destination?.route?.split(".")?.lastOrNull()
 
-    NavHost(navController = navController, startDestination = Login) {
-        composable<Login> {
-            LoginScreen(
-                onClickLogin = {
-                    navController.navigate(Home) {
-                        popUpTo(Login) { inclusive = true }
+    // Rutas donde NO queremos mostrar el SliderMenu
+    val noDrawerRoutes = listOf("Login", "Register")
+    val showDrawer = currentRoute !in noDrawerRoutes
+
+    ModalNavigationDrawer(
+        drawerState = drawerState,
+        gesturesEnabled = showDrawer,
+        drawerContent = {
+            if (showDrawer) {
+                SliderMenu(
+                    onNavigateToHome = {
+                        navController.navigate(Home) {
+                            popUpTo(Home) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRecipes = {
+                        navController.navigate(Home) 
+                    },
+                    onNavigateToExercises = {
+                        navController.navigate(Exercises) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToWorkoutPlans = {
+                        navController.navigate(WorkoutPlans) {
+                            launchSingleTop = true
+                        }
+                    },
+                    currentRoute = currentRoute,
+                    onCloseDrawer = {
+                        scope.launch { drawerState.close() }
                     }
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Register)
-                }
-            )
+                )
+            }
         }
-
-        composable<Register> {
-            RegisterScreen(
-                onRegisterSuccess = {
-                    navController.navigate(Login) {
-                        popUpTo(Register) { inclusive = true }
+    ) {
+        NavHost(navController = navController, startDestination = Login) {
+            composable<Login> {
+                LoginScreen(
+                    onClickLogin = {
+                        navController.navigate(Home) {
+                            popUpTo(Login) { inclusive = true }
+                        }
+                    },
+                    onNavigateToRegister = {
+                        navController.navigate(Register)
                     }
-                },
-                onNavigateToLogin = {
-                    navController.navigate(Login) {
-                        popUpTo(Register) { inclusive = true }
+                )
+            }
+
+            composable<Register> {
+                RegisterScreen(
+                    onRegisterSuccess = {
+                        navController.navigate(Login) {
+                            popUpTo(Register) { inclusive = true }
+                        }
+                    },
+                    onNavigateToLogin = {
+                        navController.navigate(Login) {
+                            popUpTo(Register) { inclusive = true }
+                        }
                     }
-                }
-            )
-        }
+                )
+            }
 
-        composable<Home> {
-            HomeScreen(
-                onNavigateToAddRecipe = { navController.navigate(AddRecipe) },
-                onNavigateToEditRecipe = { recipeId -> navController.navigate(EditRecipe(recipeId)) },
-                onNavigateToExercises = { navController.navigate(Exercises) }
-            )
-        }
+            composable<Home> {
+                HomeScreen(
+                    onNavigateToAddRecipe = { navController.navigate(AddRecipe) },
+                    onNavigateToEditRecipe = { recipeId -> navController.navigate(EditRecipe(recipeId)) },
+                    onNavigateToExercises = { navController.navigate(Exercises) },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
 
-        composable<AddRecipe> {
-            AddRecipeScreen(onNavigateBack = { navController.popBackStack() })
-        }
+            composable<AddRecipe> {
+                AddRecipeScreen(onNavigateBack = { navController.popBackStack() })
+            }
 
-        composable<EditRecipe> { backStackEntry ->
-            val route = backStackEntry.toRoute<EditRecipe>()
-            EditRecipeScreen(
-                recipeId = route.recipeId,
-                onNavigateBack = { navController.popBackStack() }
-            )
-        }
+            composable<EditRecipe> { backStackEntry ->
+                val route = backStackEntry.toRoute<EditRecipe>()
+                EditRecipeScreen(
+                    recipeId = route.recipeId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
+            }
 
-        composable<Exercises> {
-            ExercisesScreen(
-                onNavigateToRecipes = {
-                    navController.navigate(Home) {
-                        popUpTo(Home) { inclusive = false }
-                        launchSingleTop = true
-                    }
-                },
-                onNavigateToAddExercise = {
-                    navController.navigate(AddExercise)
-                }
-            )
-        }
+            composable<Exercises> {
+                ExercisesScreen(
+                    onNavigateToRecipes = {
+                        navController.navigate(Home) {
+                            popUpTo(Home) { inclusive = false }
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToAddExercise = {
+                        navController.navigate(AddExercise)
+                    },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
 
-        composable<AddExercise> {
-            AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
+            composable<AddExercise> {
+                AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
+            }
+
+            composable<WorkoutPlans> {
+                WorkoutPlansScreen(
+                    onNavigateToDetail = { planId, planName ->
+                        navController.navigate(WorkoutDetail(planId, planName))
+                    },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable<WorkoutDetail> { backStackEntry ->
+                val route = backStackEntry.toRoute<WorkoutDetail>()
+                WorkoutDetailScreen(
+                    planId = route.planId,
+                    planName = route.planName,
+                    onNavigateBack = { navController.popBackStack() },
+                    onNavigateToAddExercise = { navController.navigate(AddExercise) }
+                )
+            }
         }
     }
 }

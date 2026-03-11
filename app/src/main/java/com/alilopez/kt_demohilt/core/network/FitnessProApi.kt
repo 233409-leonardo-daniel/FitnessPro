@@ -2,6 +2,9 @@ package com.alilopez.kt_demohilt.core.network
 
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExercisesResponse
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.LocalExerciseDto
+import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.AddExerciseToPlanDto
+import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanCreateDto
+import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
@@ -102,6 +105,39 @@ interface FitnessProApi {
         @Path("user_id") userId: Int
     ): List<LocalExerciseDto>
 
+    // --- WORKOUT PLANS ---
+
+    @GET("workout_plans/user/{user_id}")
+    suspend fun getUserWorkoutPlans(
+        @Path("user_id") userId: Int
+    ): List<WorkoutPlanDto>
+
+    @POST("workout_plans/")
+    suspend fun createWorkoutPlan(
+        @Body workoutPlan: WorkoutPlanCreateDto
+    ): WorkoutPlanDto
+
+    @POST("workout_plans/{plan_id}/exercises")
+    suspend fun addExerciseToPlan(
+        @Path("plan_id") planId: Int,
+        @Body exercise: AddExerciseToPlanDto
+    ): WorkoutPlanDto
+
+    @GET("workout_plans/{plan_id}/exercises")
+    suspend fun getPlanExercises(
+        @Path("plan_id") planId: Int
+    ): List<LocalExerciseDto>
+
+    @DELETE("workout_plans/{plan_id}")
+    suspend fun deleteWorkoutPlan(
+        @Path("plan_id") planId: Int
+    )
+
+    @DELETE("workout_plans/{plan_id}/exercises/{exercise_id}")
+    suspend fun removeExerciseFromPlan(
+        @Path("plan_id") planId: Int,
+        @Path("exercise_id") exerciseId: Int
+    ): WorkoutPlanDto
     @GET("exercises/local/bodypart/{bodypart}")
     suspend fun getExercisesLocalByBodyPart(
         @Path("bodypart") bodyPart: String
