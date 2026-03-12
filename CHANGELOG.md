@@ -31,6 +31,17 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.3.1] - 2026-03-12
+
+### Fixed
+- Se corrigio un error en `AddExerciseScreen` donde la imagen tomada con la camara no se mostraba correctamente debido a un error en la ruta del archivo, ahora se muestra la imagen correctamente al tomar la foto y guardarla en el estado de la pantalla.
+- Se corrigio hardcodeo de URL de imagen en `ExerciseCard` para ejercicios locales, ahora se muestra la imagen correcta desde el campo `image_url` de la entidad `LocalExerciseEntity`.
+
+## [3.3.0] - 2026-03-11
+
+### Added
+- Microfono para grabar instrucciones de ejercicios locales, con almacenamiento en Firebase Storage y URL guardada en la entidad `LocalExerciseEntity`.
+
 ## [3.2.4] - 2026-03-10
 
 ### Fixed

@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -33,20 +34,16 @@ fun NavigationWrapper() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    
-    // Obtenemos el nombre simple de la ruta actual
-    val currentRoute = navBackStackEntry?.destination?.route?.split(".")?.lastOrNull()
+    val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route?.split(".")?.lastOrNull()
 
-    // Rutas donde NO queremos habilitar gestos ni mostrar el SliderMenu
-    val noDrawerRoutes = listOf("Login", "Register")
-    val showDrawer = currentRoute != null && currentRoute !in noDrawerRoutes
-
-    // EFECTO CLAVE: Forzar el cierre del menú cada vez que cambie la ruta
-    LaunchedEffect(currentRoute) {
-        if (drawerState.isOpen) {
-            drawerState.close()
-        }
+    LaunchedEffect(currentDestination?.route) {
+        drawerState.close()
     }
+    val isAuthRoute = currentDestination?.let {
+        it.hasRoute<Login>() || it.hasRoute<Register>()
+    } ?: true
+    val showDrawer = !isAuthRoute
 
     ModalNavigationDrawer(
         drawerState = drawerState,

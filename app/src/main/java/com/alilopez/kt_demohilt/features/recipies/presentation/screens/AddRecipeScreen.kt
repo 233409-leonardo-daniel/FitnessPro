@@ -24,7 +24,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
@@ -47,7 +47,6 @@ fun AddRecipeScreen(
     val selectedMealType by viewModel.selectedMealType.collectAsStateWithLifecycle()
     val selectedDays by viewModel.selectedDays.collectAsStateWithLifecycle()
     val photoUri by viewModel.photoUri.collectAsStateWithLifecycle()
-    val photoTaken by viewModel.photoTaken.collectAsStateWithLifecycle()
 
     // Colores uniformes con LoginScreen
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
@@ -74,6 +73,15 @@ fun AddRecipeScreen(
         if (isGranted) {
             val uri = viewModel.createPhotoUri()
             takePictureLauncher.launch(uri)
+        }
+    }
+
+    // Launcher para solicitar permiso de micrófono
+    val micPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            viewModel.toggleRecording()
         }
     }
 
@@ -147,7 +155,7 @@ fun AddRecipeScreen(
                             .clip(RoundedCornerShape(12.dp))
                             .border(
                                 width = 1.dp,
-                                color = if (photoTaken) Color(0xFF10B981) else textFieldBorder,
+                                color = if (uiState.photoTaken) Color(0xFF10B981) else textFieldBorder,
                                 shape = RoundedCornerShape(12.dp)
                             )
                             .clickable {
@@ -155,7 +163,7 @@ fun AddRecipeScreen(
                             },
                         contentAlignment = Alignment.Center
                     ) {
-                        if (photoTaken && photoUri != null) {
+                        if (uiState.photoTaken && photoUri != null) {
                             AsyncImage(
                                 model = ImageRequest.Builder(LocalContext.current)
                                     .data(photoUri)
@@ -183,6 +191,152 @@ fun AddRecipeScreen(
                                     fontSize = 14.sp,
                                     color = placeholderColor
                                 )
+                            }
+                        }
+                    }
+                }
+
+                // Recipe Name
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "AUDIO DE LA RECETA (OPCIONAL)",
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = labelColor,
+                        letterSpacing = 1.2.sp,
+                        modifier = Modifier.padding(start = 4.dp)
+                    )
+
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        shape = RoundedCornerShape(12.dp),
+                        colors = CardDefaults.cardColors(
+                            containerColor = textFieldBackground
+                        ),
+                        border = CardDefaults.outlinedCardBorder().copy(
+                            brush = androidx.compose.ui.graphics.SolidColor(
+                                if (uiState.isRecording) Color(0xFFEF4444)
+                                else if (uiState.audioRecorded) Color(0xFF10B981)
+                                else textFieldBorder
+                            )
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (uiState.isRecording) {
+                                // Estado: Grabando
+                                Icon(
+                                    imageVector = Icons.Default.Mic,
+                                    contentDescription = null,
+                                    tint = Color(0xFFEF4444),
+                                    modifier = Modifier.size(40.dp)
+                                )
+                                Text(
+                                    text = "Grabando audio...",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFFEF4444)
+                                )
+                                Button(
+                                    onClick = { viewModel.toggleRecording() },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFFEF4444)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Stop,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Detener", color = Color.White)
+                                }
+                            } else if (uiState.audioRecorded) {
+                                // Estado: Audio grabado
+                                Icon(
+                                    imageVector = Icons.Default.AudioFile,
+                                    contentDescription = null,
+                                    tint = Color(0xFF10B981),
+                                    modifier = Modifier.size(40.dp)
+                                )
+                                Text(
+                                    text = "Audio grabado ✓",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = Color(0xFF10B981)
+                                )
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                                ) {
+                                    // Regrabar
+                                    OutlinedButton(
+                                        onClick = {
+                                            viewModel.deleteAudio()
+                                            if (uiState.isRecording) return@OutlinedButton
+                                            micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                        },
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Mic,
+                                            contentDescription = null,
+                                            tint = labelColor
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Regrabar", color = textColor)
+                                    }
+                                    // Eliminar
+                                    OutlinedButton(
+                                        onClick = { viewModel.deleteAudio() },
+                                        shape = RoundedCornerShape(12.dp)
+                                    ) {
+                                        Icon(
+                                            imageVector = Icons.Default.Delete,
+                                            contentDescription = null,
+                                            tint = Color(0xFFEF4444)
+                                        )
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text("Eliminar", color = Color(0xFFEF4444))
+                                    }
+                                }
+                            } else {
+                                // Estado: Sin audio
+                                Icon(
+                                    imageVector = Icons.Default.MicNone,
+                                    contentDescription = null,
+                                    tint = labelColor,
+                                    modifier = Modifier.size(40.dp)
+                                )
+                                Text(
+                                    text = "Graba un audio para tu receta",
+                                    fontSize = 14.sp,
+                                    color = placeholderColor
+                                )
+                                Button(
+                                    onClick = {
+                                        micPermissionLauncher.launch(Manifest.permission.RECORD_AUDIO)
+                                    },
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = Color(0xFF10B981)
+                                    ),
+                                    shape = RoundedCornerShape(12.dp)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Mic,
+                                        contentDescription = null,
+                                        tint = Color.White
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Grabar Audio", color = Color.White)
+                                }
                             }
                         }
                     }

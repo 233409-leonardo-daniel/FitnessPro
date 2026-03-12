@@ -7,6 +7,7 @@ import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.CreateWork
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.DeleteWorkoutPlanUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.GetUserWorkoutPlansUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansUIState
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,7 +21,8 @@ class WorkoutPlansViewModel @Inject constructor(
     private val getUserWorkoutPlansUseCase: GetUserWorkoutPlansUseCase,
     private val createWorkoutPlanUseCase: CreateWorkoutPlanUseCase,
     private val deleteWorkoutPlanUseCase: DeleteWorkoutPlanUseCase,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkoutPlansUIState())
@@ -33,7 +35,7 @@ class WorkoutPlansViewModel @Inject constructor(
     fun loadWorkoutPlans() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val userId = 1 
+            val userId = sessionManager.currentUserId ?: 1
             
             getUserWorkoutPlansUseCase(userId).fold(
                 onSuccess = { plans ->
@@ -49,7 +51,7 @@ class WorkoutPlansViewModel @Inject constructor(
     fun createPlan(name: String, description: String, planType: String, isPrivate: Boolean) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            createWorkoutPlanUseCase(name, description, userId = 1, planType, isPrivate).fold(
+            createWorkoutPlanUseCase(name, description, userId = sessionManager.currentUserId ?: 1, planType, isPrivate).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planCreated = true) }
                     loadWorkoutPlans()

@@ -2,11 +2,12 @@ package com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipiesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.AddRecipeToPlanUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.GetPlanRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.RemoveRecipeFromPlanUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailUIState
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,13 +19,16 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipePlanDetailViewModel @Inject constructor(
     private val getPlanRecipesUseCase: GetPlanRecipesUseCase,
-    private val getRecipiesUseCase: GetRecipiesUseCase,
+    private val getRecipesUseCase: GetRecipesUseCase,
     private val addRecipeToPlanUseCase: AddRecipeToPlanUseCase,
-    private val removeRecipeFromPlanUseCase: RemoveRecipeFromPlanUseCase
+    private val removeRecipeFromPlanUseCase: RemoveRecipeFromPlanUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecipePlanDetailUIState())
     val uiState: StateFlow<RecipePlanDetailUIState> = _uiState.asStateFlow()
+
+    val currentUserId: Int? get() = sessionManager.currentUserId
 
     fun loadPlanRecipes(planId: Int) {
         viewModelScope.launch {
@@ -43,7 +47,7 @@ class RecipePlanDetailViewModel @Inject constructor(
     fun loadAvailableRecipes() {
         viewModelScope.launch {
             try {
-                val allRecipes = getRecipiesUseCase()
+                val allRecipes = getRecipesUseCase()
                 val currentIds = _uiState.value.recipes.map { it.id }
                 val available = allRecipes.filter { it.id !in currentIds }
                 _uiState.update { it.copy(availableRecipes = available, isAddingRecipe = true) }

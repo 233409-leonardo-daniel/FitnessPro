@@ -14,7 +14,8 @@ interface RecipeRepository {
         userId: Int?,
         scheduledDays: List<String>,
         mealType: String?,
-        imageFile: File?
+        imageFile: File?,
+        audioFile: File?
     ): Recipe
 
     suspend fun updateRecipe(

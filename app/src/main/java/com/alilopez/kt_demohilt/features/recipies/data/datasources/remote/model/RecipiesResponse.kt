@@ -19,7 +19,9 @@ data class RecipeDto(
     @SerializedName("meal_type")
     val mealType: String?,
     @SerializedName("image_url")
-    val imageUrl: String?
+    val imageUrl: String?,
+    @SerializedName("audio_url")
+    val audioUrl: String?
 )
 
 data class RecipeCreateDto(
@@ -34,5 +36,7 @@ data class RecipeCreateDto(
     @SerializedName("meal_type")
     val mealType: String? = null,
     @SerializedName("image_url")
-    val imageUrl: String? = null
+    val imageUrl: String? = null,
+    @SerializedName("audio_url")
+    val audioUrl: String? = null
 )

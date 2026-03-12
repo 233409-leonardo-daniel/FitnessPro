@@ -6,6 +6,7 @@ import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.CreateRecip
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.DeleteRecipePlanUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.GetUserRecipePlansUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansUIState
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,7 +19,8 @@ import javax.inject.Inject
 class RecipePlansViewModel @Inject constructor(
     private val getUserRecipePlansUseCase: GetUserRecipePlansUseCase,
     private val createRecipePlanUseCase: CreateRecipePlanUseCase,
-    private val deleteRecipePlanUseCase: DeleteRecipePlanUseCase
+    private val deleteRecipePlanUseCase: DeleteRecipePlanUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecipePlansUIState())
@@ -31,8 +33,8 @@ class RecipePlansViewModel @Inject constructor(
     fun loadRecipePlans() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val userId = 1 // TODO: Obtener del repositorio de usuario real
-            
+            val userId = sessionManager.currentUserId ?: 1
+
             getUserRecipePlansUseCase(userId).fold(
                 onSuccess = { plans ->
                     _uiState.update { it.copy(isLoading = false, recipePlans = plans) }
@@ -47,7 +49,7 @@ class RecipePlansViewModel @Inject constructor(
     fun createPlan(name: String, description: String, isPrivate: Boolean) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            createRecipePlanUseCase(name, description, userId = 1, isPrivate).fold(
+            createRecipePlanUseCase(name, description, userId = sessionManager.currentUserId ?: 1, isPrivate).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planCreated = true) }
                     loadRecipePlans()

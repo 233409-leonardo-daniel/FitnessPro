@@ -2,7 +2,7 @@ package com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipiesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.UpdateRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -15,7 +15,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class EditRecipeViewModel @Inject constructor(
-    private val getRecipiesUseCase: GetRecipiesUseCase,
+    private val getRecipesUseCase: GetRecipesUseCase,
     private val updateRecipeUseCase: UpdateRecipeUseCase
 ) : ViewModel() {
 
@@ -45,7 +45,7 @@ class EditRecipeViewModel @Inject constructor(
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                val recipies = getRecipiesUseCase()
+                val recipies = getRecipesUseCase()
                 val recipe = recipies.find { it.id == recipeId }
 
                 _name.value = recipe?.name ?: ""

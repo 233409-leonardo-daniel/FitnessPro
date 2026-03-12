@@ -1,5 +1,6 @@
 package com.alilopez.kt_demohilt.features.recipies.presentation.components
 
+import android.media.MediaPlayer
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
@@ -8,8 +9,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,10 +30,12 @@ import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 fun RecipeCard(
     recipe: Recipe,
     modifier: Modifier = Modifier,
+    currentUserId: Int? = null,
     onClick: () -> Unit = {},
     onEdit: () -> Unit = {},
     onDelete: () -> Unit = {}
 ) {
+    val isOwner = currentUserId != null && recipe.userId == currentUserId
 
     val isDarkTheme = isSystemInDarkTheme()
 
@@ -103,20 +107,57 @@ fun RecipeCard(
                         modifier = Modifier.weight(1f)
                     )
 
-                    IconButton(onClick = onEdit) {
-                        Icon(
-                            imageVector = Icons.Default.Edit,
-                            contentDescription = "Editar receta",
-                            tint = accentColor
-                        )
+                    // Botón reproducir audio
+                    if (!recipe.audioUrl.isNullOrBlank()) {
+                        var isPlaying by remember { mutableStateOf(false) }
+
+                        IconButton(onClick = {
+                            if (!isPlaying) {
+                                isPlaying = true
+                                val mediaPlayer = MediaPlayer()
+                                try {
+                                    mediaPlayer.setDataSource(recipe.audioUrl)
+                                    mediaPlayer.setOnPreparedListener { it.start() }
+                                    mediaPlayer.setOnCompletionListener {
+                                        isPlaying = false
+                                        it.release()
+                                    }
+                                    mediaPlayer.setOnErrorListener { mp, _, _ ->
+                                        isPlaying = false
+                                        mp.release()
+                                        true
+                                    }
+                                    mediaPlayer.prepareAsync()
+                                } catch (e: Exception) {
+                                    isPlaying = false
+                                    mediaPlayer.release()
+                                }
+                            }
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.VolumeUp,
+                                contentDescription = "Reproducir audio",
+                                tint = if (isPlaying) Color(0xFF3B82F6) else accentColor
+                            )
+                        }
                     }
 
-                    IconButton(onClick = onDelete) {
-                        Icon(
-                            imageVector = Icons.Default.Delete,
-                            contentDescription = "Eliminar receta",
-                            tint = Color(0xFFEF4444)
-                        )
+                    if (isOwner) {
+                        IconButton(onClick = onEdit) {
+                            Icon(
+                                imageVector = Icons.Default.Edit,
+                                contentDescription = "Editar receta",
+                                tint = accentColor
+                            )
+                        }
+
+                        IconButton(onClick = onDelete) {
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar receta",
+                                tint = Color(0xFFEF4444)
+                            )
+                        }
                     }
                 }
 
