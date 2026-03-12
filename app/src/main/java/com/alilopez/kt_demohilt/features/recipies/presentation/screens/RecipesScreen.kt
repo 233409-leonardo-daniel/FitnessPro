@@ -7,14 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.FitnessCenter
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,7 +18,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
@@ -33,7 +29,7 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.Recipe
 fun RecipesScreen(
     onNavigateToAddRecipe: () -> Unit,
     onNavigateToEditRecipe: (Int) -> Unit,
-    onNavigateToExercises: () -> Unit,
+    onOpenDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RecipesListViewModel = hiltViewModel()
 ) {
@@ -46,6 +42,7 @@ fun RecipesScreen(
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    val accentColor = Color(0xFF10B981)
 
     LaunchedEffect(Unit) {
         viewModel.getRecipies()
@@ -64,19 +61,28 @@ fun RecipesScreen(
                         color = textColor
                     )
                 },
-                actions = {
-                    IconButton(onClick = onNavigateToExercises) {
+                navigationIcon = {
+                    IconButton(onClick = onOpenDrawer) {
                         Icon(
-                            imageVector = Icons.Default.FitnessCenter,
-                            contentDescription = "Go to Exercises",
-                            tint = Color(0xFF10B981)
+                            imageVector = Icons.Default.Menu,
+                            contentDescription = "Abrir menú",
+                            tint = textColor
+                        )
+                    }
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.getRecipies() }) {
+                        Icon(
+                            imageVector = Icons.Default.Refresh,
+                            contentDescription = "Recargar",
+                            tint = accentColor
                         )
                     }
                     IconButton(onClick = onNavigateToAddRecipe) {
                         Icon(
                             imageVector = Icons.Default.Add,
                             contentDescription = "Add Recipe",
-                            tint = Color(0xFF10B981)
+                            tint = accentColor
                         )
                     }
                 },
@@ -95,7 +101,7 @@ fun RecipesScreen(
                 uiState.isLoading -> {
                     CircularProgressIndicator(
                         modifier = Modifier.align(Alignment.Center),
-                        color = Color(0xFF10B981)
+                        color = accentColor
                     )
                 }
 
@@ -129,7 +135,7 @@ fun RecipesScreen(
                         Button(
                             onClick = { viewModel.getRecipies() },
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF10B981)
+                                containerColor = accentColor
                             )
                         ) {
                             Text("Reintentar")
@@ -167,7 +173,7 @@ fun RecipesScreen(
                         Button(
                             onClick = onNavigateToAddRecipe,
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = Color(0xFF10B981)
+                                containerColor = accentColor
                             )
                         ) {
                             Icon(

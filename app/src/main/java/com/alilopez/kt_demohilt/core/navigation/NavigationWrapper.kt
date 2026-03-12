@@ -23,6 +23,7 @@ import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScree
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
+import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
@@ -56,7 +57,9 @@ fun NavigationWrapper() {
                         }
                     },
                     onNavigateToRecipes = {
-                        navController.navigate(Home) 
+                        navController.navigate(Recipes) {
+                            launchSingleTop = true
+                        }
                     },
                     onNavigateToExercises = {
                         navController.navigate(Exercises) {
@@ -112,9 +115,16 @@ fun NavigationWrapper() {
 
             composable<Home> {
                 HomeScreen(
+                    onNavigateToRecipes = { navController.navigate(Recipes) },
+                    onNavigateToExercises = { navController.navigate(Exercises) },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable<Recipes> {
+                RecipesScreen(
                     onNavigateToAddRecipe = { navController.navigate(AddRecipe) },
                     onNavigateToEditRecipe = { recipeId -> navController.navigate(EditRecipe(recipeId)) },
-                    onNavigateToExercises = { navController.navigate(Exercises) },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
                 )
             }
@@ -134,8 +144,7 @@ fun NavigationWrapper() {
             composable<Exercises> {
                 ExercisesScreen(
                     onNavigateToRecipes = {
-                        navController.navigate(Home) {
-                            popUpTo(Home) { inclusive = false }
+                        navController.navigate(Recipes) {
                             launchSingleTop = true
                         }
                     },
