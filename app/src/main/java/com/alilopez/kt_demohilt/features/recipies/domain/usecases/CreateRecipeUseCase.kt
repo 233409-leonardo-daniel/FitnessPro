@@ -16,7 +16,8 @@ class CreateRecipeUseCase @Inject constructor(
         userId: Int? = null,
         scheduledDays: List<String> = emptyList(),
         mealType: String? = null,
-        imageFile: File? = null
+        imageFile: File? = null,
+        audioFile: File? = null
     ): Recipe {
         return recipeRepository.createRecipe(
             name = name,
@@ -26,7 +27,8 @@ class CreateRecipeUseCase @Inject constructor(
             userId = userId,
             scheduledDays = scheduledDays,
             mealType = mealType,
-            imageFile = imageFile
+            imageFile = imageFile,
+            audioFile = audioFile
         )
     }
 }

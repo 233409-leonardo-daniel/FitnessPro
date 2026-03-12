@@ -13,6 +13,7 @@ fun RecipeDto.toDomain(): Recipe {
         userId = this.userId,
         scheduledDays = this.scheduledDays,
         mealType = this.mealType,
-        imageUrl = this.imageUrl
+        imageUrl = this.imageUrl,
+        audioUrl = this.audioUrl
     )
 }

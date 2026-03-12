@@ -58,7 +58,8 @@ interface FitnessProApi {
         @Part("user_id") userId: RequestBody?,
         @Part("scheduled_days") scheduledDays: RequestBody?,
         @Part("meal_type") mealType: RequestBody?,
-        @Part image: MultipartBody.Part?
+        @Part image: MultipartBody.Part?,
+        @Part audio: MultipartBody.Part?
     ): RecipeDto
 
     @PUT("recipes/{recipe_id}")

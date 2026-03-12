@@ -27,7 +27,8 @@ class RecipeRepositoryImp @Inject constructor(
         userId: Int?,
         scheduledDays: List<String>,
         mealType: String?,
-        imageFile: File?
+        imageFile: File?,
+        audioFile: File?
     ): Recipe {
         val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
         val descriptionPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -45,6 +46,12 @@ class RecipeRepositoryImp @Inject constructor(
             MultipartBody.Part.createFormData("image", file.name, requestFile)
         }
 
+        val audioPart = audioFile?.let { file ->
+            val mediaType = "audio/mp4".toMediaTypeOrNull()
+            val requestFile = file.asRequestBody(mediaType)
+            MultipartBody.Part.createFormData("audio", file.name, requestFile)
+        }
+
         return fitnessProApi.createRecipe(
             name = namePart,
             description = descriptionPart,
@@ -53,7 +60,8 @@ class RecipeRepositoryImp @Inject constructor(
             userId = userIdPart,
             scheduledDays = scheduledDaysPart,
             mealType = mealTypePart,
-            image = imagePart
+            image = imagePart,
+            audio = audioPart
         ).toDomain()
     }
 

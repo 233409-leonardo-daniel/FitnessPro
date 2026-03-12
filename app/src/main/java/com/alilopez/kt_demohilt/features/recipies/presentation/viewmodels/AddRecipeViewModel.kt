@@ -4,6 +4,7 @@ import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.hardware.domain.CameraPhotoManager
+import com.alilopez.kt_demohilt.core.hardware.domain.MicrophoneManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.CreateRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -17,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AddRecipeViewModel @Inject constructor(
     private val createRecipeUseCase: CreateRecipeUseCase,
-    private val cameraPhotoManager: CameraPhotoManager
+    private val cameraPhotoManager: CameraPhotoManager,
+    private val microphoneManager: MicrophoneManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddRecipeUIState())
@@ -43,9 +45,6 @@ class AddRecipeViewModel @Inject constructor(
 
     private val _photoUri = MutableStateFlow<Uri?>(null)
     val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
-
-    private val _photoTaken = MutableStateFlow(false)
-    val photoTaken: StateFlow<Boolean> = _photoTaken.asStateFlow()
 
     fun onNameChange(value: String) {
         _name.value = value
@@ -76,7 +75,7 @@ class AddRecipeViewModel @Inject constructor(
     }
 
     fun onPhotoTaken(success: Boolean) {
-        _photoTaken.value = success
+        _uiState.update { it.copy(photoTaken = success) }
     }
 
     fun createPhotoUri(): Uri {
@@ -87,14 +86,39 @@ class AddRecipeViewModel @Inject constructor(
 
     fun hasCamera(): Boolean = cameraPhotoManager.hasCamera()
 
+    // --- Audio recording ---
+
+    fun hasMicrophone(): Boolean = microphoneManager.hasMicrophone()
+
+    fun toggleRecording() {
+        if (_uiState.value.isRecording) {
+            microphoneManager.stopRecording()
+            _uiState.update {
+                it.copy(
+                    isRecording = false,
+                    audioRecorded = microphoneManager.getRecordingFile() != null
+                )
+            }
+        } else {
+            microphoneManager.startRecording()
+            _uiState.update {
+                it.copy(isRecording = true, audioRecorded = false)
+            }
+        }
+    }
+
+    fun deleteAudio() {
+        microphoneManager.getRecordingFile()?.delete()
+        _uiState.update { it.copy(audioRecorded = false) }
+    }
+
     fun createRecipe() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
-
-
             try {
-                val imageFile = if (_photoTaken.value) cameraPhotoManager.getPhotoFile() else null
+                val imageFile = if (_uiState.value.photoTaken) cameraPhotoManager.getPhotoFile() else null
+                val audioFile = if (_uiState.value.audioRecorded) microphoneManager.getRecordingFile() else null
 
                 createRecipeUseCase(
                     name = _name.value,
@@ -104,7 +128,8 @@ class AddRecipeViewModel @Inject constructor(
                     userId = 1,
                     scheduledDays = _selectedDays.value,
                     mealType = _selectedMealType.value,
-                    imageFile = imageFile
+                    imageFile = imageFile,
+                    audioFile = audioFile
                 )
 
                 _uiState.update {
@@ -126,6 +151,14 @@ class AddRecipeViewModel @Inject constructor(
 
     fun resetRecipeCreated() {
         _uiState.update { it.copy(recipeCreated = false) }
+    }
+
+    override fun onCleared() {
+        super.onCleared()
+        // Detener grabación si el ViewModel se destruye
+        if (_uiState.value.isRecording) {
+            microphoneManager.stopRecording()
+        }
     }
 }
 

@@ -31,6 +31,11 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.3.0] - 2026-03-11
+
+### Added
+- Microfono para grabar instrucciones de ejercicios locales, con almacenamiento en Firebase Storage y URL guardada en la entidad `LocalExerciseEntity`.
+
 ## [3.2.4] - 2026-03-10
 
 ### Fixed
