@@ -16,7 +16,7 @@ class RecipeRepositoryImp @Inject constructor(
     private val fitnessProApi: FitnessProApi
 ) : RecipeRepository {
     override suspend fun getRecipies(): List<Recipe> {
-        return fitnessProApi.getRecipies().map { it.toDomain() }
+        return fitnessProApi.getRecipes().map { it.toDomain() }
     }
 
     override suspend fun createRecipe(

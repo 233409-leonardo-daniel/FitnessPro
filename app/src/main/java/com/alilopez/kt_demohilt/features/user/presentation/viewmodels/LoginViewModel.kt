@@ -2,6 +2,7 @@ package com.alilopez.kt_demohilt.features.user.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.user.domain.usecases.UserLoginUseCase
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -14,7 +15,8 @@ import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val userLoginUseCase: UserLoginUseCase
+    private val userLoginUseCase: UserLoginUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(LoginUIState())
@@ -43,6 +45,7 @@ class LoginViewModel @Inject constructor(
                 )
 
                 if (response.access_token.isNotEmpty()) {
+                    sessionManager.saveSession(response.id, response.access_token)
                     _uiState.update { it.copy(isLoggedIn = true, isLoading = false) }
                 } else {
                     _uiState.update {

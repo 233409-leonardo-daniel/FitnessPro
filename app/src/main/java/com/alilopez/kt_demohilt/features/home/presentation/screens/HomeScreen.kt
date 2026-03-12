@@ -194,6 +194,7 @@ fun HomeScreen(
                 items(uiState.recipes) { recipe ->
                     RecipeCard(
                         recipe = recipe,
+                        currentUserId = viewModel.currentUserId,
                         onEdit = { onNavigateToEditRecipe(recipe.id) },
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                     )

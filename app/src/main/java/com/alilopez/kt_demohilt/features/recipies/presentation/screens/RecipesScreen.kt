@@ -190,6 +190,7 @@ fun RecipesScreen(
                         items(uiState.recipies) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
+                                currentUserId = viewModel.currentUserId,
                                 onClick = {
                                     // TODO: Navegar a detalles de receta
                                 },

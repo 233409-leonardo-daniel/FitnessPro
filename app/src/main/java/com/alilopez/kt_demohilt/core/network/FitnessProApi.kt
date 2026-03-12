@@ -29,7 +29,7 @@ import retrofit2.http.Query
 
 interface FitnessProApi {
     @GET("recipes")
-    suspend fun getRecipies(): List<RecipeDto>
+    suspend fun getRecipes(): List<RecipeDto>
 
     @FormUrlEncoded
     @POST("login")

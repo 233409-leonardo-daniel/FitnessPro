@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.hardware.domain.CameraPhotoManager
 import com.alilopez.kt_demohilt.core.hardware.domain.MicrophoneManager
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.CreateRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -19,7 +20,8 @@ import javax.inject.Inject
 class AddRecipeViewModel @Inject constructor(
     private val createRecipeUseCase: CreateRecipeUseCase,
     private val cameraPhotoManager: CameraPhotoManager,
-    private val microphoneManager: MicrophoneManager
+    private val microphoneManager: MicrophoneManager,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddRecipeUIState())
@@ -125,7 +127,7 @@ class AddRecipeViewModel @Inject constructor(
                     description = _description.value,
                     ingredients = _ingredients.value,
                     instructions = _instructions.value,
-                    userId = 1,
+                    userId = sessionManager.currentUserId,
                     scheduledDays = _selectedDays.value,
                     mealType = _selectedMealType.value,
                     imageFile = imageFile,
