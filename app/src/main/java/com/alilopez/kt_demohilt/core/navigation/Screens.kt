@@ -12,6 +12,9 @@ object Register
 object Home
 
 @Serializable
+object Recipes
+
+@Serializable
 object AddRecipe
 
 @Serializable
