@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.hardware.domain.CameraPhotoManager
 import com.alilopez.kt_demohilt.core.hardware.domain.MicrophoneManager
+import com.alilopez.kt_demohilt.core.hardware.domain.SoundManager
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.CreateRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeUIState
@@ -21,7 +22,8 @@ class AddRecipeViewModel @Inject constructor(
     private val createRecipeUseCase: CreateRecipeUseCase,
     private val cameraPhotoManager: CameraPhotoManager,
     private val microphoneManager: MicrophoneManager,
-    private val sessionManager: SessionManager
+    private val sessionManager: SessionManager,
+    private val soundManager: SoundManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(AddRecipeUIState())
@@ -137,6 +139,10 @@ class AddRecipeViewModel @Inject constructor(
                     audioFile = audioFile
                 )
 
+                if (soundManager.hasSpeaker()) {
+                    soundManager.onPostSound()
+                }
+
                 _uiState.update {
                     it.copy(
                         isLoading = false,
@@ -166,6 +172,3 @@ class AddRecipeViewModel @Inject constructor(
         }
     }
 }
-
-
-
