@@ -102,6 +102,7 @@ fun RecipePlanDetailScreen(
                         Box(modifier = Modifier.fillMaxWidth()) {
                             RecipeCard(
                                 recipe = recipe,
+                                currentUserId = viewModel.currentUserId,
                                 onClick = { /* Detalle de receta opcional */ }
                             )
                             IconButton(

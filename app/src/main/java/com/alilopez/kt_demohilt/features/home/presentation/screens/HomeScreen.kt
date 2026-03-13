@@ -1,41 +1,15 @@
 package com.alilopez.kt_demohilt.features.home.presentation.screens
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -45,6 +19,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -54,13 +29,15 @@ import coil.compose.AsyncImage
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.gifImageLoader
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
+import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
+import java.text.SimpleDateFormat
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToAddRecipe: () -> Unit,
-    onNavigateToEditRecipe: (Int) -> Unit,
+    onNavigateToRecipes: () -> Unit,
     onNavigateToExercises: () -> Unit,
     onOpenDrawer: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
@@ -71,8 +48,22 @@ fun HomeScreen(
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
-    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
     val accentColor = Color(0xFF10B981)
+
+    // Obtener día actual en español
+    val calendar = Calendar.getInstance()
+    val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
+    val currentDay = dayFormat.format(calendar.time)
+        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+
+    // Filtrar recetas y ejercicios por el día de hoy
+    val todaysRecipes = uiState.recipes.filter { recipe ->
+        recipe.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
+    }
+
+    val todaysExercises = uiState.exercises.filter { exercise ->
+        exercise.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -80,12 +71,20 @@ fun HomeScreen(
         topBar = {
             TopAppBar(
                 title = {
-                    Text(
-                        text = "Home",
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 24.sp,
-                        color = textColor
-                    )
+                    Column {
+                        Text(
+                            text = "Mi Plan Diario",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 20.sp,
+                            color = textColor
+                        )
+                        Text(
+                            text = currentDay,
+                            fontSize = 14.sp,
+                            color = accentColor,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
@@ -100,14 +99,7 @@ fun HomeScreen(
                     IconButton(onClick = { viewModel.loadData() }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
-                            contentDescription = "Actualizar contenido",
-                            tint = accentColor
-                        )
-                    }
-                    IconButton(onClick = onNavigateToAddRecipe) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = "Agregar receta",
+                            contentDescription = "Actualizar",
                             tint = accentColor
                         )
                     }
@@ -122,142 +114,112 @@ fun HomeScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // ── Sección Recetas ──
+            // ── SECCIÓN RECETAS DE HOY (CARRUSEL) ──
             item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Recetas Guardadas",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
-                    TextButton(onClick = onNavigateToAddRecipe) {
-                        Text("Ver todas", color = accentColor, fontSize = 14.sp)
-                    }
-                }
+                SectionHeader(
+                    title = "Comidas programadas",
+                    onSeeAllClick = onNavigateToRecipes,
+                    textColor = textColor,
+                    accentColor = accentColor
+                )
             }
 
-            if (uiState.recipesLoading) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        contentAlignment = Alignment.Center
+            item {
+                if (todaysRecipes.isEmpty()) {
+                    EmptyDayCard("No tienes comidas para hoy", "Agrega días a tus recetas para verlas aquí", isDarkTheme)
+                } else {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        CircularProgressIndicator(color = accentColor)
-                    }
-                }
-            } else if (uiState.recipesError != null) {
-                item {
-                    Text(
-                        text = uiState.recipesError ?: "Error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-            } else if (uiState.recipes.isEmpty()) {
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp),
-                        colors = CardDefaults.cardColors(containerColor = cardBg),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(24.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("No hay recetas aún", color = secondaryTextColor, fontSize = 14.sp)
-                            Spacer(modifier = Modifier.height(8.dp))
-                            Button(
-                                onClick = onNavigateToAddRecipe,
-                                colors = ButtonDefaults.buttonColors(containerColor = accentColor)
-                            ) {
-                                Icon(Icons.Default.Add, contentDescription = null, modifier = Modifier.size(18.dp))
-                                Spacer(modifier = Modifier.width(6.dp))
-                                Text("Agregar Receta")
-                            }
+                        items(todaysRecipes) { recipe ->
+                            RecipeCard(
+                                recipe = recipe,
+                                modifier = Modifier.width(300.dp) // Ancho fijo para el carrusel
+                            )
                         }
                     }
                 }
-            } else {
-                items(uiState.recipes) { recipe ->
-                    RecipeCard(
-                        recipe = recipe,
-                        onEdit = { onNavigateToEditRecipe(recipe.id) },
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
-                    )
-                }
             }
 
-            // ── Sección Ejercicios ──
+            // ── SECCIÓN EJERCICIOS DE HOY (CARRUSEL) ──
             item {
-                Spacer(modifier = Modifier.height(16.dp))
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp, vertical = 12.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Recomendados para ti",
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = textColor
-                    )
-                    TextButton(onClick = onNavigateToExercises) {
-                        Text("Ver todos", color = accentColor, fontSize = 14.sp)
-                    }
-                }
+                Spacer(modifier = Modifier.height(24.dp))
+                SectionHeader(
+                    title = "Tu entrenamiento",
+                    onSeeAllClick = onNavigateToExercises,
+                    textColor = textColor,
+                    accentColor = accentColor
+                )
             }
 
-            if (uiState.exercisesLoading) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(120.dp),
-                        contentAlignment = Alignment.Center
+            item {
+                if (todaysExercises.isEmpty()) {
+                    EmptyDayCard("Día de descanso", "No hay ejercicios programados para hoy", isDarkTheme)
+                } else {
+                    LazyRow(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        CircularProgressIndicator(color = accentColor)
+                        items(todaysExercises) { exercise ->
+                            HomeExerciseCard(
+                                exercise = exercise,
+                                isDarkTheme = isDarkTheme,
+                                modifier = Modifier.width(280.dp) // Ancho fijo para el carrusel
+                            )
+                        }
                     }
                 }
-            } else if (uiState.exercisesError != null) {
-                item {
-                    Text(
-                        text = uiState.exercisesError ?: "Error",
-                        color = MaterialTheme.colorScheme.error,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-            } else if (uiState.exercises.isEmpty()) {
-                item {
-                    Text(
-                        text = "No hay ejercicios disponibles",
-                        color = secondaryTextColor,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                }
-            } else {
-                items(uiState.exercises.take(5)) { exercise ->
-                    HomeExerciseCard(
-                        exercise = exercise,
-                        isDarkTheme = isDarkTheme,
-                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)
-                    )
-                }
             }
+        }
+    }
+}
+
+@Composable
+private fun SectionHeader(
+    title: String,
+    onSeeAllClick: () -> Unit,
+    textColor: Color,
+    accentColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 12.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Text(
+            text = title,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
+            color = textColor
+        )
+        TextButton(onClick = onSeeAllClick) {
+            Text("Ver todo", color = accentColor, fontSize = 14.sp)
+        }
+    }
+}
+
+@Composable
+private fun EmptyDayCard(title: String, subtitle: String, isDarkTheme: Boolean) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+        ),
+        shape = RoundedCornerShape(12.dp)
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(title, fontWeight = FontWeight.Bold, color = if (isDarkTheme) Color.White else Color.Black)
+            Text(subtitle, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
         }
     }
 }
@@ -275,7 +237,7 @@ private fun HomeExerciseCard(
     val accentColor = Color(0xFF10B981)
 
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier,
         colors = CardDefaults.cardColors(containerColor = cardBg),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = RoundedCornerShape(16.dp)
@@ -286,7 +248,6 @@ private fun HomeExerciseCard(
                 .padding(12.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // GIF del ejercicio
             AsyncImage(
                 model = exercise.gifUrl,
                 imageLoader = gifImageLoader(LocalContext.current),
@@ -317,25 +278,6 @@ private fun HomeExerciseCard(
                     overflow = TextOverflow.Ellipsis,
                     lineHeight = 18.sp
                 )
-                if (exercise.targetMuscles.isNotEmpty()) {
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                        exercise.targetMuscles.take(2).forEach { muscle ->
-                            Surface(
-                                shape = RoundedCornerShape(8.dp),
-                                color = accentColor.copy(alpha = 0.15f)
-                            ) {
-                                Text(
-                                    text = muscle.replaceFirstChar { it.uppercase() },
-                                    fontSize = 11.sp,
-                                    color = accentColor,
-                                    fontWeight = FontWeight.SemiBold,
-                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
-                                )
-                            }
-                        }
-                    }
-                }
             }
         }
     }

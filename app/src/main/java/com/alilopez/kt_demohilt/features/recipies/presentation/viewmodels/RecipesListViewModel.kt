@@ -3,8 +3,9 @@ package com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.DeleteRecipeUseCase
-import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipiesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesListUIState
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,19 +16,22 @@ import javax.inject.Inject
 
 @HiltViewModel
 class RecipesListViewModel @Inject constructor(
-    private val getRecipiesUseCase: GetRecipiesUseCase,
-    private val deleteRecipeUseCase: DeleteRecipeUseCase
+    private val getRecipesUseCase: GetRecipesUseCase,
+    private val deleteRecipeUseCase: DeleteRecipeUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(RecipesListUIState())
     val uiState: StateFlow<RecipesListUIState> = _uiState.asStateFlow()
+
+    val currentUserId: Int? get() = sessionManager.currentUserId
 
     fun getRecipies() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
             try {
-                val recipies = getRecipiesUseCase()
+                val recipies = getRecipesUseCase()
                 _uiState.update { it.copy(isLoading = false, recipies = recipies) }
             } catch (e: Exception) {
                 _uiState.update {
@@ -70,5 +74,3 @@ class RecipesListViewModel @Inject constructor(
         _uiState.update { it.copy(recipeDeleted = false) }
     }
 }
-
-

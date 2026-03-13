@@ -4,7 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeUIState
-import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipiesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -15,12 +16,15 @@ import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getRecipiesUseCase: GetRecipiesUseCase,
-    private val getExercisesUseCase: GetExercisesUseCase
+    private val getRecipesUseCase: GetRecipesUseCase,
+    private val getExercisesUseCase: GetExercisesUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(HomeUIState())
     val uiState: StateFlow<HomeUIState> = _uiState.asStateFlow()
+
+    val currentUserId: Int? get() = sessionManager.currentUserId
 
     init {
         loadData()
@@ -35,7 +39,7 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(recipesLoading = true, recipesError = null) }
             try {
-                val recipes = getRecipiesUseCase()
+                val recipes = getRecipesUseCase()
                 _uiState.update { it.copy(recipesLoading = false, recipes = recipes) }
             } catch (e: Exception) {
                 _uiState.update {

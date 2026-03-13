@@ -4,8 +4,10 @@ import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
 import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
@@ -21,6 +23,7 @@ import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScree
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
+import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
@@ -31,11 +34,16 @@ fun NavigationWrapper() {
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
-    val currentRoute = navBackStackEntry?.destination?.route?.split(".")?.lastOrNull()
+    val currentDestination = navBackStackEntry?.destination
+    val currentRoute = currentDestination?.route?.split(".")?.lastOrNull()
 
-    // Rutas donde NO queremos mostrar el SliderMenu
-    val noDrawerRoutes = listOf("Login", "Register")
-    val showDrawer = currentRoute !in noDrawerRoutes
+    LaunchedEffect(currentDestination?.route) {
+        drawerState.close()
+    }
+    val isAuthRoute = currentDestination?.let {
+        it.hasRoute<Login>() || it.hasRoute<Register>()
+    } ?: true
+    val showDrawer = !isAuthRoute
 
     ModalNavigationDrawer(
         drawerState = drawerState,
@@ -49,7 +57,9 @@ fun NavigationWrapper() {
                         }
                     },
                     onNavigateToRecipes = {
-                        navController.navigate(Home) 
+                        navController.navigate(Recipes) {
+                            launchSingleTop = true
+                        }
                     },
                     onNavigateToExercises = {
                         navController.navigate(Exercises) {
@@ -105,9 +115,16 @@ fun NavigationWrapper() {
 
             composable<Home> {
                 HomeScreen(
+                    onNavigateToRecipes = { navController.navigate(Recipes) },
+                    onNavigateToExercises = { navController.navigate(Exercises) },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable<Recipes> {
+                RecipesScreen(
                     onNavigateToAddRecipe = { navController.navigate(AddRecipe) },
                     onNavigateToEditRecipe = { recipeId -> navController.navigate(EditRecipe(recipeId)) },
-                    onNavigateToExercises = { navController.navigate(Exercises) },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
                 )
             }
@@ -127,8 +144,7 @@ fun NavigationWrapper() {
             composable<Exercises> {
                 ExercisesScreen(
                     onNavigateToRecipes = {
-                        navController.navigate(Home) {
-                            popUpTo(Home) { inclusive = false }
+                        navController.navigate(Recipes) {
                             launchSingleTop = true
                         }
                     },
