@@ -35,6 +35,7 @@ class ExerciseViewModel @Inject constructor(
     init {
         loadExercises()
         loadLocalExercises()
+        syncExercises() // <-- Agregamos esto para que sincronice al iniciar
     }
 
     fun loadExercises() {

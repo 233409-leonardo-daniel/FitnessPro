@@ -14,22 +14,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import coil.compose.AsyncImage
-import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
-import com.alilopez.kt_demohilt.features.exercise.presentation.components.gifImageLoader
+import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
-import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,7 +40,6 @@ fun HomeScreen(
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
     val accentColor = Color(0xFF10B981)
 
     // Obtener día actual en español
@@ -136,7 +128,7 @@ fun HomeScreen(
                         items(todaysRecipes) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
-                                modifier = Modifier.width(300.dp) // Ancho fijo para el carrusel
+                                modifier = Modifier.width(300.dp)
                             )
                         }
                     }
@@ -164,10 +156,14 @@ fun HomeScreen(
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         items(todaysExercises) { exercise ->
-                            HomeExerciseCard(
-                                exercise = exercise,
-                                isDarkTheme = isDarkTheme,
-                                modifier = Modifier.width(280.dp) // Ancho fijo para el carrusel
+                            ExerciseCard(
+                                name = exercise.name,
+                                imageUrl = exercise.gifUrl,
+                                instructions = exercise.instructions,
+                                isLocal = true,
+                                exerciseType = exercise.exerciseType,
+                                difficulty = exercise.difficulty,
+                                modifier = Modifier.width(300.dp)
                             )
                         }
                     }
@@ -220,65 +216,6 @@ private fun EmptyDayCard(title: String, subtitle: String, isDarkTheme: Boolean) 
         ) {
             Text(title, fontWeight = FontWeight.Bold, color = if (isDarkTheme) Color.White else Color.Black)
             Text(subtitle, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
-        }
-    }
-}
-
-// ── Card compacta de ejercicio para Home ──
-@Composable
-private fun HomeExerciseCard(
-    exercise: Exercise,
-    isDarkTheme: Boolean,
-    modifier: Modifier = Modifier
-) {
-    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
-    val accentColor = Color(0xFF10B981)
-
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = cardBg),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            AsyncImage(
-                model = exercise.gifUrl,
-                imageLoader = gifImageLoader(LocalContext.current),
-                contentDescription = exercise.name,
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-                contentScale = ContentScale.Crop
-            )
-
-            Spacer(modifier = Modifier.width(14.dp))
-
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = exercise.name.replaceFirstChar { it.uppercase() },
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = textColor,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = exercise.instructions.firstOrNull() ?: "",
-                    fontSize = 13.sp,
-                    color = secondaryTextColor,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                    lineHeight = 18.sp
-                )
-            }
         }
     }
 }

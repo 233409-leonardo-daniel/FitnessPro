@@ -2,22 +2,27 @@ package com.alilopez.kt_demohilt.features.home.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
+import com.alilopez.kt_demohilt.core.session.SessionManager
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetLocalExercisesUseCase
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeUIState
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
-import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val getRecipesUseCase: GetRecipesUseCase,
-    private val getExercisesUseCase: GetExercisesUseCase,
+    private val getLocalExercisesUseCase: GetLocalExercisesUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -32,7 +37,7 @@ class HomeViewModel @Inject constructor(
 
     fun loadData() {
         loadRecipes()
-        loadExercises()
+        loadLocalExercises()
     }
 
     private fun loadRecipes() {
@@ -49,20 +54,29 @@ class HomeViewModel @Inject constructor(
         }
     }
 
-    private fun loadExercises() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(exercisesLoading = true, exercisesError = null) }
-            val result = getExercisesUseCase()
-            result.fold(
-                onSuccess = { exercises ->
-                    _uiState.update { it.copy(exercisesLoading = false, exercises = exercises) }
-                },
-                onFailure = { error ->
-                    _uiState.update {
-                        it.copy(exercisesLoading = false, exercisesError = error.message ?: "Error al cargar ejercicios")
-                    }
-                }
-            )
-        }
+    private fun loadLocalExercises() {
+        _uiState.update { it.copy(exercisesLoading = true) }
+        
+        val today = getCurrentDayOfWeek()
+        
+        getLocalExercisesUseCase().onEach { allLocalExercises ->
+            // Filtramos los ejercicios que tienen el día de hoy en su lista de días programados
+            val exercisesForToday = allLocalExercises.filter { exercise ->
+                exercise.scheduledDays.any { it.equals(today, ignoreCase = true) }
+            }
+            
+            _uiState.update { 
+                it.copy(
+                    exercisesLoading = false, 
+                    exercises = exercisesForToday 
+                ) 
+            }
+        }.launchIn(viewModelScope)
+    }
+
+    private fun getCurrentDayOfWeek(): String {
+        val sdf = SimpleDateFormat("EEEE", Locale("es", "ES"))
+        val d = Calendar.getInstance().time
+        return sdf.format(d)
     }
 }

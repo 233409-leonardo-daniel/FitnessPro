@@ -1,7 +1,9 @@
 package com.alilopez.kt_demohilt.features.exercise.data.repositories
 
+import android.util.Log
 import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.toDomain
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.toEntity
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.mapper.toDomain
@@ -19,7 +21,8 @@ import javax.inject.Inject
 
 class ExercisesRepositoryImpl @Inject constructor(
     private val api: FitnessProApi,
-    private val dao : ExerciseDao
+    private val dao : ExerciseDao,
+    private val sessionManager: SessionManager
 ) : ExerciseRepository {
 
     override suspend fun getExercises(): List<Exercise> {
@@ -65,11 +68,24 @@ class ExercisesRepositoryImpl @Inject constructor(
     }
 
     override suspend fun syncExercises() {
+        Log.d("ExercisesRepository", "Iniciando syncExercises...")
         try {
-            val remoteExercises = api.getExercisesRemote(limit = 10).data
-            val entities = remoteExercises.map { it.toDomain().toEntity() }
-            dao.insertExercises(entities)
+            val userId = sessionManager.currentUserId
+            Log.d("ExercisesRepository", "UserId obtenido: $userId")
+            
+            if (userId != null) {
+                Log.d("ExercisesRepository", "Llamando a api.getExercisesLocalByUserId($userId)")
+                val remoteExercises = api.getExercisesLocalByUserId(userId)
+                Log.d("ExercisesRepository", "Ejercicios recibidos: ${remoteExercises.size}")
+                
+                val entities = remoteExercises.map { it.toDomain().toEntity() }
+                dao.insertExercises(entities)
+                Log.d("ExercisesRepository", "Ejercicios insertados en DB local")
+            } else {
+                Log.e("ExercisesRepository", "No se pudo sincronizar: UserId es NULL")
+            }
         } catch (e: Exception) {
+            Log.e("ExercisesRepository", "Error en syncExercises: ${e.message}")
             e.printStackTrace()
         }
     }
@@ -140,4 +156,3 @@ class ExercisesRepositoryImpl @Inject constructor(
         ).toDomain()
     }
 }
-
