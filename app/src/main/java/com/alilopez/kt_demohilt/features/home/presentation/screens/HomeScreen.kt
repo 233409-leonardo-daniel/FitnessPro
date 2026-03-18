@@ -19,7 +19,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
@@ -28,6 +28,7 @@ import java.text.SimpleDateFormat
 import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
+@Suppress("DEPRECATION")
 @Composable
 fun HomeScreen(
     onNavigateToRecipes: () -> Unit,
@@ -44,7 +45,7 @@ fun HomeScreen(
 
     // Obtener día actual en español
     val calendar = Calendar.getInstance()
-    val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
+    val dayFormat = SimpleDateFormat("EEEE", Locale.forLanguageTag("es-ES"))
     val currentDay = dayFormat.format(calendar.time)
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
@@ -128,6 +129,7 @@ fun HomeScreen(
                         items(todaysRecipes) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
+                                compactMode = true,
                                 modifier = Modifier.width(300.dp)
                             )
                         }
@@ -159,6 +161,7 @@ fun HomeScreen(
                             ExerciseCard(
                                 name = exercise.name,
                                 imageUrl = exercise.gifUrl,
+                                compactMode = true,
                                 instructions = exercise.instructions,
                                 isLocal = true,
                                 exerciseType = exercise.exerciseType,

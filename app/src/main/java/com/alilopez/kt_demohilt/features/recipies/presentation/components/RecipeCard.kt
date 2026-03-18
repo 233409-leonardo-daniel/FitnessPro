@@ -9,6 +9,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,6 +31,7 @@ import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 fun RecipeCard(
     recipe: Recipe,
     modifier: Modifier = Modifier,
+    compactMode: Boolean = false,
     currentUserId: Int? = null,
     onClick: () -> Unit = {},
     onEdit: () -> Unit = {},
@@ -47,7 +49,9 @@ fun RecipeCard(
 
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .then(if (compactMode) Modifier.height(560.dp) else Modifier),
         colors = CardDefaults.cardColors(containerColor = cardBackgroundColor),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
@@ -70,6 +74,22 @@ fun RecipeCard(
                             .height(180.dp),
                         contentScale = ContentScale.Crop
                     )
+                } else {
+                    // Mantiene altura consistente cuando no hay imagen
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(180.dp)
+                            .background(if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Sin imagen",
+                            tint = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B),
+                            modifier = Modifier.size(48.dp)
+                        )
+                    }
                 }
 
                 if (!recipe.mealType.isNullOrBlank()) {
@@ -104,6 +124,8 @@ fun RecipeCard(
                         fontSize = 20.sp,
                         fontWeight = FontWeight.Bold,
                         color = textColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                         modifier = Modifier.weight(1f)
                     )
 
@@ -128,7 +150,7 @@ fun RecipeCard(
                                         true
                                     }
                                     mediaPlayer.prepareAsync()
-                                } catch (e: Exception) {
+                                } catch (_: Exception) {
                                     isPlaying = false
                                     mediaPlayer.release()
                                 }
@@ -168,7 +190,9 @@ fun RecipeCard(
                     text = recipe.description,
                     fontSize = 14.sp,
                     color = secondaryTextColor,
-                    lineHeight = 20.sp
+                    lineHeight = 20.sp,
+                    maxLines = if (compactMode) 2 else Int.MAX_VALUE,
+                    overflow = TextOverflow.Ellipsis
                 )
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -184,8 +208,9 @@ fun RecipeCard(
                 Spacer(modifier = Modifier.height(8.dp))
 
                 val ingredientsList = recipe.ingredients.split(",")
+                val visibleIngredients = if (compactMode) ingredientsList.take(3) else ingredientsList
 
-                ingredientsList.forEach {
+                visibleIngredients.forEach {
 
                     Row(verticalAlignment = Alignment.CenterVertically) {
 
@@ -206,6 +231,14 @@ fun RecipeCard(
                     }
 
                     Spacer(modifier = Modifier.height(4.dp))
+                }
+
+                if (compactMode && ingredientsList.size > visibleIngredients.size) {
+                    Text(
+                        text = "+${ingredientsList.size - visibleIngredients.size} más",
+                        fontSize = 12.sp,
+                        color = secondaryTextColor
+                    )
                 }
 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -233,7 +266,9 @@ fun RecipeCard(
                             text = recipe.instructions,
                             fontSize = 13.sp,
                             color = secondaryTextColor,
-                            lineHeight = 18.sp
+                            lineHeight = 18.sp,
+                            maxLines = if (compactMode) 4 else Int.MAX_VALUE,
+                            overflow = TextOverflow.Ellipsis
                         )
                     }
                 }
@@ -261,7 +296,9 @@ fun RecipeCard(
                     Text(
                         text = recipe.scheduledDays.joinToString(", "),
                         fontSize = 12.sp,
-                        color = secondaryTextColor
+                        color = secondaryTextColor,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
             }
