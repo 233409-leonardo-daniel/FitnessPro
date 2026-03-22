@@ -19,6 +19,10 @@ class RecipeRepositoryImp @Inject constructor(
         return fitnessProApi.getRecipes().map { it.toDomain() }
     }
 
+    override suspend fun getRecipeDetail(recipeId: Int): Recipe {
+        return fitnessProApi.getRecipeDetail(recipeId).toDomain()
+    }
+
     override suspend fun createRecipe(
         name: String,
         description: String,
@@ -76,17 +80,29 @@ class RecipeRepositoryImp @Inject constructor(
         mealType: String?,
         imageUrl: String?
     ): Recipe {
-        val recipeCreateDto = RecipeCreateDto(
-            name = name,
-            description = description,
-            ingredients = ingredients,
-            instructions = instructions,
-            userId = userId,
-            scheduledDays = scheduledDays,
-            mealType = mealType,
-            imageUrl = imageUrl
-        )
-        return fitnessProApi.updateRecipe(recipeId, recipeCreateDto).toDomain()
+        val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
+        val descriptionPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
+        val ingredientsPart = ingredients.toRequestBody("text/plain".toMediaTypeOrNull())
+        val instructionsPart = instructions.toRequestBody("text/plain".toMediaTypeOrNull())
+        val scheduledDaysPart = if (scheduledDays.isNotEmpty()) {
+            scheduledDays.joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
+        } else null
+        val mealTypePart = mealType?.toRequestBody("text/plain".toMediaTypeOrNull())
+        val imageUrlPart = imageUrl?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        return fitnessProApi.updateRecipe(
+            recipeId = recipeId,
+            name = namePart,
+            description = descriptionPart,
+            ingredients = ingredientsPart,
+            instructions = instructionsPart,
+            scheduledDays = scheduledDaysPart,
+            mealType = mealTypePart,
+            imageUrl = imageUrlPart,
+            audioUrl = null,
+            image = null,
+            audio = null
+        ).toDomain()
     }
 
     override suspend fun deleteRecipe(recipeId: Int) {

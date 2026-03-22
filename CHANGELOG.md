@@ -31,6 +31,11 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.3.2] - 2026-03-22
+
+### Added
+- Se agrego una screen para detalles de una recipe.
+
 ## [3.3.1] - 2026-03-12
 
 ### Fixed

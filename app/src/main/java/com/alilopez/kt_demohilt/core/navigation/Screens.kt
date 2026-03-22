@@ -18,6 +18,9 @@ object Recipes
 object AddRecipe
 
 @Serializable
+data class RecipeDetail(val recipeId: Int)
+
+@Serializable
 data class EditRecipe(val recipeId: Int)
 
 @Serializable

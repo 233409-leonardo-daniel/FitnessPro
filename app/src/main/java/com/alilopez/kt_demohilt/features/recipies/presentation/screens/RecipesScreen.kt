@@ -29,6 +29,7 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.Recipe
 fun RecipesScreen(
     onNavigateToAddRecipe: () -> Unit,
     onNavigateToEditRecipe: (Int) -> Unit,
+    onNavigateToRecipeDetail: (Int) -> Unit,
     onOpenDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RecipesListViewModel = hiltViewModel()
@@ -198,7 +199,7 @@ fun RecipesScreen(
                                 recipe = recipe,
                                 currentUserId = viewModel.currentUserId,
                                 onClick = {
-                                    // TODO: Navegar a detalles de receta
+                                    onNavigateToRecipeDetail(recipe.id)
                                 },
                                 onEdit = {
                                     onNavigateToEditRecipe(recipe.id)

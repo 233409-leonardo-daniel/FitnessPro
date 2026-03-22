@@ -31,6 +31,11 @@ interface FitnessProApi {
     @GET("recipes")
     suspend fun getRecipes(): List<RecipeDto>
 
+    @GET("recipes/{recipe_id}")
+    suspend fun getRecipeDetail(
+        @Path("recipe_id") recipeId: Int
+    ): RecipeDto
+
     @FormUrlEncoded
     @POST("login")
     suspend fun login(
@@ -62,10 +67,20 @@ interface FitnessProApi {
         @Part audio: MultipartBody.Part?
     ): RecipeDto
 
+    @Multipart
     @PUT("recipes/{recipe_id}")
     suspend fun updateRecipe(
         @Path("recipe_id") recipeId: Int,
-        @Body recipe: RecipeCreateDto
+        @Part("name") name: RequestBody?,
+        @Part("description") description: RequestBody?,
+        @Part("ingredients") ingredients: RequestBody?,
+        @Part("instructions") instructions: RequestBody?,
+        @Part("scheduled_days") scheduledDays: RequestBody?,
+        @Part("meal_type") mealType: RequestBody?,
+        @Part("image_url") imageUrl: RequestBody?,
+        @Part("audio_url") audioUrl: RequestBody?,
+        @Part image: MultipartBody.Part?,
+        @Part audio: MultipartBody.Part?
     ): RecipeDto
 
     @DELETE("recipes/{recipe_id}")
