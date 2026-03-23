@@ -17,6 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.VolumeUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -116,8 +117,28 @@ fun RecipeCard(
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(180.dp)
-                            .background(if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0))
-                    )
+                            .background(if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Image,
+                                contentDescription = null,
+                                tint = secondaryTextColor,
+                                modifier = Modifier.size(44.dp)
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Sin imagen",
+                                fontSize = 13.sp,
+                                color = secondaryTextColor,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
                 }
 
                 if (!recipe.mealType.isNullOrBlank()) {
