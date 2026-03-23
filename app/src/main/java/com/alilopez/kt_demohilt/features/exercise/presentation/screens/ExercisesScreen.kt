@@ -24,6 +24,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.exercise.presentation.viewmodels.ExerciseViewModel
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 import kotlinx.coroutines.launch
@@ -71,6 +72,19 @@ fun ExercisesScreen(
 
     val pagerState = rememberPagerState(pageCount = { 2 })
     val scope = rememberCoroutineScope()
+    val query = uiState.searchQuery.trim()
+
+    val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
+        uiState.localExercises.filter { it.name.contains(query, ignoreCase = true) }
+    } else {
+        uiState.localExercises
+    }
+
+    val filteredExploreExercises = if (uiState.isSearchActive && query.isNotBlank()) {
+        uiState.exercises.filter { it.name.contains(query, ignoreCase = true) }
+    } else {
+        uiState.exercises
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -126,15 +140,34 @@ fun ExercisesScreen(
                 .padding(innerPadding)
                 .background(backgroundColor)
         ) {
+            SearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChange,
+                onSearch = { viewModel.searchExercises() },
+                onClear = { viewModel.clearSearch() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                placeholder = "Buscar ejercicio por nombre",
+                isDarkTheme = isDarkTheme,
+                accentColor = accentColor,
+                textColor = textColor,
+                secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+            )
+
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
                 verticalAlignment = Alignment.Top
             ) { page ->
                 when (page) {
-                    0 -> LocalExercisesList(uiState.localExercises, textColor)
+                    0 -> LocalExercisesList(
+                        localExercises = filteredLocalExercises,
+                        isSearchActive = uiState.isSearchActive,
+                        accentColor = accentColor
+                    )
                     1 -> ExploreExercisesList(
-                        exercises = uiState.exercises,
+                        exercises = filteredExploreExercises,
                         uiState = uiState,
                         viewModel = viewModel,
                         textColor = textColor,
@@ -149,10 +182,17 @@ fun ExercisesScreen(
 }
 
 @Composable
-fun LocalExercisesList(localExercises: List<com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise>, textColor: Color) {
+fun LocalExercisesList(
+    localExercises: List<com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise>,
+    isSearchActive: Boolean,
+    accentColor: Color
+) {
     if (localExercises.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text("No has creado ejercicios aún", color = Color.Gray)
+            Text(
+                text = if (isSearchActive) "No se encontraron ejercicios" else "No has creado ejercicios aún",
+                color = if (isSearchActive) accentColor else Color.Gray
+            )
         }
     } else {
         LazyColumn(
@@ -248,6 +288,10 @@ fun ExploreExercisesList(
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = accentColor)
             }
+            } else if (exercises.isEmpty() && uiState.isSearchActive) {
+                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                    Text("No se encontraron ejercicios", color = accentColor)
+                }
         } else {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),

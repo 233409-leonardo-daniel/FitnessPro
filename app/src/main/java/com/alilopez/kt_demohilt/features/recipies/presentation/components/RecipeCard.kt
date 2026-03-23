@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material.icons.filled.VolumeUp
@@ -222,11 +223,10 @@ fun RecipeCard(
                         }
 
                         IconButton(onClick = onDelete) {
-                            Text(
-                                text = "X",
-                                color = Color(0xFFEF4444),
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold
+                            Icon(
+                                imageVector = Icons.Default.Delete,
+                                contentDescription = "Eliminar receta",
+                                tint = Color(0xFFEF4444)
                             )
                         }
                     }
