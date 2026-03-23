@@ -8,7 +8,6 @@ import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.mo
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.AddRecipeToPlanDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanCreateDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
-import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
@@ -196,4 +195,14 @@ interface FitnessProApi {
         @Path("plan_id") planId: Int,
         @Path("recipe_id") recipeId: Int
     ): RecipePlanDto
+
+    @GET("recipes/search/{name}")
+    suspend fun searchRecipes(
+        @Path("name") name: String
+    ): List<RecipeDto>
+
+    @GET("exercises/local/search/{name}")
+    suspend fun searchLocalExercises(
+        @Path("name") name: String
+    ): List<LocalExerciseDto>
 }

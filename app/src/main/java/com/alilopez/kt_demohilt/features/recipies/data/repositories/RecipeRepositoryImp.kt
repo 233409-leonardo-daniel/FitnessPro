@@ -2,7 +2,6 @@ package com.alilopez.kt_demohilt.features.recipies.data.repositories
 
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain
-import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.domain.repositories.RecipeRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -17,6 +16,10 @@ class RecipeRepositoryImp @Inject constructor(
 ) : RecipeRepository {
     override suspend fun getRecipies(): List<Recipe> {
         return fitnessProApi.getRecipes().map { it.toDomain() }
+    }
+
+    override suspend fun searchRecipesByName(name: String): List<Recipe> {
+        return fitnessProApi.searchRecipes(name).map { it.toDomain() }
     }
 
     override suspend fun getRecipeDetail(recipeId: Int): Recipe {

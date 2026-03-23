@@ -56,7 +56,7 @@ fun AddRecipeScreen(
     val textFieldBorder = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
     val placeholderColor = if (isDarkTheme) Color(0xFF64748B) else Color(0xFF94A3B8)
 
-    val mealTypeOptions = listOf("Desayuno", "Almuerzo", "Cena")
+    val mealTypeOptions = listOf("Desayuno", "Comida", "Cena")
     val daysOfWeek = listOf("Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado", "Domingo")
 
     // Launcher para tomar foto con la cámara
@@ -357,7 +357,7 @@ fun AddRecipeScreen(
                     InputFitness(
                         value = name,
                         onValueChange = { viewModel.onNameChange(it) },
-                        placeholder = "e.g. Grilled Salmon Salad"
+                        placeholder = "Ejemplo: Pollo al horno con verduras",
                     )
                 }
 
