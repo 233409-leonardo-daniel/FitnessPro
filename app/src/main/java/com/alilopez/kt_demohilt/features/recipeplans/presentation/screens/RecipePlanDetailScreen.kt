@@ -20,9 +20,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
-import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeSearchBar
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels.RecipePlanDetailViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -109,7 +109,7 @@ fun RecipePlanDetailScreen(
                             IconButton(
                                 onClick = { viewModel.removeRecipeFromPlan(planId, recipe.id) },
                                 modifier = Modifier
-                                    .align(Alignment.TopEnd)
+                                    .align(Alignment.TopStart)
                                     .padding(8.dp)
                                     .size(32.dp)
                             ) {
@@ -192,7 +192,7 @@ fun AddRecipeModal(
                 fontWeight = FontWeight.Bold
             )
 
-            RecipeSearchBar(
+            SearchBar(
                 query = searchQuery,
                 onQueryChange = { searchQuery = it },
                 onSearch = {},
@@ -200,6 +200,7 @@ fun AddRecipeModal(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 16.dp),
+                placeholder = "Buscar receta por nombre",
                 isDarkTheme = isDarkTheme,
                 accentColor = accentColor,
                 textColor = textColor,

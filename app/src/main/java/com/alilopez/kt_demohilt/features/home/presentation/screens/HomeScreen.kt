@@ -129,6 +129,7 @@ fun HomeScreen(
                             RecipeCard(
                                 recipe = recipe,
                                 compactMode = true,
+                                modifier = Modifier.width(300.dp)
                             )
                         }
                     }

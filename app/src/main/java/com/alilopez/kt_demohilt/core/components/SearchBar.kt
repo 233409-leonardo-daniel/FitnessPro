@@ -1,4 +1,4 @@
-package com.alilopez.kt_demohilt.features.recipies.presentation.components
+package com.alilopez.kt_demohilt.core.components
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -12,6 +12,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,13 +27,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun RecipeSearchBar(
+fun SearchBar(
     query: String,
     onQueryChange: (String) -> Unit,
     onSearch: () -> Unit,
     onClear: () -> Unit,
     modifier: Modifier = Modifier,
-    placeholder: String = "Buscar receta por nombre",
+    placeholder: String,
     isDarkTheme: Boolean,
     accentColor: Color,
     textColor: Color,
@@ -45,7 +46,7 @@ fun RecipeSearchBar(
         value = query,
         onValueChange = onQueryChange,
         modifier = modifier.onFocusChanged { isFocused = it.isFocused },
-        placeholder = { androidx.compose.material3.Text(placeholder) },
+        placeholder = { Text(placeholder) },
         singleLine = true,
         shape = RoundedCornerShape(16.dp),
         leadingIcon = {

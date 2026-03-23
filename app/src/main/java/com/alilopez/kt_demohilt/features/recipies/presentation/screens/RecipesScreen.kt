@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
-import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeSearchBar
 import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipesListViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -103,12 +103,13 @@ fun RecipesScreen(
                 .padding(paddingValues)
                 .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            RecipeSearchBar(
+            SearchBar(
                 query = uiState.searchQuery,
                 onQueryChange = viewModel::onSearchQueryChange,
                 onSearch = { viewModel.searchRecipes() },
                 onClear = { viewModel.clearSearch() },
                 modifier = Modifier.fillMaxWidth(),
+                placeholder = "Buscar receta por nombre",
                 isDarkTheme = isDarkTheme,
                 accentColor = accentColor,
                 textColor = textColor,
