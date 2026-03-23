@@ -42,6 +42,12 @@ interface FitnessProApi {
         @Field("password") password: String
     ): UserLoginResponseDto
 
+    @FormUrlEncoded
+    @POST("login/google")
+    suspend fun loginWithGoogle(
+        @Field("id_token") idToken: String
+    ): UserLoginResponseDto
+
     @GET("users")
     suspend fun getUser(
         @Query("id") id : Int

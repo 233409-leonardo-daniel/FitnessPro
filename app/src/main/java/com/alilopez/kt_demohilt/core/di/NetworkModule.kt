@@ -17,7 +17,7 @@ object NetworkModule {
     @FitnessProRetrofit
     fun provideFitnessProApi(): Retrofit {
         return Retrofit.Builder()
-            .baseUrl(BuildConfig.local)
+            .baseUrl(BuildConfig.BACKEND_URL)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
     }
