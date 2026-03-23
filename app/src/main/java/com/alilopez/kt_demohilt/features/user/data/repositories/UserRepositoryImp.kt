@@ -47,6 +47,10 @@ class UserRepositoryImp @Inject constructor(
         )
     }
 
+    override suspend fun loginWithGoogle(idToken: String): UserLoginResponseDto {
+        return fitnessProApi.loginWithGoogle(idToken)
+    }
+
     override suspend fun getUser(id: Int): User {
         val userDto = fitnessProApi.getUser(id)
         return userDto.toDomain()

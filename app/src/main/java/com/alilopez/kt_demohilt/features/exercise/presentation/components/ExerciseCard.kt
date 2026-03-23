@@ -8,7 +8,8 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -44,6 +45,7 @@ fun ExerciseCard(
     name: String,
     imageUrl: String,
     modifier: Modifier = Modifier,
+    compactMode: Boolean = false,
     instructions: List<String>,
     isLocal: Boolean = false,
     exerciseType: String? = null,
@@ -60,6 +62,7 @@ fun ExerciseCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
+            .then(if (compactMode) Modifier.height(360.dp) else Modifier)
             .padding(8.dp),
         shape = RoundedCornerShape(16.dp),
         elevation = CardDefaults.cardElevation(
@@ -86,6 +89,21 @@ fun ExerciseCard(
                             .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp)),
                         contentScale = ContentScale.Crop
                     )
+                } else {
+                    Box(
+                        modifier = Modifier
+                            .size(180.dp)
+                            .clip(RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp))
+                            .background(if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Image,
+                            contentDescription = "Sin imagen",
+                            tint = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B),
+                            modifier = Modifier.size(44.dp)
+                        )
+                    }
                 }
 
                 Column(
@@ -154,7 +172,7 @@ fun ExerciseCard(
                             color = accentColor
                         )
                         Spacer(modifier = Modifier.height(4.dp))
-                        instructions.forEachIndexed { index, instruction ->
+                        instructions.forEach { instruction ->
                             Row(
                                 verticalAlignment = Alignment.Top,
                                 modifier = Modifier.padding(vertical = 2.dp)
@@ -184,13 +202,13 @@ fun ExerciseCard(
                 IconButton(
                     onClick = onRemoveClick,
                     modifier = Modifier
-                        .align(Alignment.TopEnd)
+                        .align(Alignment.TopStart)
                         .padding(8.dp)
                         .background(Color.Red.copy(alpha = 0.8f), CircleShape)
                         .size(32.dp)
                 ) {
                     Icon(
-                        imageVector = Icons.Default.Close,
+                        imageVector = Icons.Default.Delete,
                         contentDescription = "Quitar de la lista",
                         tint = Color.White,
                         modifier = Modifier.size(18.dp)

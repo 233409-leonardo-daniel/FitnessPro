@@ -31,6 +31,24 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.3.4] - 2026-03-23
+### Added
+- Se agrego un componente reutilizable para la busqueda
+- Ahora tambien se pueden buscar ejercicios
+
+### Working
+- Se esta trabajando en un bug con los rooms, por lo que se esta haciendo un refactor para solucionar el problema.
+
+## [3.3.3] - 2026-03-23
+
+### Added
+- Se agrego nuevas cosas visuales para mejor UX.
+
+## [3.3.2] - 2026-03-22
+
+### Added
+- Se agrego una screen para detalles de una recipe.
+
 ## [3.3.1] - 2026-03-12
 
 ### Fixed

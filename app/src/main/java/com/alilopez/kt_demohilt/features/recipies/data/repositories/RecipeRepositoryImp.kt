@@ -2,7 +2,6 @@ package com.alilopez.kt_demohilt.features.recipies.data.repositories
 
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain
-import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeCreateDto
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.domain.repositories.RecipeRepository
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
@@ -17,6 +16,14 @@ class RecipeRepositoryImp @Inject constructor(
 ) : RecipeRepository {
     override suspend fun getRecipies(): List<Recipe> {
         return fitnessProApi.getRecipes().map { it.toDomain() }
+    }
+
+    override suspend fun searchRecipesByName(name: String): List<Recipe> {
+        return fitnessProApi.searchRecipes(name).map { it.toDomain() }
+    }
+
+    override suspend fun getRecipeDetail(recipeId: Int): Recipe {
+        return fitnessProApi.getRecipeDetail(recipeId).toDomain()
     }
 
     override suspend fun createRecipe(
@@ -76,17 +83,29 @@ class RecipeRepositoryImp @Inject constructor(
         mealType: String?,
         imageUrl: String?
     ): Recipe {
-        val recipeCreateDto = RecipeCreateDto(
-            name = name,
-            description = description,
-            ingredients = ingredients,
-            instructions = instructions,
-            userId = userId,
-            scheduledDays = scheduledDays,
-            mealType = mealType,
-            imageUrl = imageUrl
-        )
-        return fitnessProApi.updateRecipe(recipeId, recipeCreateDto).toDomain()
+        val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
+        val descriptionPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
+        val ingredientsPart = ingredients.toRequestBody("text/plain".toMediaTypeOrNull())
+        val instructionsPart = instructions.toRequestBody("text/plain".toMediaTypeOrNull())
+        val scheduledDaysPart = if (scheduledDays.isNotEmpty()) {
+            scheduledDays.joinToString(",").toRequestBody("text/plain".toMediaTypeOrNull())
+        } else null
+        val mealTypePart = mealType?.toRequestBody("text/plain".toMediaTypeOrNull())
+        val imageUrlPart = imageUrl?.toRequestBody("text/plain".toMediaTypeOrNull())
+
+        return fitnessProApi.updateRecipe(
+            recipeId = recipeId,
+            name = namePart,
+            description = descriptionPart,
+            ingredients = ingredientsPart,
+            instructions = instructionsPart,
+            scheduledDays = scheduledDaysPart,
+            mealType = mealTypePart,
+            imageUrl = imageUrlPart,
+            audioUrl = null,
+            image = null,
+            audio = null
+        ).toDomain()
     }
 
     override suspend fun deleteRecipe(recipeId: Int) {

@@ -128,6 +128,7 @@ fun HomeScreen(
                         items(todaysRecipes) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
+                                compactMode = true,
                                 modifier = Modifier.width(300.dp)
                             )
                         }
@@ -159,8 +160,8 @@ fun HomeScreen(
                             ExerciseCard(
                                 name = exercise.name,
                                 imageUrl = exercise.gifUrl,
+                                compactMode = true,
                                 instructions = exercise.instructions,
-                                isLocal = true,
                                 exerciseType = exercise.exerciseType,
                                 difficulty = exercise.difficulty,
                                 modifier = Modifier.width(300.dp)

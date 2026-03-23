@@ -1,8 +1,10 @@
 package com.alilopez.kt_demohilt.features.user.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
+import com.alilopez.kt_demohilt.features.user.domain.usecases.LoginWithGoogleUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.UserLoginUseCase
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -16,6 +18,7 @@ import javax.inject.Inject
 @HiltViewModel
 class LoginViewModel @Inject constructor(
     private val userLoginUseCase: UserLoginUseCase,
+    private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -37,25 +40,12 @@ class LoginViewModel @Inject constructor(
     fun onLoginClick() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
             try {
                 val response = userLoginUseCase(
                     email = _email.value,
                     password = _password.value
                 )
-
-                if (response.access_token.isNotEmpty()) {
-                    sessionManager.saveSession(response.id, response.access_token)
-                    _uiState.update { it.copy(isLoggedIn = true, isLoading = false) }
-                } else {
-                    _uiState.update {
-                        it.copy(
-                            errorMessage = "Credenciales inválidas",
-                            isLoading = false
-                        )
-                    }
-                }
-
+                handleLoginSuccess(response.id, response.access_token)
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -63,6 +53,52 @@ class LoginViewModel @Inject constructor(
                         errorMessage = e.message ?: "Error al iniciar sesión"
                     )
                 }
+            }
+        }
+    }
+
+    fun onGoogleLoginSuccess(idToken: String) {
+        Log.d("GoogleLogin", "Token recibido de Google: ${idToken.take(20)}...")
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            
+            loginWithGoogleUseCase(idToken).onSuccess { response ->
+                Log.d("GoogleLogin", "Respuesta del Servidor: ID=${response.id}, Token=${response.access_token.take(10)}...")
+                handleLoginSuccess(response.id, response.access_token)
+            }.onFailure { e ->
+                Log.e("GoogleLogin", "Error en la petición al Servidor: ${e.message}")
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "Error del servidor: ${e.message}"
+                    )
+                }
+            }
+        }
+    }
+
+    fun onGoogleLoginError(message: String) {
+        Log.e("GoogleLogin", "Error de CredentialManager: $message")
+        _uiState.update {
+            it.copy(
+                isLoading = false,
+                errorMessage = message
+            )
+        }
+    }
+
+    private fun handleLoginSuccess(userId: Int, token: String) {
+        if (token.isNotEmpty()) {
+            Log.d("GoogleLogin", "Login exitoso. Guardando sesión...")
+            sessionManager.saveSession(userId, token)
+            _uiState.update { it.copy(isLoggedIn = true, isLoading = false) }
+        } else {
+            Log.w("GoogleLogin", "Login fallido: El token del servidor está vacío")
+            _uiState.update {
+                it.copy(
+                    errorMessage = "El servidor no devolvió un token válido",
+                    isLoading = false
+                )
             }
         }
     }

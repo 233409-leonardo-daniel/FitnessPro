@@ -13,7 +13,8 @@ data class UserDto(
     val weight: Double,
     val height: Double,
     val gender: String,
-    val age: Int? = null
+    val age: Int? = null,
+    val membership: String? = null
 )
 
 data class UserCreateDto(
@@ -38,5 +39,6 @@ data class UserLoginResponseDto(
     val gender: String,
     val age: Int,
     val access_token: String,
-    val token_type: String
+    val token_type: String,
+    val membership: String? = null
 )

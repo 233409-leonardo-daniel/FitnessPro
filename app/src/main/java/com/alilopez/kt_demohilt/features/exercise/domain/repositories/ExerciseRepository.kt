@@ -8,6 +8,7 @@ import java.io.File
 interface ExerciseRepository {
     suspend fun getExercises(): List<Exercise>
     suspend fun getExercisesByBodyPart(bodyPart: String): List<Exercise>
+    suspend fun searchLocalExercisesByName(name: String): List<Exercise>
     fun getLocalExercises(): Flow<List<Exercise>>
     suspend fun createLocalExercise(
         name: String,

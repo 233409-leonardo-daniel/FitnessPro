@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -20,6 +21,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
 import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipesListViewModel
@@ -29,6 +31,7 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.Recipe
 fun RecipesScreen(
     onNavigateToAddRecipe: () -> Unit,
     onNavigateToEditRecipe: (Int) -> Unit,
+    onNavigateToRecipeDetail: (Int) -> Unit,
     onOpenDrawer: () -> Unit,
     modifier: Modifier = Modifier,
     viewModel: RecipesListViewModel = hiltViewModel()
@@ -71,7 +74,9 @@ fun RecipesScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.getRecipies() }) {
+                    IconButton(onClick = {
+                        if (uiState.searchQuery.isBlank()) viewModel.getRecipies() else viewModel.searchRecipes()
+                    }) {
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Recargar",
@@ -92,122 +97,148 @@ fun RecipesScreen(
             )
         }
     ) { paddingValues ->
-        Box(
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
         ) {
-            when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(
-                        modifier = Modifier.align(Alignment.Center),
-                        color = accentColor
-                    )
-                }
+            SearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChange,
+                onSearch = { viewModel.searchRecipes() },
+                onClear = { viewModel.clearSearch() },
+                modifier = Modifier.fillMaxWidth(),
+                placeholder = "Buscar receta por nombre",
+                isDarkTheme = isDarkTheme,
+                accentColor = accentColor,
+                textColor = textColor,
+                secondaryTextColor = secondaryTextColor
+            )
 
-                uiState.errorMessage != null -> {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Close,
-                            contentDescription = null,
-                            tint = secondaryTextColor,
-                            modifier = Modifier.size(64.dp)
+            Spacer(modifier = Modifier.height(12.dp))
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                when {
+                    uiState.isLoading -> {
+                        CircularProgressIndicator(
+                            modifier = Modifier.align(Alignment.Center),
+                            color = accentColor
                         )
-                        Text(
-                            text = "Error al cargar recetas",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = textColor,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = uiState.errorMessage ?: "",
-                            fontSize = 14.sp,
-                            color = secondaryTextColor,
-                            textAlign = TextAlign.Center
-                        )
-                        Button(
-                            onClick = { viewModel.getRecipies() },
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = accentColor
-                            )
-                        ) {
-                            Text("Reintentar")
-                        }
                     }
-                }
 
-                uiState.recipies.isEmpty() -> {
-                    Column(
-                        modifier = Modifier
-                            .align(Alignment.Center)
-                            .padding(32.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.Add,
-                            contentDescription = null,
-                            tint = secondaryTextColor,
-                            modifier = Modifier.size(64.dp)
-                        )
-                        Text(
-                            text = "No hay recetas aún",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = textColor,
-                            textAlign = TextAlign.Center
-                        )
-                        Text(
-                            text = "Agrega tu primera receta para comenzar",
-                            fontSize = 14.sp,
-                            color = secondaryTextColor,
-                            textAlign = TextAlign.Center
-                        )
-                        Button(
-                            onClick = onNavigateToAddRecipe,
-                            colors = ButtonDefaults.buttonColors(
-                                containerColor = accentColor
-                            )
+                    uiState.errorMessage != null -> {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
                         ) {
                             Icon(
-                                imageVector = Icons.Default.Add,
+                                imageVector = Icons.Default.Close,
                                 contentDescription = null,
-                                modifier = Modifier.size(20.dp)
+                                tint = secondaryTextColor,
+                                modifier = Modifier.size(64.dp)
                             )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Agregar Receta")
+                            Text(
+                                text = "Error al cargar recetas",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = textColor,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = uiState.errorMessage ?: "",
+                                fontSize = 14.sp,
+                                color = secondaryTextColor,
+                                textAlign = TextAlign.Center
+                            )
+                            Button(
+                                onClick = {
+                                    if (uiState.searchQuery.isBlank()) viewModel.getRecipies() else viewModel.searchRecipes()
+                                },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = accentColor
+                                )
+                            ) {
+                                Text("Reintentar")
+                            }
                         }
                     }
-                }
 
-                else -> {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        items(uiState.recipies) { recipe ->
-                            RecipeCard(
-                                recipe = recipe,
-                                currentUserId = viewModel.currentUserId,
-                                onClick = {
-                                    // TODO: Navegar a detalles de receta
-                                },
-                                onEdit = {
-                                    onNavigateToEditRecipe(recipe.id)
-                                },
-                                onDelete = {
-                                    recipeToDelete = recipe
-                                    showDeleteDialog = true
-                                }
+                    uiState.recipies.isEmpty() -> {
+                        Column(
+                            modifier = Modifier
+                                .align(Alignment.Center)
+                                .padding(32.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            Icon(
+                                imageVector = if (uiState.isSearchActive) Icons.Default.Search else Icons.Default.Add,
+                                contentDescription = null,
+                                tint = secondaryTextColor,
+                                modifier = Modifier.size(64.dp)
                             )
+                            Text(
+                                text = if (uiState.isSearchActive) "No se encontraron recetas" else "No hay recetas aún",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = textColor,
+                                textAlign = TextAlign.Center
+                            )
+                            Text(
+                                text = if (uiState.isSearchActive) {
+                                    "Intenta con otro nombre"
+                                } else {
+                                    "Agrega tu primera receta para comenzar"
+                                },
+                                fontSize = 14.sp,
+                                color = secondaryTextColor,
+                                textAlign = TextAlign.Center
+                            )
+                            if (!uiState.isSearchActive) {
+                                Button(
+                                    onClick = onNavigateToAddRecipe,
+                                    colors = ButtonDefaults.buttonColors(
+                                        containerColor = accentColor
+                                    )
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Agregar Receta")
+                                }
+                            }
+                        }
+                    }
+
+                    else -> {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(vertical = 8.dp),
+                            verticalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            items(uiState.recipies) { recipe ->
+                                RecipeCard(
+                                    recipe = recipe,
+                                    currentUserId = viewModel.currentUserId,
+                                    onClick = {
+                                        onNavigateToRecipeDetail(recipe.id)
+                                    },
+                                    onEdit = {
+                                        onNavigateToEditRecipe(recipe.id)
+                                    },
+                                    onDelete = {
+                                        recipeToDelete = recipe
+                                        showDeleteDialog = true
+                                    }
+                                )
+                            }
                         }
                     }
                 }

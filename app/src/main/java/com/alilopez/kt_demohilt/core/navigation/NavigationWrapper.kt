@@ -18,6 +18,7 @@ import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerci
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeScreen
+import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipeDetailScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
@@ -125,12 +126,21 @@ fun NavigationWrapper() {
                 RecipesScreen(
                     onNavigateToAddRecipe = { navController.navigate(AddRecipe) },
                     onNavigateToEditRecipe = { recipeId -> navController.navigate(EditRecipe(recipeId)) },
+                    onNavigateToRecipeDetail = { recipeId -> navController.navigate(RecipeDetail(recipeId)) },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
                 )
             }
 
             composable<AddRecipe> {
                 AddRecipeScreen(onNavigateBack = { navController.popBackStack() })
+            }
+
+            composable<RecipeDetail> { backStackEntry ->
+                val route = backStackEntry.toRoute<RecipeDetail>()
+                RecipeDetailScreen(
+                    recipeId = route.recipeId,
+                    onNavigateBack = { navController.popBackStack() }
+                )
             }
 
             composable<EditRecipe> { backStackEntry ->
