@@ -31,25 +31,14 @@ import kotlinx.coroutines.launch
 
 val bodyParts = listOf(
     "ESPALDA",
-    "PANTORRILLAS",
     "PECHO",
     "ANTEBRAZOS",
-    "CADERAS",
     "CUELLO",
     "HOMBROS",
     "MUSLOS",
     "CINTURA",
-    "PIERNAS",
-    "MANOS",
-    "PIES",
-    "CARA",
-    "CUERPO COMPLETO",
-    "BÍCEPS",
     "BRAZOS",
-    "TRÍCEPS",
-    "ISQUIOTIBIALES",
-    "GLÚTEOS",
-    "CUÁDRICEPS"
+    "PANTORRILLAS"
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +88,10 @@ fun ExercisesScreen(
                         }
                     },
                     actions = {
-                        IconButton(onClick = { viewModel.loadExercises() }) {
+                        IconButton(onClick = {
+                            viewModel.loadUserExercises()
+                            viewModel.loadRemoteExercises()
+                        }) {
                             Icon(imageVector = Icons.Default.Refresh, contentDescription = "Refresh", tint = accentColor)
                         }
                         IconButton(onClick = onNavigateToAddExercise) {

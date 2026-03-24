@@ -6,8 +6,8 @@ import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ExerciseRepository {
-    suspend fun getExercises(): List<Exercise>
-    suspend fun getExercisesByBodyPart(bodyPart: String): List<Exercise>
+    suspend fun getRemoteExercises(): List<Exercise>
+    suspend fun getRemoteExercisesByBodyPart(bodyPart: String): List<Exercise>
     suspend fun searchLocalExercisesByName(name: String): List<Exercise>
     fun getLocalExercises(): Flow<List<Exercise>>
     suspend fun createLocalExercise(
@@ -27,4 +27,5 @@ interface ExerciseRepository {
     suspend fun syncExercises()
     suspend fun syncExercisesByFilter(filter: ExerciseFilter)
     fun getLocalExercisesByFilter(filter: ExerciseFilter): Flow<List<Exercise>>
+    suspend fun getExercisesByUserId(userId: Int): List<Exercise>
 }

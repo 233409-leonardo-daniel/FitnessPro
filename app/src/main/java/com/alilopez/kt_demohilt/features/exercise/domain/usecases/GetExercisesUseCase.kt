@@ -10,7 +10,7 @@ class GetExercisesUseCase @Inject constructor(
 
     suspend operator fun invoke(): Result<List<Exercise>> {
         return try {
-            val exercises = repository.getExercises()
+            val exercises = repository.getRemoteExercises()
             val filteredExercises = exercises.filter { it.name.isNotBlank() }
 
             if (filteredExercises.isEmpty()) {

@@ -14,7 +14,7 @@ class GetExercisesByBodyPartUseCase @Inject constructor(
                 return Result.failure(Exception("El bodyPart no puede estar vacío"))
             }
 
-            val exercises = repository.getExercisesByBodyPart(bodyPart)
+            val exercises = repository.getRemoteExercisesByBodyPart(bodyPart)
             val filteredExercises = exercises.filter { it.name.isNotBlank() }
 
             if (filteredExercises.isEmpty()) {
