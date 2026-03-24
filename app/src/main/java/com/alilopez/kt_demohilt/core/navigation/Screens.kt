@@ -40,3 +40,6 @@ object RecipePlans
 
 @Serializable
 data class RecipePlanDetail(val planId: Int, val planName: String)
+
+@Serializable
+data class Profile(val isOnboarding: Boolean = false)

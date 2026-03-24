@@ -1,0 +1,153 @@
+package com.alilopez.kt_demohilt.features.user.presentation.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.InputFitness
+import com.alilopez.kt_demohilt.features.user.presentation.viewmodels.ProfileViewModel
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ProfileScreen(
+    onNavigateBack: () -> Unit,
+    onSaveSuccess: () -> Unit,
+    isOnboarding: Boolean = false,
+    viewModel: ProfileViewModel = hiltViewModel()
+) {
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val isDarkTheme = isSystemInDarkTheme()
+    
+    val name by viewModel.name.collectAsStateWithLifecycle()
+    val lastname by viewModel.lastname.collectAsStateWithLifecycle()
+    val birthdate by viewModel.birthdate.collectAsStateWithLifecycle()
+    val weight by viewModel.weight.collectAsStateWithLifecycle()
+    val height by viewModel.height.collectAsStateWithLifecycle()
+    val gender by viewModel.gender.collectAsStateWithLifecycle()
+
+    val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val accentColor = Color(0xFF10B981)
+
+    LaunchedEffect(uiState.isSuccess) {
+        if (uiState.isSuccess) {
+            onSaveSuccess()
+        }
+    }
+
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        text = if (isOnboarding) "Completa tu Perfil" else "Editar Perfil",
+                        fontWeight = FontWeight.Bold
+                    ) 
+                },
+                navigationIcon = {
+                    if (!isOnboarding) {
+                        IconButton(onClick = onNavigateBack) {
+                            Icon(Icons.Default.ArrowBack, contentDescription = "Atrás")
+                        }
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
+            )
+        },
+        containerColor = backgroundColor
+    ) { paddingValues ->
+        Box(modifier = Modifier.fillMaxSize().padding(paddingValues)) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .verticalScroll(rememberScrollState())
+                    .padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                if (isOnboarding) {
+                    Text(
+                        text = "¡Bienvenido! Necesitamos unos datos más para empezar.",
+                        fontSize = 16.sp,
+                        color = Color.Gray,
+                        modifier = Modifier.padding(bottom = 8.dp)
+                    )
+                }
+
+                InputFitness(
+                    value = name,
+                    onValueChange = { viewModel.onNameChange(it) },
+                    placeholder = "Nombre",
+                    leadingIcon = Icons.Default.Person
+                )
+
+                InputFitness(
+                    value = lastname,
+                    onValueChange = { viewModel.onLastnameChange(it) },
+                    placeholder = "Apellido",
+                    leadingIcon = Icons.Default.Person
+                )
+
+                InputFitness(
+                    value = birthdate,
+                    onValueChange = { viewModel.onBirthdateChange(it) },
+                    placeholder = "Fecha de Nacimiento (YYYY-MM-DD)",
+                    leadingIcon = Icons.Default.DateRange
+                )
+
+                InputFitness(
+                    value = weight,
+                    onValueChange = { viewModel.onWeightChange(it) },
+                    placeholder = "Peso (kg)",
+                    leadingIcon = Icons.Default.MonitorWeight
+                )
+
+                InputFitness(
+                    value = height,
+                    onValueChange = { viewModel.onHeightChange(it) },
+                    placeholder = "Altura (cm)",
+                    leadingIcon = Icons.Default.Height
+                )
+
+                InputFitness(
+                    value = gender,
+                    onValueChange = { viewModel.onGenderChange(it) },
+                    placeholder = "Género (Masculino/Femenino/Otro)",
+                    leadingIcon = Icons.Default.Face
+                )
+
+                if (uiState.errorMessage != null) {
+                    Text(text = uiState.errorMessage!!, color = MaterialTheme.colorScheme.error)
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Button(
+                    onClick = { viewModel.onSaveClick() },
+                    modifier = Modifier.fillMaxWidth().height(56.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                    enabled = !uiState.isLoading
+                ) {
+                    if (uiState.isLoading) {
+                        CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                    } else {
+                        Text("Guardar Cambios", fontSize = 16.sp, fontWeight = FontWeight.Bold)
+                    }
+                }
+            }
+        }
+    }
+}

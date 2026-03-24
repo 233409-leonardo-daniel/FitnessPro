@@ -25,6 +25,7 @@ import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesScreen
+import com.alilopez.kt_demohilt.features.user.presentation.screens.ProfileScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
@@ -42,7 +43,7 @@ fun NavigationWrapper() {
         drawerState.close()
     }
     val isAuthRoute = currentDestination?.let {
-        it.hasRoute<Login>() || it.hasRoute<Register>()
+        it.hasRoute<Login>() || it.hasRoute<Register>() || it.hasRoute<Profile>()
     } ?: true
     val showDrawer = !isAuthRoute
 
@@ -74,6 +75,11 @@ fun NavigationWrapper() {
                     },
                     onNavigateToRecipePlans = {
                         navController.navigate(RecipePlans) {
+                            launchSingleTop = true
+                        }
+                    },
+                    onNavigateToProfile = {
+                        navController.navigate(Profile(isOnboarding = false)) {
                             launchSingleTop = true
                         }
                     },
@@ -118,7 +124,29 @@ fun NavigationWrapper() {
                 HomeScreen(
                     onNavigateToRecipes = { navController.navigate(Recipes) },
                     onNavigateToExercises = { navController.navigate(Exercises) },
+                    onNavigateToProfileOnboarding = {
+                        navController.navigate(Profile(isOnboarding = true)) {
+                            popUpTo(Home) { inclusive = false }
+                        }
+                    },
                     onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
+
+            composable<Profile> { backStackEntry ->
+                val route = backStackEntry.toRoute<Profile>()
+                ProfileScreen(
+                    isOnboarding = route.isOnboarding,
+                    onNavigateBack = { navController.popBackStack() },
+                    onSaveSuccess = {
+                        if (route.isOnboarding) {
+                            navController.navigate(Home) {
+                                popUpTo(Profile::class) { inclusive = true }
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    }
                 )
             }
 

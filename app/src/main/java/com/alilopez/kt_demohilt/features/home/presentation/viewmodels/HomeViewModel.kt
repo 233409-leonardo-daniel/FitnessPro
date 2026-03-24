@@ -6,6 +6,7 @@ import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetLocalExercisesUseCase
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeUIState
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.features.user.domain.usecases.GetUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -23,6 +24,7 @@ import javax.inject.Inject
 class HomeViewModel @Inject constructor(
     private val getRecipesUseCase: GetRecipesUseCase,
     private val getLocalExercisesUseCase: GetLocalExercisesUseCase,
+    private val getUserUseCase: GetUserUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -33,11 +35,32 @@ class HomeViewModel @Inject constructor(
 
     init {
         loadData()
+        checkUserProfile()
     }
 
     fun loadData() {
         loadRecipes()
         loadLocalExercises()
+    }
+
+    private fun checkUserProfile() {
+        viewModelScope.launch {
+            currentUserId?.let { id ->
+                try {
+                    val user = getUserUseCase(id)
+                    val isIncomplete = user.birthdate.isNullOrBlank() || 
+                                     user.weight == null || user.weight == 0.0 ||
+                                     user.height == null || user.height == 0.0
+                    
+                    _uiState.update { it.copy(
+                        isProfileIncomplete = isIncomplete,
+                        currentUser = user
+                    ) }
+                } catch (e: Exception) {
+                    // Ignorar error de perfil por ahora
+                }
+            }
+        }
     }
 
     private fun loadRecipes() {
@@ -60,7 +83,6 @@ class HomeViewModel @Inject constructor(
         val today = getCurrentDayOfWeek()
         
         getLocalExercisesUseCase().onEach { allLocalExercises ->
-            // Filtramos los ejercicios que tienen el día de hoy en su lista de días programados
             val exercisesForToday = allLocalExercises.filter { exercise ->
                 exercise.scheduledDays.any { it.equals(today, ignoreCase = true) }
             }

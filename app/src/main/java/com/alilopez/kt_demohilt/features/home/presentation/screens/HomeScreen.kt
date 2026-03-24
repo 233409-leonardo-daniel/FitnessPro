@@ -7,11 +7,9 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -32,6 +30,7 @@ import java.util.*
 fun HomeScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToExercises: () -> Unit,
+    onNavigateToProfileOnboarding: () -> Unit,
     onOpenDrawer: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
@@ -42,19 +41,24 @@ fun HomeScreen(
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val accentColor = Color(0xFF10B981)
 
-    // Obtener día actual en español
     val calendar = Calendar.getInstance()
     val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
     val currentDay = dayFormat.format(calendar.time)
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
-    // Filtrar recetas y ejercicios por el día de hoy
     val todaysRecipes = uiState.recipes.filter { recipe ->
         recipe.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
     }
 
     val todaysExercises = uiState.exercises.filter { exercise ->
         exercise.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
+    }
+
+    // Redirigir a completar perfil si es necesario
+    LaunchedEffect(uiState.isProfileIncomplete) {
+        if (uiState.isProfileIncomplete) {
+            onNavigateToProfileOnboarding()
+        }
     }
 
     Scaffold(
@@ -106,7 +110,6 @@ fun HomeScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // ── SECCIÓN RECETAS DE HOY (CARRUSEL) ──
             item {
                 SectionHeader(
                     title = "Comidas programadas",
@@ -136,7 +139,6 @@ fun HomeScreen(
                 }
             }
 
-            // ── SECCIÓN EJERCICIOS DE HOY (CARRUSEL) ──
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionHeader(

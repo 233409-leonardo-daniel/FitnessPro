@@ -5,9 +5,10 @@ data class User(
     val email: String,
     val name: String,
     val lastname: String,
-    val birthdate: String,
-    val weight: Double,
-    val height: Double,
-    val gender: String,
-    val age: Int? = null
+    val birthdate: String?,
+    val weight: Double?,
+    val height: Double?,
+    val gender: String?,
+    val age: Int? = null,
+    val membership: String? = null
 )

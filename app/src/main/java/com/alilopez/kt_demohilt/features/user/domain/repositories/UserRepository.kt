@@ -12,10 +12,21 @@ interface UserRepository {
         email: String,
         name: String,
         lastname: String,
-        birthdate: String,
-        weight: Double,
-        height: Double,
-        gender: String,
+        birthdate: String? = null,
+        weight: Double? = null,
+        height: Double? = null,
+        gender: String? = null,
         password: String
+    ): User
+    suspend fun updateUser(
+        id: Int,
+        email: String,
+        name: String,
+        lastname: String,
+        birthdate: String?,
+        weight: Double?,
+        height: Double?,
+        gender: String?,
+        membership: String?
     ): User
 }
