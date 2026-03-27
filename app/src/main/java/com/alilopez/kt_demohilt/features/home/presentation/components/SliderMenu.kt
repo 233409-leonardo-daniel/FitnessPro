@@ -9,6 +9,7 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -25,12 +26,14 @@ fun SliderMenu(
     onNavigateToWorkoutPlans: () -> Unit,
     onNavigateToRecipePlans: () -> Unit,
     onNavigateToProfile: () -> Unit,
+    onNavigateToPremium: () -> Unit,
     currentRoute: String? = null,
     onCloseDrawer: () -> Unit
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val accentColor = Color(0xFF10B981)
+    val premiumColor = Color(0xFFF59E0B)
 
     ModalDrawerSheet(
         drawerContainerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White,
@@ -118,6 +121,18 @@ fun SliderMenu(
             },
             accentColor = accentColor,
             textColor = textColor
+        )
+
+        DrawerItem(
+            label = "Hazte Premium",
+            icon = Icons.Default.Stars,
+            selected = currentRoute == "Premium",
+            onClick = {
+                onNavigateToPremium()
+                onCloseDrawer()
+            },
+            accentColor = premiumColor,
+            textColor = premiumColor
         )
     }
 }

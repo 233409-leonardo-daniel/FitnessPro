@@ -11,8 +11,6 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
@@ -35,14 +33,14 @@ import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.Recipe
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.ProfileScreen
+import com.alilopez.kt_demohilt.features.user.presentation.screens.PremiumScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
-import javax.inject.Inject
 
 @Composable
 fun NavigationWrapper(
-    sessionManager: SessionManager // Necesitamos inyectar o pasar el sessionManager
+    sessionManager: SessionManager
 ) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
@@ -51,7 +49,6 @@ fun NavigationWrapper(
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route?.split(".")?.lastOrNull()
 
-    // Escuchar cambios en la membresía
     val membership by sessionManager.membership.collectAsStateWithLifecycle()
 
     LaunchedEffect(currentDestination?.route) {
@@ -60,15 +57,12 @@ fun NavigationWrapper(
 
     val isLoginRoute = currentDestination?.hasRoute<Login>() ?: true
     val isAuthRoute = currentDestination?.let {
-        it.hasRoute<Login>() || it.hasRoute<Register>() || it.hasRoute<Profile>()
+        it.hasRoute<Login>() || it.hasRoute<Register>() || it.hasRoute<Profile>() || it.hasRoute<Premium>()
     } ?: true
     val showDrawer = !isAuthRoute
 
     Scaffold(
         bottomBar = {
-            // Mostrar banner SOLO si:
-            // 1. No es la ruta de Login
-            // 2. La membresía es "gratuito"
             if (!isLoginRoute && membership == "gratuito") {
                 StartIoBanner()
             }
@@ -108,6 +102,11 @@ fun NavigationWrapper(
                             },
                             onNavigateToProfile = {
                                 navController.navigate(Profile(isOnboarding = false)) {
+                                    launchSingleTop = true
+                                }
+                            },
+                            onNavigateToPremium = {
+                                navController.navigate(Premium) {
                                     launchSingleTop = true
                                 }
                             },
@@ -173,6 +172,17 @@ fun NavigationWrapper(
                                     }
                                 } else {
                                     navController.popBackStack()
+                                }
+                            }
+                        )
+                    }
+
+                    composable<Premium> {
+                        PremiumScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onSuccess = {
+                                navController.navigate(Home) {
+                                    popUpTo(Premium) { inclusive = true }
                                 }
                             }
                         )
