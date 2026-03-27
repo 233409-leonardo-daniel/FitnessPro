@@ -11,6 +11,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -18,6 +21,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.core.components.StartIoBanner
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseScreen
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
@@ -34,15 +38,21 @@ import com.alilopez.kt_demohilt.features.user.presentation.screens.ProfileScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @Composable
-fun NavigationWrapper() {
+fun NavigationWrapper(
+    sessionManager: SessionManager // Necesitamos inyectar o pasar el sessionManager
+) {
     val navController = rememberNavController()
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route?.split(".")?.lastOrNull()
+
+    // Escuchar cambios en la membresía
+    val membership by sessionManager.membership.collectAsStateWithLifecycle()
 
     LaunchedEffect(currentDestination?.route) {
         drawerState.close()
@@ -56,8 +66,10 @@ fun NavigationWrapper() {
 
     Scaffold(
         bottomBar = {
-            // Mostrar banner en todas las pantallas excepto en Login
-            if (!isLoginRoute) {
+            // Mostrar banner SOLO si:
+            // 1. No es la ruta de Login
+            // 2. La membresía es "gratuito"
+            if (!isLoginRoute && membership == "gratuito") {
                 StartIoBanner()
             }
         }

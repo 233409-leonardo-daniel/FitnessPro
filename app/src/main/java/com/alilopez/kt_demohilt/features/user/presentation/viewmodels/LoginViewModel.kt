@@ -50,7 +50,7 @@ class LoginViewModel @Inject constructor(
                     email = _email.value,
                     password = _password.value
                 )
-                handleLoginSuccess(response.id, response.access_token)
+                handleLoginSuccess(response.id, response.access_token, response.membership)
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -69,7 +69,7 @@ class LoginViewModel @Inject constructor(
             
             loginWithGoogleUseCase(idToken).onSuccess { response ->
                 Log.d("GoogleLogin", "Respuesta del Servidor: ID=${response.id}, Token=${response.access_token.take(10)}...")
-                handleLoginSuccess(response.id, response.access_token)
+                handleLoginSuccess(response.id, response.access_token, response.membership)
             }.onFailure { e ->
                 if (e is HttpException && e.code() == 404) {
                     val errorBody = e.response()?.errorBody()?.string()
@@ -134,10 +134,10 @@ class LoginViewModel @Inject constructor(
         }
     }
 
-    private fun handleLoginSuccess(userId: Int, token: String) {
+    private fun handleLoginSuccess(userId: Int, token: String, membership: String? = null) {
         if (token.isNotEmpty()) {
             Log.d("GoogleLogin", "Login exitoso. Guardando sesión...")
-            sessionManager.saveSession(userId, token)
+            sessionManager.saveSession(userId, token, membership)
             _uiState.update { it.copy(isLoggedIn = true, isLoading = false) }
         } else {
             Log.w("GoogleLogin", "Login fallido: El token del servidor está vacío")

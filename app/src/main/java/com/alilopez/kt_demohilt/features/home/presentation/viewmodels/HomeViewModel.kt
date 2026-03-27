@@ -48,6 +48,9 @@ class HomeViewModel @Inject constructor(
             currentUserId?.let { id ->
                 try {
                     val user = getUserUseCase(id)
+                    // Actualizar membresía en el SessionManager por si acaso
+                    sessionManager.saveSession(id, sessionManager.accessToken ?: "", user.membership)
+
                     val isIncomplete = user.birthdate.isNullOrBlank() || 
                                      user.weight == null || user.weight == 0.0 ||
                                      user.height == null || user.height == 0.0

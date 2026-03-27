@@ -5,12 +5,17 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import com.alilopez.kt_demohilt.core.navigation.NavigationWrapper
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.core.ui.theme.AppTheme
 import com.startapp.sdk.adsbase.StartAppSDK
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject
+    lateinit var sessionManager: SessionManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,7 +28,7 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                NavigationWrapper()
+                NavigationWrapper(sessionManager = sessionManager)
             }
         }
     }
