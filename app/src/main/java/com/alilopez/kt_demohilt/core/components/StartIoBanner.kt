@@ -1,0 +1,18 @@
+package com.alilopez.kt_demohilt.core.components
+
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.viewinterop.AndroidView
+import com.startapp.sdk.ads.banner.Banner
+
+@Composable
+fun StartIoBanner(modifier: Modifier = Modifier) {
+    AndroidView(
+        modifier = modifier.fillMaxWidth(),
+        factory = { context ->
+            // Creamos el banner de Start.io
+            Banner(context)
+        }
+    )
+}
