@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetCommunityExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByBodyPartUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByUserIdUseCase
@@ -20,13 +21,13 @@ class ExerciseViewModel @Inject constructor(
     private val getExercisesUseCase: GetExercisesUseCase,
     private val getExercisesByBodyPartUseCase: GetExercisesByBodyPartUseCase,
     private val getExercisesByUserIdUseCase: GetExercisesByUserIdUseCase,
+    private val getCommunityExercisesUseCase: GetCommunityExercisesUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExercisesUiState())
     val uiState = _uiState.asStateFlow()
 
     init {
-        loadRemoteExercises()
         loadUserExercises()
     }
 
@@ -38,6 +39,20 @@ class ExerciseViewModel @Inject constructor(
             _uiState.update { currentState ->
                 result.fold(
                     onSuccess = { list -> currentState.copy(isLoading = false, exercises = list) },
+                    onFailure = { error -> currentState.copy(isLoading = false, error = error.message) }
+                )
+            }
+        }
+    }
+
+    fun loadCommunityExercises() {
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
+            val result = getCommunityExercisesUseCase()
+            _uiState.update { currentState ->
+                result.fold(
+                    onSuccess = { list -> currentState.copy(isLoading = false, communityExercises = list) },
                     onFailure = { error -> currentState.copy(isLoading = false, error = error.message) }
                 )
             }

@@ -105,7 +105,7 @@ interface FitnessProApi {
     ): ExercisesResponse
 
     @GET("exercises/local")
-    suspend fun getExercisesLocal(): List<LocalExerciseDto>
+    suspend fun getCommunityExercises(): List<LocalExerciseDto>
 
     @Multipart
     @POST("exercises/local")

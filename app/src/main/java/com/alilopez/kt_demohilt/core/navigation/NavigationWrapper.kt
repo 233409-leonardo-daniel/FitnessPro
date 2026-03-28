@@ -153,11 +153,6 @@ fun NavigationWrapper() {
 
             composable<Exercises> {
                 ExercisesScreen(
-                    onNavigateToRecipes = {
-                        navController.navigate(Recipes) {
-                            launchSingleTop = true
-                        }
-                    },
                     onNavigateToAddExercise = {
                         navController.navigate(AddExercise)
                     },
