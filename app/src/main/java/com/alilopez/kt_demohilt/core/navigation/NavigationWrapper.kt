@@ -110,6 +110,12 @@ fun NavigationWrapper(
                                     launchSingleTop = true
                                 }
                             },
+                            onLogout = {
+                                sessionManager.clearSession()
+                                navController.navigate(Login) {
+                                    popUpTo(0) { inclusive = true }
+                                }
+                            },
                             currentRoute = currentRoute,
                             onCloseDrawer = {
                                 scope.launch { drawerState.close() }

@@ -3,6 +3,7 @@ package com.alilopez.kt_demohilt.features.home.presentation.components
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
@@ -27,6 +28,7 @@ fun SliderMenu(
     onNavigateToRecipePlans: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
+    onLogout: () -> Unit,
     currentRoute: String? = null,
     onCloseDrawer: () -> Unit
 ) {
@@ -133,6 +135,20 @@ fun SliderMenu(
             },
             accentColor = premiumColor,
             textColor = premiumColor
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        DrawerItem(
+            label = "Cerrar sesión",
+            icon = Icons.AutoMirrored.Filled.ExitToApp,
+            selected = false,
+            onClick = {
+                onLogout()
+                onCloseDrawer()
+            },
+            accentColor = Color(0xFFEF4444),
+            textColor = Color(0xFFEF4444)
         )
     }
 }
