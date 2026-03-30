@@ -3,26 +3,19 @@ package com.alilopez.kt_demohilt.features.home.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
-import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetLocalExercisesUseCase
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeUIState
-import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.features.user.domain.usecases.GetUserDailyContentUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.text.SimpleDateFormat
-import java.util.Calendar
-import java.util.Locale
 import javax.inject.Inject
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val getRecipesUseCase: GetRecipesUseCase,
-    private val getLocalExercisesUseCase: GetLocalExercisesUseCase,
+    private val getUserDailyContentUseCase: GetUserDailyContentUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -36,47 +29,41 @@ class HomeViewModel @Inject constructor(
     }
 
     fun loadData() {
-        loadRecipes()
-        loadLocalExercises()
-    }
-
-    private fun loadRecipes() {
         viewModelScope.launch {
-            _uiState.update { it.copy(recipesLoading = true, recipesError = null) }
+            val userId = currentUserId
+            if (userId == null) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "No hay una sesion activa"
+                    )
+                }
+                return@launch
+            }
+
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
             try {
-                val recipes = getRecipesUseCase()
-                _uiState.update { it.copy(recipesLoading = false, recipes = recipes) }
+                val dailyContent = getUserDailyContentUseCase(userId)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = null,
+                        day = dailyContent.day,
+                        timezone = dailyContent.timezone,
+                        userFullName = "${dailyContent.userName} ${dailyContent.userLastname}".trim(),
+                        recipes = dailyContent.recipes,
+                        exercises = dailyContent.exercises
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(recipesLoading = false, recipesError = e.message ?: "Error al cargar recetas")
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error al cargar tu plan diario"
+                    )
                 }
             }
         }
-    }
-
-    private fun loadLocalExercises() {
-        _uiState.update { it.copy(exercisesLoading = true) }
-        
-        val today = getCurrentDayOfWeek()
-        
-        getLocalExercisesUseCase().onEach { allLocalExercises ->
-            // Filtramos los ejercicios que tienen el día de hoy en su lista de días programados
-            val exercisesForToday = allLocalExercises.filter { exercise ->
-                exercise.scheduledDays.any { it.equals(today, ignoreCase = true) }
-            }
-            
-            _uiState.update { 
-                it.copy(
-                    exercisesLoading = false, 
-                    exercises = exercisesForToday 
-                ) 
-            }
-        }.launchIn(viewModelScope)
-    }
-
-    private fun getCurrentDayOfWeek(): String {
-        val sdf = SimpleDateFormat("EEEE", Locale("es", "ES"))
-        val d = Calendar.getInstance().time
-        return sdf.format(d)
     }
 }

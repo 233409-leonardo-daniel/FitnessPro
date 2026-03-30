@@ -31,6 +31,13 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.3.5] - 2026-03-29
+### Added
+- Se agrego un nuevo endpoint para buscar recetas y ejercicios por nombre, con soporte para ambos en la pagina de home
+
+### Changed
+- Se hizo un refactor en archivos hardcodeados con el user id
+
 ## [3.3.4] - 2026-03-23
 ### Added
 - Se agrego un componente reutilizable para la busqueda
