@@ -1,6 +1,6 @@
 package com.alilopez.kt_demohilt.features.home.presentation.screens
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,11 +36,12 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
-    val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
+    val backgroundColor = if (isDarkTheme) Color(0xFF090C14) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val accentColor = Color(0xFF10B981)
+    val recipesAccentColor = Color(0xFF10B981)
+    val trainingAccentColor = if (isDarkTheme) Color(0xFFF59E0B) else Color(0xFF10B981)
 
     val calendar = Calendar.getInstance()
     val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
@@ -77,7 +79,7 @@ fun HomeScreen(
                         Text(
                             text = currentDay,
                             fontSize = 14.sp,
-                            color = accentColor,
+                            color = recipesAccentColor,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -96,7 +98,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Actualizar",
-                            tint = accentColor
+                            tint = recipesAccentColor
                         )
                     }
                 },
@@ -115,7 +117,8 @@ fun HomeScreen(
                     title = "Comidas programadas",
                     onSeeAllClick = onNavigateToRecipes,
                     textColor = textColor,
-                    accentColor = accentColor
+                    accentColor = recipesAccentColor,
+                    indicatorColor = recipesAccentColor
                 )
             }
 
@@ -145,7 +148,8 @@ fun HomeScreen(
                     title = "Tu entrenamiento",
                     onSeeAllClick = onNavigateToExercises,
                     textColor = textColor,
-                    accentColor = accentColor
+                    accentColor = trainingAccentColor,
+                    indicatorColor = trainingAccentColor
                 )
             }
 
@@ -166,6 +170,7 @@ fun HomeScreen(
                                 instructions = exercise.instructions,
                                 exerciseType = exercise.exerciseType,
                                 difficulty = exercise.difficulty,
+                                accentColor = trainingAccentColor,
                                 modifier = Modifier.width(300.dp)
                             )
                         }
@@ -181,7 +186,8 @@ private fun SectionHeader(
     title: String,
     onSeeAllClick: () -> Unit,
     textColor: Color,
-    accentColor: Color
+    accentColor: Color,
+    indicatorColor: Color
 ) {
     Row(
         modifier = Modifier
@@ -190,12 +196,23 @@ private fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = textColor
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(20.dp)
+                    .background(indicatorColor, RoundedCornerShape(8.dp))
+            )
+            Text(
+                text = title.uppercase(Locale.getDefault()),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor
+            )
+        }
         TextButton(onClick = onSeeAllClick) {
             Text("Ver todo", color = accentColor, fontSize = 14.sp)
         }
@@ -209,7 +226,7 @@ private fun EmptyDayCard(title: String, subtitle: String, isDarkTheme: Boolean) 
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+            containerColor = if (isDarkTheme) Color(0xFF1A2232) else Color.White
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
