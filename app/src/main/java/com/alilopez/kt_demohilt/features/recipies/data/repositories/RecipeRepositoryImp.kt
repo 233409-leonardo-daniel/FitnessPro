@@ -1,9 +1,15 @@
 package com.alilopez.kt_demohilt.features.recipies.data.repositories
 
+import android.util.Log
+import com.alilopez.kt_demohilt.core.database.dao.RecipeDao
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
+import com.alilopez.kt_demohilt.features.recipies.data.datasources.local.mapper.toDomain
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain
+import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toEntity
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.domain.repositories.RecipeRepository
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
 import okhttp3.MediaType.Companion.toMediaTypeOrNull
 import okhttp3.MultipartBody
 import okhttp3.RequestBody.Companion.asRequestBody
@@ -12,7 +18,8 @@ import java.io.File
 import javax.inject.Inject
 
 class RecipeRepositoryImp @Inject constructor(
-    private val fitnessProApi: FitnessProApi
+    private val fitnessProApi: FitnessProApi,
+    private val dao: RecipeDao
 ) : RecipeRepository {
     override suspend fun getRecipes(): List<Recipe> {
         return fitnessProApi.getRecipes().map { it.toDomain() }
@@ -32,6 +39,20 @@ class RecipeRepositoryImp @Inject constructor(
 
     override suspend fun getCommunityRecipes(userId: Int): List<Recipe> {
         return fitnessProApi.getCommunityRecipes(userId).map { it.toDomain() }
+    }
+
+    override fun getRemoteRecipes(): Flow<List<Recipe>> {
+        return dao.getDAORecipes().map { entities -> entities.map { it.toDomain() } }
+    }
+
+    override suspend fun syncRecipes() {
+        try {
+            // El 5 esta hardcodeado debido al delay que tiene la API, si se pide más de 5 recetas, el tiempo de respuesta es muy alto y puede causar timeouts
+            val remoteRecipes = fitnessProApi.getRandomRemoteRecipes(5).recipes.map { it.toDomain() }
+            dao.insertRecipes(remoteRecipes.map { it.toEntity() })
+        } catch (e: Exception) {
+            Log.e("Archivo:RecipeRepositoryImp", "Error syncing recipes: ${e.message}")
+        }
     }
 
     override suspend fun createRecipe(

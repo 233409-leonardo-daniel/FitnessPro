@@ -7,7 +7,7 @@ data class Recipe(
     val ingredients: String,
     val instructions: String,
     val userId: Int?,
-    val scheduledDays: List<String>,
+    val scheduledDays: List<String>?,
     val mealType: String?,
     val imageUrl: String?,
     val audioUrl: String?

@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.features.recipies.domain.repositories
 
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
+import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface RecipeRepository {
@@ -32,4 +33,6 @@ interface RecipeRepository {
     suspend fun deleteRecipe(recipeId: Int)
     suspend fun getCommunityRecipes(userId: Int): List<Recipe>
     suspend fun getUserRecipes(userId: Int): List<Recipe>
+    fun getRemoteRecipes(): Flow<List<Recipe>>
+    suspend fun syncRecipes()
 }

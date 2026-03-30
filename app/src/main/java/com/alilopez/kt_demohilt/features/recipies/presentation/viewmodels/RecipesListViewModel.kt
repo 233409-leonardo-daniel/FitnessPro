@@ -1,18 +1,23 @@
 package com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.DeleteRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetCommunityRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRemoteRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetUserRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.SearchRecipesByNameUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.SyncRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesListUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -24,6 +29,8 @@ class RecipesListViewModel @Inject constructor(
     private val getCommunityRecipesUseCase: GetCommunityRecipesUseCase,
     private val deleteRecipeUseCase: DeleteRecipeUseCase,
     private val searchRecipesByNameUseCase: SearchRecipesByNameUseCase,
+    private val getRemoteRecipesUseCase: GetRemoteRecipesUseCase,
+    private val syncRecipesUseCase: SyncRecipesUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -34,19 +41,27 @@ class RecipesListViewModel @Inject constructor(
 
     init {
         loadUserRecipes()
+        syncRecipes()
     }
 
     fun loadRemoteRecipes() {
         _uiState.update { it.copy(isLoading = true) }
+        getRemoteRecipesUseCase().onEach{ recipes ->
+            _uiState.value = _uiState.value.copy(isLoading = false, remoteRecipes = recipes)
+        }.launchIn(viewModelScope)
+    }
+
+    fun syncRecipes() {
 
         viewModelScope.launch {
             try {
-                val recipes = getRecipesUseCase()
-                _uiState.update { currentState ->
-                    currentState.copy(isLoading = false, remoteRecipes = recipes)
-                }
+                syncRecipesUseCase()
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _uiState.update { it.copy(errorMessage = e.message) }
+                Log.e(
+                    "Archivo:RecipesListViewModel",
+                    "Error sincronizando recetas: ${e.message}"
+                )
             }
         }
     }
@@ -96,8 +111,17 @@ class RecipesListViewModel @Inject constructor(
     }
 
     fun searchRecipes() {
-        _uiState.update {
-            it.copy(isSearchActive = it.searchQuery.trim().isNotBlank())
+        viewModelScope.launch {
+            try {
+                val recipes = searchRecipesByNameUseCase(_uiState.value.searchQuery.trim())
+                _uiState.update { currentState ->
+                    currentState.copy(localRecipes = recipes)
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(localRecipes = emptyList(), errorMessage = e.message)
+                }
+            }
         }
     }
 
