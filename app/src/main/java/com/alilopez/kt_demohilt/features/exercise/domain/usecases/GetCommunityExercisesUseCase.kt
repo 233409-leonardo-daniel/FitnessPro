@@ -8,9 +8,9 @@ class GetCommunityExercisesUseCase @Inject constructor(
     private val repository: ExerciseRepository
 ) {
 
-    suspend operator fun invoke(): Result<List<Exercise>> {
+    suspend operator fun invoke(userId: Int): Result<List<Exercise>> {
         return try {
-            val exercises = repository.getCommunityExercises()
+            val exercises = repository.getCommunityExercises(userId)
             val filteredExercises = exercises.filter { it.name.isNotBlank() }
 
             if (filteredExercises.isEmpty()) {

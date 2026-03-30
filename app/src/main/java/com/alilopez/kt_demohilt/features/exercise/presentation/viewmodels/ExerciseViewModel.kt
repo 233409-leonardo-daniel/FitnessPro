@@ -26,6 +26,7 @@ class ExerciseViewModel @Inject constructor(
 ) : ViewModel() {
     private val _uiState = MutableStateFlow(ExercisesUiState())
     val uiState = _uiState.asStateFlow()
+    val currentUserId: Int? get() = sessionManager.currentUserId
 
     init {
         loadUserExercises()
@@ -48,21 +49,25 @@ class ExerciseViewModel @Inject constructor(
     fun loadCommunityExercises() {
         _uiState.update { it.copy(isLoading = true) }
 
-        viewModelScope.launch {
-            val result = getCommunityExercisesUseCase()
-            _uiState.update { currentState ->
-                result.fold(
-                    onSuccess = { list -> currentState.copy(isLoading = false, communityExercises = list) },
-                    onFailure = { error -> currentState.copy(isLoading = false, error = error.message) }
-                )
+        currentUserId?.let { userId ->
+            viewModelScope.launch {
+                val result = getCommunityExercisesUseCase(userId)
+                _uiState.update { currentState ->
+                    result.fold(
+                        onSuccess = { list -> currentState.copy(isLoading = false, communityExercises = list) },
+                        onFailure = { error -> currentState.copy(isLoading = false, error = error.message) }
+                    )
+                }
             }
+        } ?: run {
+            _uiState.update { it.copy(isLoading = false, error = "Usuario no autenticado") }
         }
     }
 
     fun loadUserExercises() {
         val userId = sessionManager.currentUserId
         if (userId == null) {
-            _uiState.update { it.copy(localExercises = emptyList()) }
+            _uiState.update { it.copy(localExercises = emptyList(), error = "Usuario no autenticado") }
             return
         }
 

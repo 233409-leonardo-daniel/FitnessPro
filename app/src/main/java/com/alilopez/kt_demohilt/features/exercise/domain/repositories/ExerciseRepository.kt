@@ -28,5 +28,5 @@ interface ExerciseRepository {
     suspend fun syncExercisesByFilter(filter: ExerciseFilter)
     fun getLocalExercisesByFilter(filter: ExerciseFilter): Flow<List<Exercise>>
     suspend fun getExercisesByUserId(userId: Int): List<Exercise>
-    suspend fun getCommunityExercises(): List<Exercise>
+    suspend fun getCommunityExercises(userId: Int): List<Exercise>
 }
