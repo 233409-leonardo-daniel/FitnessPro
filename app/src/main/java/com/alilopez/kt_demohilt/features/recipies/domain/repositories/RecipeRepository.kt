@@ -32,4 +32,5 @@ interface RecipeRepository {
     suspend fun deleteRecipe(recipeId: Int)
     suspend fun getCommunityRecipes(userId: Int): List<Recipe>
     suspend fun getUserRecipes(userId: Int): List<Recipe>
+    suspend fun getRemoteRecipes(): List<Recipe>
 }

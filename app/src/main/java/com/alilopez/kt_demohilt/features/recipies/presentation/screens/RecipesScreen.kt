@@ -180,9 +180,12 @@ fun RecipesScreen(
                 )
 
                 2 -> PremiumRecipesList(
+                    recipes = filteredRemoteRecipes,
+                    isLoading = uiState.isLoading,
+                    isSearchActive = uiState.isSearchActive,
                     accentColor = accentColor,
                     secondaryTextColor = secondaryTextColor,
-                    textColor = textColor
+                    onNavigateToRecipeDetail = onNavigateToRecipeDetail
                 )
             }
         }
@@ -495,29 +498,50 @@ private fun CommunityRecipesList(
 
 @Composable
 private fun PremiumRecipesList(
+    recipes: List<Recipe>,
+    isLoading: Boolean,
+    isSearchActive: Boolean,
     accentColor: Color,
     secondaryTextColor: Color,
-    textColor: Color
+    onNavigateToRecipeDetail: (Int) -> Unit
 ) {
-    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-            modifier = Modifier.padding(24.dp)
-        ) {
-            Text(
-                text = "Próximamente",
-                color = textColor,
-                fontWeight = FontWeight.SemiBold,
-                fontSize = 18.sp,
-                textAlign = TextAlign.Center
-            )
+    when {
+        isLoading -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = accentColor)
+            }
+        }
 
-            Text(
-                text = "Las recetas premium estarán disponibles muy pronto.",
-                color = secondaryTextColor,
-                textAlign = TextAlign.Center
-            )
+        recipes.isEmpty() -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = if (isSearchActive) {
+                        "No se encontraron recetas"
+                    } else {
+                        "No hay recetas remotas disponibles"
+                    },
+                    color = if (isSearchActive) accentColor else secondaryTextColor,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
+            }
+        }
+
+        else -> {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(8.dp)
+            ) {
+                items(recipes) { recipe ->
+                    RecipeCard(
+                        recipe = recipe,
+                        currentUserId = null,
+                        onClick = { onNavigateToRecipeDetail(recipe.id) },
+                        onEdit = {},
+                        onDelete = {}
+                    )
+                }
+            }
         }
     }
 }
@@ -527,4 +551,3 @@ private fun PremiumRecipesList(
 private fun RecipesScreenPreview() {
     Text(text = "Recipes Screen Preview")
 }
-

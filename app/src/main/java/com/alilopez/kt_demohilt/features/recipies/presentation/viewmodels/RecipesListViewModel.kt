@@ -6,6 +6,7 @@ import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.DeleteRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetCommunityRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRemoteRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetUserRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.SearchRecipesByNameUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesListUIState
@@ -24,6 +25,7 @@ class RecipesListViewModel @Inject constructor(
     private val getCommunityRecipesUseCase: GetCommunityRecipesUseCase,
     private val deleteRecipeUseCase: DeleteRecipeUseCase,
     private val searchRecipesByNameUseCase: SearchRecipesByNameUseCase,
+    private val getRemoteRecipesUseCase: GetRemoteRecipesUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -41,7 +43,7 @@ class RecipesListViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val recipes = getRecipesUseCase()
+                val recipes = getRemoteRecipesUseCase()
                 _uiState.update { currentState ->
                     currentState.copy(isLoading = false, remoteRecipes = recipes)
                 }
@@ -96,8 +98,17 @@ class RecipesListViewModel @Inject constructor(
     }
 
     fun searchRecipes() {
-        _uiState.update {
-            it.copy(isSearchActive = it.searchQuery.trim().isNotBlank())
+        viewModelScope.launch {
+            try {
+                val recipes = searchRecipesByNameUseCase(_uiState.value.searchQuery.trim())
+                _uiState.update { currentState ->
+                    currentState.copy(localRecipes = recipes)
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(localRecipes = emptyList(), errorMessage = e.message)
+                }
+            }
         }
     }
 

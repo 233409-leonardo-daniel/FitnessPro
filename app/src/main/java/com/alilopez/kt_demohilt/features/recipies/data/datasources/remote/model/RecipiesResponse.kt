@@ -40,3 +40,20 @@ data class RecipeCreateDto(
     @SerializedName("audio_url")
     val audioUrl: String? = null
 )
+
+data class RemoteRecipeDto(
+    val id: String,
+    val name: String,
+    val category: String? = null,
+    val area: String? = null,
+    val instructions: String? = null,
+    @SerializedName("image_url")
+    val imageUrl: String? = null,
+    @SerializedName("youtube_url")
+    val youtubeUrl: String? = null,
+    @SerializedName("source_url")
+    val sourceUrl: String? = null,
+    val tags: List<String> = emptyList(),
+    val ingredients: List<String> = emptyList(),
+    val measures: List<String> = emptyList()
+)
