@@ -2,9 +2,6 @@ package com.alilopez.kt_demohilt.core.network
 
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExercisesResponse
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.LocalExerciseDto
-import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.AddExerciseToPlanDto
-import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanCreateDto
-import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.AddRecipeToPlanDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanCreateDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
@@ -14,6 +11,9 @@ import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.User
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserLoginResponseDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserUpdateDto
+import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.AddExerciseToPlanDto
+import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanCreateDto
+import com.alilopez.kt_demohilt.features.workoutplans.data.datasources.remote.model.WorkoutPlanDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -226,4 +226,14 @@ interface FitnessProApi {
     suspend fun getUserDailyContent(
         @Path("user_id") userId: Int
     ): UserDailyResponse
+
+    @GET("recipes/community/{user_id}")
+    suspend fun getCommunityRecipes(
+        @Path("user_id") userId: Int
+    ): List<RecipeDto>
+
+    @GET("recipes/user/{user_id}")
+    suspend fun getUserRecipes(
+        @Path("user_id") userId: Int
+    ): List<RecipeDto>
 }

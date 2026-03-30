@@ -14,7 +14,7 @@ import javax.inject.Inject
 class RecipeRepositoryImp @Inject constructor(
     private val fitnessProApi: FitnessProApi
 ) : RecipeRepository {
-    override suspend fun getRecipies(): List<Recipe> {
+    override suspend fun getRecipes(): List<Recipe> {
         return fitnessProApi.getRecipes().map { it.toDomain() }
     }
 
@@ -24,6 +24,14 @@ class RecipeRepositoryImp @Inject constructor(
 
     override suspend fun getRecipeDetail(recipeId: Int): Recipe {
         return fitnessProApi.getRecipeDetail(recipeId).toDomain()
+    }
+
+    override suspend fun getUserRecipes(userId: Int): List<Recipe> {
+        return fitnessProApi.getUserRecipes(userId).map { it.toDomain() }
+    }
+
+    override suspend fun getCommunityRecipes(userId: Int): List<Recipe> {
+        return fitnessProApi.getCommunityRecipes(userId).map { it.toDomain() }
     }
 
     override suspend fun createRecipe(

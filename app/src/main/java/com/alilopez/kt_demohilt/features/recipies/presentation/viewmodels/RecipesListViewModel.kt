@@ -2,11 +2,13 @@ package com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.DeleteRecipeUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetCommunityRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetUserRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.SearchRecipesByNameUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesListUIState
-import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -18,6 +20,8 @@ import javax.inject.Inject
 @HiltViewModel
 class RecipesListViewModel @Inject constructor(
     private val getRecipesUseCase: GetRecipesUseCase,
+    private val getUserRecipesUseCase: GetUserRecipesUseCase,
+    private val getCommunityRecipesUseCase: GetCommunityRecipesUseCase,
     private val deleteRecipeUseCase: DeleteRecipeUseCase,
     private val searchRecipesByNameUseCase: SearchRecipesByNameUseCase,
     private val sessionManager: SessionManager
@@ -28,25 +32,60 @@ class RecipesListViewModel @Inject constructor(
 
     val currentUserId: Int? get() = sessionManager.currentUserId
 
-    fun getRecipies() {
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+    init {
+        loadUserRecipes()
+    }
 
+    fun loadRemoteRecipes() {
+        _uiState.update { it.copy(isLoading = true) }
+
+        viewModelScope.launch {
             try {
-                val recipies = getRecipesUseCase()
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        recipies = recipies,
-                        isSearchActive = false
-                    )
+                val recipes = getRecipesUseCase()
+                _uiState.update { currentState ->
+                    currentState.copy(isLoading = false, remoteRecipes = recipes)
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
+    }
+
+    fun loadCommunityRecipes() {
+        _uiState.update { it.copy(isLoading = true) }
+
+        currentUserId?.let { userId ->
+            viewModelScope.launch {
+                try {
+                    val recipes = getCommunityRecipesUseCase(userId)
+                    _uiState.update { currentState ->
+                        currentState.copy(isLoading = false, communityRecipes = recipes)
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                }
+            }
+        } ?: run {
+            _uiState.update { it.copy(isLoading = false, errorMessage = "Usuario no autenticado") }
+        }
+    }
+
+    fun loadUserRecipes() {
+        val userId = sessionManager.currentUserId
+        if (userId == null) {
+            _uiState.update { it.copy(localRecipes = emptyList(), errorMessage = "Usuario no autenticado") }
+            return
+        }
+
+        viewModelScope.launch {
+            try {
+                val recipes = getUserRecipesUseCase(userId)
+                _uiState.update { currentState ->
+                    currentState.copy(localRecipes = recipes)
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message ?: "Error al obtener las recetas"
-                    )
+                    it.copy(localRecipes = emptyList(), errorMessage = e.message)
                 }
             }
         }
@@ -57,38 +96,13 @@ class RecipesListViewModel @Inject constructor(
     }
 
     fun searchRecipes() {
-        val query = _uiState.value.searchQuery.trim()
-        if (query.isBlank()) {
-            getRecipies()
-            return
-        }
-
-        viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-
-            try {
-                val recipies = searchRecipesByNameUseCase(query)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        recipies = recipies,
-                        isSearchActive = true
-                    )
-                }
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = e.message ?: "Error al buscar recetas"
-                    )
-                }
-            }
+        _uiState.update {
+            it.copy(isSearchActive = it.searchQuery.trim().isNotBlank())
         }
     }
 
     fun clearSearch() {
         _uiState.update { it.copy(searchQuery = "", isSearchActive = false) }
-        getRecipies()
     }
 
     fun deleteRecipe(recipeId: Int) {
@@ -98,11 +112,11 @@ class RecipesListViewModel @Inject constructor(
             try {
                 deleteRecipeUseCase(recipeId)
 
-                val updatedRecipes = _uiState.value.recipies.filter { it.id != recipeId }
+                val updatedLocalRecipes = _uiState.value.localRecipes.filter { it.id != recipeId }
                 _uiState.update {
                     it.copy(
                         isLoading = false,
-                        recipies = updatedRecipes,
+                        localRecipes = updatedLocalRecipes,
                         recipeDeleted = true
                     )
                 }
