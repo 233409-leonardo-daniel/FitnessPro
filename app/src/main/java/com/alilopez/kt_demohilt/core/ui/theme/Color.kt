@@ -217,6 +217,11 @@ val surfaceContainerDarkHighContrast = Color(0xFF392E2C)
 val surfaceContainerHighDarkHighContrast = Color(0xFF443937)
 val surfaceContainerHighestDarkHighContrast = Color(0xFF504442)
 
+// Custom colors for dark theme
+val orangePrimary = Color(0xFFF97316)
+val darkTextColor = Color(0xFF000000)
+
+
 
 
 
