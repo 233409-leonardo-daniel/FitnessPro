@@ -13,6 +13,7 @@ import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.User
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDailyResponse
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserLoginResponseDto
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserUpdateDto
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
 import retrofit2.http.Body
@@ -49,14 +50,20 @@ interface FitnessProApi {
         @Field("id_token") idToken: String
     ): UserLoginResponseDto
 
-    @GET("users")
+    @GET("users/{id}")
     suspend fun getUser(
-        @Query("id") id : Int
+        @Path("id") id : Int
     ): UserDto
 
     @POST("users")
     suspend fun register(
         @Body user: UserCreateDto
+    ): UserDto
+
+    @PUT("users/{user_id}")
+    suspend fun updateUser(
+        @Path("user_id") userId: Int,
+        @Body user: UserUpdateDto
     ): UserDto
 
     @Multipart

@@ -3,7 +3,6 @@ package com.alilopez.kt_demohilt.features.exercise.presentation.components
 import android.content.Context
 import android.os.Build
 import androidx.compose.foundation.background
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -16,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -50,14 +50,14 @@ fun ExerciseCard(
     isLocal: Boolean = false,
     exerciseType: String? = null,
     difficulty: String? = null,
+    accentColor: Color = Color(0xFF10B981),
     onRemoveClick: (() -> Unit)? = null
 ) {
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
     val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
-    val accentColor = Color(0xFF10B981)
 
     Card(
         modifier = modifier
@@ -147,7 +147,7 @@ fun ExerciseCard(
                                 Box(
                                     modifier = Modifier
                                         .background(
-                                            Color(0xFF10B981).copy(alpha = 0.2f),
+                                            accentColor.copy(alpha = 0.2f),
                                             shape = RoundedCornerShape(8.dp)
                                         )
                                         .padding(horizontal = 10.dp, vertical = 4.dp)
@@ -156,7 +156,7 @@ fun ExerciseCard(
                                         text = difficulty,
                                         style = MaterialTheme.typography.labelSmall,
                                         fontWeight = FontWeight.SemiBold,
-                                        color = Color(0xFF10B981)
+                                        color = accentColor
                                     )
                                 }
                             }

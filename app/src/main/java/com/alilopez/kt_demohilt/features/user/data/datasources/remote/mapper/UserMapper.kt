@@ -9,15 +9,16 @@ import com.alilopez.kt_demohilt.features.user.domain.entities.User
 
 fun UserDto.toDomain(): User {
     return User(
-        id = this.id,
-        email = this.email,
-        name = this.name,
-        lastname = this.lastname,
-        birthdate = this.birthdate,
-        weight = this.weight,
-        height = this.height,
-        gender = this.gender,
-        age = this.age
+        id = id,
+        email = email,
+        name = name,
+        lastname = lastname,
+        birthdate = birthdate,
+        weight = weight,
+        height = height,
+        gender = gender,
+        age = age,
+        membership = membership
     )
 }
 
