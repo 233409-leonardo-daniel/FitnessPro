@@ -20,22 +20,22 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.core.components.StartIoBanner
 import com.alilopez.kt_demohilt.core.session.SessionManager
-import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseScreen
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
+import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
+import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
+import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipeDetailScreen
-import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
-import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
-import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
-import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
-import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesScreen
-import com.alilopez.kt_demohilt.features.user.presentation.screens.ProfileScreen
+import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.PremiumScreen
-import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
+import com.alilopez.kt_demohilt.features.user.presentation.screens.ProfileScreen
+import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
+import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import kotlinx.coroutines.launch
 
 @Composable
@@ -207,18 +207,9 @@ fun NavigationWrapper(
                         AddRecipeScreen(onNavigateBack = { navController.popBackStack() })
                     }
 
-            composable<Exercises> {
-                ExercisesScreen(
-                    onNavigateToAddExercise = {
-                        navController.navigate(AddExercise)
-                    },
-                    onOpenDrawer = { scope.launch { drawerState.open() } }
-                )
-            }
-
-                    composable<EditRecipe> { backStackEntry ->
-                        val route = backStackEntry.toRoute<EditRecipe>()
-                        EditRecipeScreen(
+                    composable<RecipeDetail> { backStackEntry ->
+                        val route = backStackEntry.toRoute<RecipeDetail>()
+                        RecipeDetailScreen(
                             recipeId = route.recipeId,
                             onNavigateBack = { navController.popBackStack() }
                         )
@@ -232,6 +223,14 @@ fun NavigationWrapper(
                             onOpenDrawer = { scope.launch { drawerState.open() } }
                         )
                     }
+
+                composable<EditRecipe> { backStackEntry ->
+                    val route = backStackEntry.toRoute<EditRecipe>()
+                    EditRecipeScreen(
+                        recipeId = route.recipeId,
+                        onNavigateBack = { navController.popBackStack() }
+                    )
+                }
 
                     composable<AddExercise> {
                         AddExerciseScreen(onNavigateBack = { navController.popBackStack() })

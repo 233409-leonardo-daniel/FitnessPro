@@ -57,3 +57,9 @@ data class RemoteRecipeDto(
     val ingredients: List<String> = emptyList(),
     val measures: List<String> = emptyList()
 )
+
+data class RemoteRecipesResponse(
+    @SerializedName("recipes")
+    val recipes: List<RemoteRecipeDto> = emptyList()
+)
+

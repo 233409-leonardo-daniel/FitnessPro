@@ -182,6 +182,7 @@ fun RecipesScreen(
                 2 -> PremiumRecipesList(
                     recipes = filteredRemoteRecipes,
                     isLoading = uiState.isLoading,
+                    errorMessage = uiState.errorMessage,
                     isSearchActive = uiState.isSearchActive,
                     accentColor = accentColor,
                     secondaryTextColor = secondaryTextColor,
@@ -500,6 +501,7 @@ private fun CommunityRecipesList(
 private fun PremiumRecipesList(
     recipes: List<Recipe>,
     isLoading: Boolean,
+    errorMessage: String?,
     isSearchActive: Boolean,
     accentColor: Color,
     secondaryTextColor: Color,
@@ -509,6 +511,17 @@ private fun PremiumRecipesList(
         isLoading -> {
             Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = accentColor)
+            }
+        }
+
+        !errorMessage.isNullOrBlank() -> {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text(
+                    text = "Error cargando recetas remotas: $errorMessage",
+                    color = Color(0xFFEF4444),
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 24.dp)
+                )
             }
         }
 

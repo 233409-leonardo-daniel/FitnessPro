@@ -36,7 +36,7 @@ class RecipeRepositoryImp @Inject constructor(
 
     override suspend fun getRemoteRecipes(): List<Recipe> {
         // ESTO ESTA HARDCODEADO, SI SE PIDEN MUCHAS RECETAS TARDARIA MUCHO EN RESPONDER, SE DEBERIA IMPLEMENTAR UNA PAGINACION O ROOMS
-        return fitnessProApi.getRandomRemoteRecipes(5).map { it.toDomain() }
+        return fitnessProApi.getRandomRemoteRecipes(5).recipes.map { it.toDomain() }
     }
 
     override suspend fun createRecipe(
