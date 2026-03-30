@@ -11,12 +11,7 @@ data class HomeUIState(
     val timezone: String = "",
     val userFullName: String = "",
     val recipes: List<Recipe> = emptyList(),
-    val exercises: List<Exercise> = emptyList()
     val exercises: List<Exercise> = emptyList(),
-    val recipesLoading: Boolean = false,
-    val exercisesLoading: Boolean = false,
-    val recipesError: String? = null,
-    val exercisesError: String? = null,
     val isProfileIncomplete: Boolean = false,
     val currentUser: User? = null
 )

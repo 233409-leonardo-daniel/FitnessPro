@@ -23,6 +23,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +41,7 @@ fun HomeScreen(
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val recipesAccentColor = Color(0xFF10B981)
     val trainingAccentColor = if (isDarkTheme) Color(0xFFF59E0B) else Color(0xFF10B981)
+    val accentColor = Color(0xFF10B981)
 
     val currentDay = uiState.day.ifBlank { "Hoy" }
     val todaysRecipes = uiState.recipes
