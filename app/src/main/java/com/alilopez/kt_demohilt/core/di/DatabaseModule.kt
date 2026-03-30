@@ -5,6 +5,7 @@ import androidx.room.Room
 import com.alilopez.kt_demohilt.core.database.AppDatabase
 import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.database.dao.PostDao
+import com.alilopez.kt_demohilt.core.database.dao.RecipeDao
 
 import dagger.Module
 import dagger.Provides
@@ -35,4 +36,7 @@ object DatabaseModule {
 
     @Provides
     fun provideExerciseDao(db: AppDatabase) : ExerciseDao = db.exerciseDao()
+
+    @Provides
+    fun provideRecipeDao(db: AppDatabase) : RecipeDao = db.recipeDao()
 }
