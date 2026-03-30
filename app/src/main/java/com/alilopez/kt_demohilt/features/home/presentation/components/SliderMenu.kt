@@ -3,11 +3,14 @@ package com.alilopez.kt_demohilt.features.home.presentation.components
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
+import androidx.compose.material.icons.filled.Stars
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,10 +18,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.alilopez.kt_demohilt.core.navigation.Exercises
-import com.alilopez.kt_demohilt.core.navigation.Home
-import com.alilopez.kt_demohilt.core.navigation.RecipePlans
-import com.alilopez.kt_demohilt.core.navigation.WorkoutPlans
 
 @Composable
 fun SliderMenu(
@@ -27,12 +26,16 @@ fun SliderMenu(
     onNavigateToExercises: () -> Unit,
     onNavigateToWorkoutPlans: () -> Unit,
     onNavigateToRecipePlans: () -> Unit,
+    onNavigateToProfile: () -> Unit,
+    onNavigateToPremium: () -> Unit,
+    onLogout: () -> Unit,
     currentRoute: String? = null,
     onCloseDrawer: () -> Unit
 ) {
     val isDarkTheme = isSystemInDarkTheme()
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val accentColor = Color(0xFF10B981)
+    val premiumColor = Color(0xFFF59E0B)
 
     ModalDrawerSheet(
         drawerContainerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White,
@@ -106,6 +109,46 @@ fun SliderMenu(
             },
             accentColor = accentColor,
             textColor = textColor
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        DrawerItem(
+            label = "Mi Perfil",
+            icon = Icons.Default.Person,
+            selected = currentRoute == "Profile",
+            onClick = {
+                onNavigateToProfile()
+                onCloseDrawer()
+            },
+            accentColor = accentColor,
+            textColor = textColor
+        )
+
+        DrawerItem(
+            label = "Hazte Premium",
+            icon = Icons.Default.Stars,
+            selected = currentRoute == "Premium",
+            onClick = {
+                onNavigateToPremium()
+                onCloseDrawer()
+            },
+            accentColor = premiumColor,
+            textColor = premiumColor
+        )
+
+        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+
+        DrawerItem(
+            label = "Cerrar sesión",
+            icon = Icons.AutoMirrored.Filled.ExitToApp,
+            selected = false,
+            onClick = {
+                onLogout()
+                onCloseDrawer()
+            },
+            accentColor = Color(0xFFEF4444),
+            textColor = Color(0xFFEF4444)
         )
     }
 }

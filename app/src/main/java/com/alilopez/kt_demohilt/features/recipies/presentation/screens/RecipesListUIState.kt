@@ -6,6 +6,8 @@ data class RecipesListUIState(
     val isLoading: Boolean = false,
     val errorMessage: String? = null,
     val recipies: List<Recipe> = emptyList(),
-    val recipeDeleted: Boolean = false
+    val recipeDeleted: Boolean = false,
+    val searchQuery: String = "",
+    val isSearchActive: Boolean = false
 )
 

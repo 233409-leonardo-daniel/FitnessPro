@@ -19,6 +19,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels.WorkoutDetailViewModel
@@ -150,6 +151,19 @@ fun AddExerciseModal(
     isDarkTheme: Boolean,
     accentColor: Color
 ) {
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredExercises = remember(exercises, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isBlank()) {
+            exercises
+        } else {
+            exercises.filter { it.name.contains(query, ignoreCase = true) }
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -165,6 +179,23 @@ fun AddExerciseModal(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                onSearch = {},
+                onClear = { searchQuery = "" },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = "Buscar ejercicio por nombre",
+                isDarkTheme = isDarkTheme,
+                accentColor = accentColor,
+                textColor = textColor,
+                secondaryTextColor = secondaryTextColor
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
             
             if (exercises.isEmpty()) {
                 Text(
@@ -172,9 +203,16 @@ fun AddExerciseModal(
                     modifier = Modifier.padding(24.dp),
                     textAlign = TextAlign.Center
                 )
+            } else if (filteredExercises.isEmpty()) {
+                Text(
+                    "No se encontraron ejercicios con ese nombre.",
+                    modifier = Modifier.padding(24.dp),
+                    textAlign = TextAlign.Center,
+                    color = secondaryTextColor
+                )
             } else {
                 LazyColumn(modifier = Modifier.fillMaxHeight(0.6f)) {
-                    items(exercises) { exercise ->
+                    items(filteredExercises) { exercise ->
                         ListItem(
                             headlineContent = { Text(exercise.name) },
                             supportingContent = { Text(exercise.bodyparts.joinToString(", ")) },

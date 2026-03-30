@@ -11,5 +11,7 @@ data class ExercisesUiState(
     val isFilterExpanded: Boolean = false,
     val selectedBodyPart: String? = null,
     val isSyncing: Boolean = false,
-    val isFiltered: Boolean = false
+    val isFiltered: Boolean = false,
+    val searchQuery: String = "",
+    val isSearchActive: Boolean = false
 )

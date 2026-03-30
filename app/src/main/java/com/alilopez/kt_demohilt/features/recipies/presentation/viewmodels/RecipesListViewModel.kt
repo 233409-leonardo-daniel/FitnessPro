@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.DeleteRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
+import com.alilopez.kt_demohilt.features.recipies.domain.usecases.SearchRecipesByNameUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.RecipesListUIState
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,6 +19,7 @@ import javax.inject.Inject
 class RecipesListViewModel @Inject constructor(
     private val getRecipesUseCase: GetRecipesUseCase,
     private val deleteRecipeUseCase: DeleteRecipeUseCase,
+    private val searchRecipesByNameUseCase: SearchRecipesByNameUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -32,7 +34,13 @@ class RecipesListViewModel @Inject constructor(
 
             try {
                 val recipies = getRecipesUseCase()
-                _uiState.update { it.copy(isLoading = false, recipies = recipies) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        recipies = recipies,
+                        isSearchActive = false
+                    )
+                }
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -42,6 +50,45 @@ class RecipesListViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update { it.copy(searchQuery = query) }
+    }
+
+    fun searchRecipes() {
+        val query = _uiState.value.searchQuery.trim()
+        if (query.isBlank()) {
+            getRecipies()
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+
+            try {
+                val recipies = searchRecipesByNameUseCase(query)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        recipies = recipies,
+                        isSearchActive = true
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = e.message ?: "Error al buscar recetas"
+                    )
+                }
+            }
+        }
+    }
+
+    fun clearSearch() {
+        _uiState.update { it.copy(searchQuery = "", isSearchActive = false) }
+        getRecipies()
     }
 
     fun deleteRecipe(recipeId: Int) {

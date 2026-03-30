@@ -40,6 +40,10 @@ class ExercisesRepositoryImpl @Inject constructor(
         return response.data.map { it.toDomain() }
     }
 
+    override suspend fun searchLocalExercisesByName(name: String): List<Exercise> {
+        return api.searchLocalExercises(name).map { it.toDomain() }
+    }
+
     override fun getLocalExercisesByFilter(filter: ExerciseFilter): Flow<List<Exercise>> {
         return dao.getExercisesByFilter(
             bodyPart = filter.bodyPart,

@@ -11,10 +11,10 @@ class UserRegisterUseCase @Inject constructor(
         email: String,
         name: String,
         lastname: String,
-        birthdate: String,
-        weight: Double,
-        height: Double,
-        gender: String,
+        birthdate: String? = null,
+        weight: Double? = null,
+        height: Double? = null,
+        gender: String? = null,
         password: String
     ): User {
         return userRepository.register(

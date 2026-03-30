@@ -1,20 +1,19 @@
 package com.alilopez.kt_demohilt.features.home.presentation.screens
 
-import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,29 +31,36 @@ import java.util.*
 fun HomeScreen(
     onNavigateToRecipes: () -> Unit,
     onNavigateToExercises: () -> Unit,
+    onNavigateToProfileOnboarding: () -> Unit,
     onOpenDrawer: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isDarkTheme = isSystemInDarkTheme()
+    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
 
-    val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
+    val backgroundColor = if (isDarkTheme) Color(0xFF090C14) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val accentColor = Color(0xFF10B981)
+    val recipesAccentColor = Color(0xFF10B981)
+    val trainingAccentColor = if (isDarkTheme) Color(0xFFF59E0B) else Color(0xFF10B981)
 
-    // Obtener día actual en español
     val calendar = Calendar.getInstance()
     val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
     val currentDay = dayFormat.format(calendar.time)
         .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
 
-    // Filtrar recetas y ejercicios por el día de hoy
     val todaysRecipes = uiState.recipes.filter { recipe ->
         recipe.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
     }
 
     val todaysExercises = uiState.exercises.filter { exercise ->
         exercise.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
+    }
+
+    // Redirigir a completar perfil si es necesario
+    LaunchedEffect(uiState.isProfileIncomplete) {
+        if (uiState.isProfileIncomplete) {
+            onNavigateToProfileOnboarding()
+        }
     }
 
     Scaffold(
@@ -73,7 +79,7 @@ fun HomeScreen(
                         Text(
                             text = currentDay,
                             fontSize = 14.sp,
-                            color = accentColor,
+                            color = recipesAccentColor,
                             fontWeight = FontWeight.Medium
                         )
                     }
@@ -92,7 +98,7 @@ fun HomeScreen(
                         Icon(
                             imageVector = Icons.Default.Refresh,
                             contentDescription = "Actualizar",
-                            tint = accentColor
+                            tint = recipesAccentColor
                         )
                     }
                 },
@@ -106,13 +112,13 @@ fun HomeScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
-            // ── SECCIÓN RECETAS DE HOY (CARRUSEL) ──
             item {
                 SectionHeader(
                     title = "Comidas programadas",
                     onSeeAllClick = onNavigateToRecipes,
                     textColor = textColor,
-                    accentColor = accentColor
+                    accentColor = recipesAccentColor,
+                    indicatorColor = recipesAccentColor
                 )
             }
 
@@ -128,6 +134,7 @@ fun HomeScreen(
                         items(todaysRecipes) { recipe ->
                             RecipeCard(
                                 recipe = recipe,
+                                compactMode = true,
                                 modifier = Modifier.width(300.dp)
                             )
                         }
@@ -135,14 +142,14 @@ fun HomeScreen(
                 }
             }
 
-            // ── SECCIÓN EJERCICIOS DE HOY (CARRUSEL) ──
             item {
                 Spacer(modifier = Modifier.height(24.dp))
                 SectionHeader(
                     title = "Tu entrenamiento",
                     onSeeAllClick = onNavigateToExercises,
                     textColor = textColor,
-                    accentColor = accentColor
+                    accentColor = trainingAccentColor,
+                    indicatorColor = trainingAccentColor
                 )
             }
 
@@ -159,10 +166,11 @@ fun HomeScreen(
                             ExerciseCard(
                                 name = exercise.name,
                                 imageUrl = exercise.gifUrl,
+                                compactMode = true,
                                 instructions = exercise.instructions,
-                                isLocal = true,
                                 exerciseType = exercise.exerciseType,
                                 difficulty = exercise.difficulty,
+                                accentColor = trainingAccentColor,
                                 modifier = Modifier.width(300.dp)
                             )
                         }
@@ -178,7 +186,8 @@ private fun SectionHeader(
     title: String,
     onSeeAllClick: () -> Unit,
     textColor: Color,
-    accentColor: Color
+    accentColor: Color,
+    indicatorColor: Color
 ) {
     Row(
         modifier = Modifier
@@ -187,12 +196,23 @@ private fun SectionHeader(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Text(
-            text = title,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = textColor
-        )
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Box(
+                modifier = Modifier
+                    .width(3.dp)
+                    .height(20.dp)
+                    .background(indicatorColor, RoundedCornerShape(8.dp))
+            )
+            Text(
+                text = title.uppercase(Locale.getDefault()),
+                fontSize = 22.sp,
+                fontWeight = FontWeight.ExtraBold,
+                color = textColor
+            )
+        }
         TextButton(onClick = onSeeAllClick) {
             Text("Ver todo", color = accentColor, fontSize = 14.sp)
         }
@@ -206,7 +226,7 @@ private fun EmptyDayCard(title: String, subtitle: String, isDarkTheme: Boolean) 
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+            containerColor = if (isDarkTheme) Color(0xFF1A2232) else Color.White
         ),
         shape = RoundedCornerShape(12.dp)
     ) {

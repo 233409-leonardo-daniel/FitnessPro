@@ -6,6 +6,10 @@ import java.io.File
 interface RecipeRepository {
     suspend fun getRecipies(): List<Recipe>
 
+    suspend fun searchRecipesByName(name: String): List<Recipe>
+
+    suspend fun getRecipeDetail(recipeId: Int): Recipe
+
     suspend fun createRecipe(
         name: String,
         description: String,

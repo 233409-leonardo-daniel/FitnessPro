@@ -1,10 +1,8 @@
-
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.secrets.gradle)
     alias(libs.plugins.jetbrainsKotlinSerialization)
-    // Activa Hilt y KSP
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.hilt.android)
 }
@@ -22,12 +20,12 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        // Cargar propiedades desde local.properties (adaptado del proyecto original)
         val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
         buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("backend_url", "http://10.0.2.2:8000/api/")}\"")
         buildConfigField("String", "API_HOST", "\"${properties.getProperty("host", "exercisedb.p.rapidapi.com")}\"")
         buildConfigField("String", "API_KEY", "\"${properties.getProperty("key", "")}\"")
         buildConfigField("String", "EXERCISE_DB_URL", "\"${properties.getProperty("url", "https://exercisedb-api.vercel.app/api/v1/")}\"")
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${properties.getProperty("google_web_client_id", "")}\"")
     }
 
     buildTypes {
@@ -46,7 +44,7 @@ android {
 
     buildFeatures {
         compose = true
-        buildConfig = true  //Habilitar variables
+        buildConfig = true
         resValues = true
     }
 
@@ -94,23 +92,30 @@ dependencies {
     implementation(libs.androidx.compose.ui.tooling.preview)
     implementation(libs.androidx.compose.material3)
 
-    implementation(libs.androidx.compose.ui.text.google.fonts)      // G Fonts
-    implementation(libs.androidx.lifecycle.viewmodel.compose)       // viewModel()
-    implementation(libs.com.squareup.retrofit2.retrofit)            // Retrofit
-    implementation(libs.com.squareup.retrofit2.converter.json)      // JSON
-    implementation(libs.io.coil.kt.coil.compose)                    // Coil
-    implementation(libs.io.coil.kt.coil.gif)                        // Coil Gif
-    implementation(libs.androidx.navigation.compose)                // Navigation
-    implementation(libs.androidx.compose.material.icons.extended)   // Icons extendend
-    // Hilt
-    implementation(libs.hilt.android)
-    implementation(libs.hilt.navigation.compose)                    // Integración con Jetpack Compose
-    ksp(libs.hilt.compiler) // <--- Importante usar KSP
+    implementation(libs.androidx.compose.ui.text.google.fonts)
+    implementation(libs.androidx.lifecycle.viewmodel.compose)
+    implementation(libs.com.squareup.retrofit2.retrofit)
+    implementation(libs.com.squareup.retrofit2.converter.json)
+    implementation(libs.io.coil.kt.coil.compose)
+    implementation(libs.io.coil.kt.coil.gif)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.androidx.compose.material.icons.extended)
+    
+    // Google Login (Nombres corregidos)
+    implementation(libs.google.auth.credentials)
+    implementation(libs.google.auth.play.services)
+    implementation(libs.google.auth.id)
 
-    // Room
+    implementation(libs.hilt.android)
+    implementation(libs.hilt.navigation.compose)
+    ksp(libs.hilt.compiler)
+
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
-    ksp(libs.room.compiler) // <--- Importante usar KSP
+    ksp(libs.room.compiler)
+
+    // Start.io Ads
+    implementation(libs.startio.sdk)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

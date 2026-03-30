@@ -20,6 +20,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels.RecipePlanDetailViewModel
@@ -108,7 +109,7 @@ fun RecipePlanDetailScreen(
                             IconButton(
                                 onClick = { viewModel.removeRecipeFromPlan(planId, recipe.id) },
                                 modifier = Modifier
-                                    .align(Alignment.TopEnd)
+                                    .align(Alignment.TopStart)
                                     .padding(8.dp)
                                     .size(32.dp)
                             ) {
@@ -162,6 +163,19 @@ fun AddRecipeModal(
     isDarkTheme: Boolean,
     accentColor: Color
 ) {
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    var searchQuery by remember { mutableStateOf("") }
+
+    val filteredRecipes = remember(recipes, searchQuery) {
+        val query = searchQuery.trim()
+        if (query.isBlank()) {
+            recipes
+        } else {
+            recipes.filter { it.name.contains(query, ignoreCase = true) }
+        }
+    }
+
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         containerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -177,6 +191,23 @@ fun AddRecipeModal(
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
+
+            SearchBar(
+                query = searchQuery,
+                onQueryChange = { searchQuery = it },
+                onSearch = {},
+                onClear = { searchQuery = "" },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp),
+                placeholder = "Buscar receta por nombre",
+                isDarkTheme = isDarkTheme,
+                accentColor = accentColor,
+                textColor = textColor,
+                secondaryTextColor = secondaryTextColor
+            )
+
+            Spacer(modifier = Modifier.height(12.dp))
             
             if (recipes.isEmpty()) {
                 Text(
@@ -184,9 +215,16 @@ fun AddRecipeModal(
                     modifier = Modifier.padding(24.dp),
                     textAlign = TextAlign.Center
                 )
+            } else if (filteredRecipes.isEmpty()) {
+                Text(
+                    "No se encontraron recetas con ese nombre.",
+                    modifier = Modifier.padding(24.dp),
+                    textAlign = TextAlign.Center,
+                    color = secondaryTextColor
+                )
             } else {
                 LazyColumn(modifier = Modifier.fillMaxHeight(0.6f)) {
-                    items(recipes) { recipe ->
+                    items(filteredRecipes) { recipe ->
                         ListItem(
                             headlineContent = { Text(recipe.name) },
                             supportingContent = { Text(recipe.mealType ?: "") },
