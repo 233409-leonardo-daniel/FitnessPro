@@ -207,13 +207,14 @@ fun NavigationWrapper(
                         AddRecipeScreen(onNavigateBack = { navController.popBackStack() })
                     }
 
-                    composable<RecipeDetail> { backStackEntry ->
-                        val route = backStackEntry.toRoute<RecipeDetail>()
-                        RecipeDetailScreen(
-                            recipeId = route.recipeId,
-                            onNavigateBack = { navController.popBackStack() }
-                        )
-                    }
+            composable<Exercises> {
+                ExercisesScreen(
+                    onNavigateToAddExercise = {
+                        navController.navigate(AddExercise)
+                    },
+                    onOpenDrawer = { scope.launch { drawerState.open() } }
+                )
+            }
 
                     composable<EditRecipe> { backStackEntry ->
                         val route = backStackEntry.toRoute<EditRecipe>()
@@ -225,11 +226,6 @@ fun NavigationWrapper(
 
                     composable<Exercises> {
                         ExercisesScreen(
-                            onNavigateToRecipes = {
-                                navController.navigate(Recipes) {
-                                    launchSingleTop = true
-                                }
-                            },
                             onNavigateToAddExercise = {
                                 navController.navigate(AddExercise)
                             },

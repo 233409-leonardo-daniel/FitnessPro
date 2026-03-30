@@ -18,13 +18,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
 import com.alilopez.kt_demohilt.features.home.presentation.viewmodels.HomeViewModel
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
-import java.text.SimpleDateFormat
-import java.util.*
+import java.util.Locale
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -42,19 +41,11 @@ fun HomeScreen(
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val recipesAccentColor = Color(0xFF10B981)
     val trainingAccentColor = if (isDarkTheme) Color(0xFFF59E0B) else Color(0xFF10B981)
+    val accentColor = Color(0xFF10B981)
 
-    val calendar = Calendar.getInstance()
-    val dayFormat = SimpleDateFormat("EEEE", Locale("es", "ES"))
-    val currentDay = dayFormat.format(calendar.time)
-        .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
-
-    val todaysRecipes = uiState.recipes.filter { recipe ->
-        recipe.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
-    }
-
-    val todaysExercises = uiState.exercises.filter { exercise ->
-        exercise.scheduledDays.any { it.equals(currentDay, ignoreCase = true) }
-    }
+    val currentDay = uiState.day.ifBlank { "Hoy" }
+    val todaysRecipes = uiState.recipes
+    val todaysExercises = uiState.exercises
 
     // Redirigir a completar perfil si es necesario
     LaunchedEffect(uiState.isProfileIncomplete) {
@@ -112,6 +103,30 @@ fun HomeScreen(
                 .padding(paddingValues),
             contentPadding = PaddingValues(bottom = 24.dp)
         ) {
+            if (uiState.isLoading) {
+                item {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp, vertical = 24.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(color = accentColor)
+                    }
+                }
+            }
+
+            uiState.errorMessage?.let { message ->
+                item {
+                    EmptyDayCard(
+                        title = "No se pudo cargar tu plan diario",
+                        subtitle = message,
+                        isDarkTheme = isDarkTheme
+                    )
+                }
+            }
+
+            // ── SECCIÓN RECETAS DE HOY (CARRUSEL) ──
             item {
                 SectionHeader(
                     title = "Comidas programadas",

@@ -21,11 +21,8 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
         val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
-        buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("backend_url", "http://10.0.2.2:8000/api/")}\"")
-        buildConfigField("String", "API_HOST", "\"${properties.getProperty("host", "exercisedb.p.rapidapi.com")}\"")
-        buildConfigField("String", "API_KEY", "\"${properties.getProperty("key", "")}\"")
-        buildConfigField("String", "EXERCISE_DB_URL", "\"${properties.getProperty("url", "https://exercisedb-api.vercel.app/api/v1/")}\"")
-        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${properties.getProperty("google_web_client_id", "")}\"")
+        buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("BACKEND_URL")}\"")
+        buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${properties.getProperty("GOOGLE_CLIENT_ID")}\"")
     }
 
     buildTypes {

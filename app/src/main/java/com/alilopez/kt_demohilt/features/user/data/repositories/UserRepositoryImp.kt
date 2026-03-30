@@ -4,6 +4,7 @@ import com.alilopez.kt_demohilt.core.network.FitnessProApi
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.mapper.toDomain
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserLoginResponseDto
+import com.alilopez.kt_demohilt.features.user.domain.entities.UserDailyContent
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserUpdateDto
 import com.alilopez.kt_demohilt.features.user.domain.entities.User
 import com.alilopez.kt_demohilt.features.user.domain.repositories.UserRepository
@@ -55,6 +56,10 @@ class UserRepositoryImp @Inject constructor(
     override suspend fun getUser(id: Int): User {
         val userDto = fitnessProApi.getUser(id)
         return userDto.toDomain()
+    }
+
+    override suspend fun getUserDailyContent(userId: Int): UserDailyContent {
+        return fitnessProApi.getUserDailyContent(userId).toDomain()
     }
 
     override suspend fun isUserLoggedIn(): Boolean {

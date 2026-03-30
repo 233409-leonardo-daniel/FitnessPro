@@ -25,19 +25,23 @@ class ExercisesRepositoryImpl @Inject constructor(
     private val sessionManager: SessionManager
 ) : ExerciseRepository {
 
-    override suspend fun getExercises(): List<Exercise> {
+    override suspend fun getRemoteExercises(): List<Exercise> {
         val response = api.getExercisesRemote(
             limit = 25
         )
         return response.data.map { it.toDomain() }
     }
 
-    override suspend fun getExercisesByBodyPart(bodyPart: String): List<Exercise> {
+    override suspend fun getRemoteExercisesByBodyPart(bodyPart: String): List<Exercise> {
         val response = api.getExercisesByBodyPartRemote(
             limit = 25,
             bodyPart = bodyPart
         )
         return response.data.map { it.toDomain() }
+    }
+
+    override suspend fun getCommunityExercises(userId: Int): List<Exercise> {
+        return api.getCommunityExercises(userId).map { it.toDomain() }
     }
 
     override suspend fun searchLocalExercisesByName(name: String): List<Exercise> {
@@ -69,6 +73,10 @@ class ExercisesRepositoryImpl @Inject constructor(
         return dao.getAllExercises().map { entities -> entities.map {
             it.toDomain()
         } }
+    }
+
+    override suspend fun getExercisesByUserId(userId: Int): List<Exercise> {
+        return api.getExercisesLocalByUserId(userId).map { it.toDomain() }
     }
 
     override suspend fun syncExercises() {

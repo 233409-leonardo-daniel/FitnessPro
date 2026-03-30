@@ -10,6 +10,7 @@ import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mod
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDailyResponse
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserLoginResponseDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserUpdateDto
@@ -111,8 +112,10 @@ interface FitnessProApi {
         @Query("bodyParts") bodyPart: String
     ): ExercisesResponse
 
-    @GET("exercises/local")
-    suspend fun getExercisesLocal(): List<LocalExerciseDto>
+    @GET("exercises/community/{user_id}")
+    suspend fun getCommunityExercises(
+        @Path("user_id") userId: Int
+    ): List<LocalExerciseDto>
 
     @Multipart
     @POST("exercises/local")
@@ -218,4 +221,9 @@ interface FitnessProApi {
     suspend fun searchLocalExercises(
         @Path("name") name: String
     ): List<LocalExerciseDto>
+
+    @GET("users/{user_id}/daily-content")
+    suspend fun getUserDailyContent(
+        @Path("user_id") userId: Int
+    ): UserDailyResponse
 }

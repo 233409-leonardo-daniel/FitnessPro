@@ -2,8 +2,8 @@ package com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
-import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetLocalExercisesUseCase
+import com.alilopez.kt_demohilt.core.session.SessionManager
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByUserIdUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.AddExerciseToPlanUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.GetPlanExercisesUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.RemoveExerciseFromPlanUseCase
@@ -12,7 +12,6 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -20,13 +19,15 @@ import javax.inject.Inject
 @HiltViewModel
 class WorkoutDetailViewModel @Inject constructor(
     private val getPlanExercisesUseCase: GetPlanExercisesUseCase,
-    private val getLocalExercisesUseCase: GetLocalExercisesUseCase,
+    private val getUserExercisesUseCase: GetExercisesByUserIdUseCase,
     private val addExerciseToPlanUseCase: AddExerciseToPlanUseCase,
-    private val removeExerciseFromPlanUseCase: RemoveExerciseFromPlanUseCase
+    private val removeExerciseFromPlanUseCase: RemoveExerciseFromPlanUseCase,
+    private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(WorkoutDetailUIState())
     val uiState: StateFlow<WorkoutDetailUIState> = _uiState.asStateFlow()
+    val currentUserId: Int? get() = sessionManager.currentUserId
 
     fun loadPlanExercises(planId: Int) {
         viewModelScope.launch {
@@ -43,19 +44,42 @@ class WorkoutDetailViewModel @Inject constructor(
     }
 
     fun loadAvailableExercises() {
-        viewModelScope.launch {
-            try {
-                // GetLocalExercisesUseCase ahora devuelve un Flow, usamos .first() para obtener la lista actual
-                val allLocals = getLocalExercisesUseCase().first()
-                val currentIds = _uiState.value.exercises.map { it.exerciseId ?: it.id?.toString() ?: "" }
-                val available = allLocals.filter { 
-                    val id = it.exerciseId ?: it.id?.toString() ?: ""
-                    id !in currentIds 
-                }
-                _uiState.update { it.copy(availableLocalExercises = available, isAddingExercise = true) }
-            } catch (e: Exception) {
-                _uiState.update { it.copy(errorMessage = e.message ?: "Error al cargar ejercicios locales") }
+        val userId = currentUserId
+        if (userId == null) {
+            _uiState.update {
+                it.copy(
+                    availableLocalExercises = emptyList(),
+                    isAddingExercise = false,
+                    errorMessage = "Debes iniciar sesion para ver tus ejercicios"
+                )
             }
+            return
+        }
+
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            val result = getUserExercisesUseCase(userId)
+            result.fold(
+                onSuccess = { exercises ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            availableLocalExercises = exercises,
+                            isAddingExercise = true
+                        )
+                    }
+                },
+                onFailure = { error ->
+                    _uiState.update {
+                        it.copy(
+                            isLoading = false,
+                            availableLocalExercises = emptyList(),
+                            isAddingExercise = false,
+                            errorMessage = error.message ?: "Error al cargar ejercicios locales"
+                        )
+                    }
+                }
+            )
         }
     }
 
