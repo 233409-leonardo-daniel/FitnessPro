@@ -25,7 +25,10 @@ object DatabaseModule {
             context,
             AppDatabase::class.java,
             "fitnesspro_db"
-        ).build()
+        )
+            .addMigrations(AppDatabase.MIGRATION_1_2)
+            .fallbackToDestructiveMigration()
+            .build()
     }
 
     // Proveemos los DAOs individualmente

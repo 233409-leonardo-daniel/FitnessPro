@@ -24,7 +24,6 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -91,6 +90,10 @@ fun RecipeCard(
         .map { it.trim() }
         .filter { it.isNotBlank() }
     val visibleIngredients = if (compactMode) ingredientsList.take(3) else ingredientsList
+    val scheduledDaysText = recipe.scheduledDays
+        ?.takeIf { it.isNotEmpty() }
+        ?.joinToString(", ")
+        ?: "Sin dias programados"
 
     Card(
         onClick = onClick,
@@ -321,7 +324,7 @@ fun RecipeCard(
                     )
 
                     Text(
-                        text = recipe.scheduledDays.joinToString(", "),
+                        text = scheduledDaysText,
                         fontSize = 12.sp,
                         color = secondaryTextColor,
                         maxLines = 1,

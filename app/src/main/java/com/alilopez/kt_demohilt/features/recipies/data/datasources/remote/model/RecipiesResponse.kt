@@ -8,14 +8,14 @@ data class RecipiesResponse(
 
 data class RecipeDto(
     val id: Int,
-    val name: String,
-    val description: String,
-    val ingredients: String,
-    val instructions: String,
+    val name: String? = null,
+    val description: String? = null,
+    val ingredients: String? = null,
+    val instructions: String? = null,
     @SerializedName("user_id")
     val userId: Int?,
     @SerializedName("scheduled_days")
-    val scheduledDays: List<String>,
+    val scheduledDays: List<String>? = emptyList(),
     @SerializedName("meal_type")
     val mealType: String?,
     @SerializedName("image_url")
@@ -42,7 +42,7 @@ data class RecipeCreateDto(
 )
 
 data class RemoteRecipeDto(
-    val id: String,
+    val id: Int,
     val name: String,
     val category: String? = null,
     val area: String? = null,
