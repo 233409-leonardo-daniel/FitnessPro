@@ -31,9 +31,18 @@ class RecipePlansViewModel @Inject constructor(
     }
 
     fun loadRecipePlans() {
+        val userId = sessionManager.currentUserId
+        
+        // Validar que el usuario esté autenticado
+        if (userId == null) {
+            _uiState.update { 
+                it.copy(isLoading = false, errorMessage = "Usuario no autenticado", recipePlans = emptyList()) 
+            }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val userId = sessionManager.currentUserId ?: 1
 
             getUserRecipePlansUseCase(userId).fold(
                 onSuccess = { plans ->
@@ -47,9 +56,19 @@ class RecipePlansViewModel @Inject constructor(
     }
 
     fun createPlan(name: String, description: String, isPrivate: Boolean) {
+        val userId = sessionManager.currentUserId
+        
+        // Validar que el usuario esté autenticado
+        if (userId == null) {
+            _uiState.update { 
+                it.copy(errorMessage = "Usuario no autenticado") 
+            }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            createRecipePlanUseCase(name, description, userId = sessionManager.currentUserId ?: 1, isPrivate).fold(
+            createRecipePlanUseCase(name, description, userId = userId, isPrivate).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planCreated = true) }
                     loadRecipePlans()

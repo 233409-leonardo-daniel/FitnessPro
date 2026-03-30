@@ -33,9 +33,18 @@ class WorkoutPlansViewModel @Inject constructor(
     }
 
     fun loadWorkoutPlans() {
+        val userId = sessionManager.currentUserId
+        
+        // Validar que el usuario esté autenticado
+        if (userId == null) {
+            _uiState.update { 
+                it.copy(isLoading = false, errorMessage = "Usuario no autenticado", workoutPlans = emptyList()) 
+            }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
-            val userId = sessionManager.currentUserId ?: 1
             
             getUserWorkoutPlansUseCase(userId).fold(
                 onSuccess = { plans ->
@@ -49,9 +58,19 @@ class WorkoutPlansViewModel @Inject constructor(
     }
 
     fun createPlan(name: String, description: String, planType: String, isPrivate: Boolean) {
+        val userId = sessionManager.currentUserId
+        
+        // Validar que el usuario esté autenticado
+        if (userId == null) {
+            _uiState.update { 
+                it.copy(errorMessage = "Usuario no autenticado") 
+            }
+            return
+        }
+
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            createWorkoutPlanUseCase(name, description, userId = sessionManager.currentUserId ?: 1, planType, isPrivate).fold(
+            createWorkoutPlanUseCase(name, description, userId = userId, planType, isPrivate).fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planCreated = true) }
                     loadWorkoutPlans()
