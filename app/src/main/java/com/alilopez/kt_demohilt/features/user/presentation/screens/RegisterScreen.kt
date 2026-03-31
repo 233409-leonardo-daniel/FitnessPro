@@ -1,5 +1,6 @@
 package com.alilopez.kt_demohilt.features.user.presentation.screens
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
@@ -43,6 +44,7 @@ fun RegisterScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+    val activity = LocalActivity.current
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -57,6 +59,8 @@ fun RegisterScreen(
     val password by viewModel.password.collectAsStateWithLifecycle()
 
     var showDatePicker by remember { mutableStateOf(false) }
+    var showTermsDialog by remember { mutableStateOf(false) }
+    var termsAccepted by remember { mutableStateOf(false) }
     val datePickerState = rememberDatePickerState()
     val dateFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
@@ -213,6 +217,39 @@ fun RegisterScreen(
                     )
                 }
 
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(
+                        checked = termsAccepted,
+                        onCheckedChange = { checked ->
+                            if (checked) {
+                                showTermsDialog = true
+                            } else {
+                                termsAccepted = false
+                            }
+                        },
+                        colors = CheckboxDefaults.colors(checkedColor = Color(0xFF10B981))
+                    )
+                    Text(
+                        text = "Acepto los ",
+                        fontSize = 13.sp,
+                        color = if (isDarkTheme) Color(0xFFCBD5E1) else Color(0xFF475569)
+                    )
+                    TextButton(
+                        onClick = { showTermsDialog = true },
+                        contentPadding = PaddingValues(0.dp)
+                    ) {
+                        Text(
+                            text = "Términos y Condiciones",
+                            fontSize = 13.sp,
+                            color = Color(0xFF10B981),
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
+                }
+
                 Spacer(modifier = Modifier.height(8.dp))
 
                 // Register Button
@@ -221,7 +258,7 @@ fun RegisterScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    enabled = !uiState.isLoading,
+                    enabled = !uiState.isLoading && termsAccepted,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF10B981)
                     )
@@ -253,5 +290,18 @@ fun RegisterScreen(
                 }
             }
         }
+    }
+
+    if (showTermsDialog) {
+        TermsAndConditionsDialog(
+            onAccept = {
+                termsAccepted = true
+                showTermsDialog = false
+            },
+            onReject = {
+                showTermsDialog = false
+                activity?.finishAffinity()
+            }
+        )
     }
 }

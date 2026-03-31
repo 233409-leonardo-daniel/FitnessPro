@@ -1,5 +1,6 @@
 package com.alilopez.kt_demohilt.core.navigation
 
+import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
@@ -9,7 +10,10 @@ import androidx.compose.material3.rememberDrawerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
@@ -34,6 +38,7 @@ import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.PremiumScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.ProfileScreen
 import com.alilopez.kt_demohilt.features.user.presentation.screens.RegisterScreen
+import com.alilopez.kt_demohilt.features.user.presentation.screens.TermsAndConditionsDialog
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutDetailScreen
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansScreen
 import kotlinx.coroutines.launch
@@ -43,8 +48,10 @@ fun NavigationWrapper(
     sessionManager: SessionManager
 ) {
     val navController = rememberNavController()
+    val activity = LocalActivity.current
     val drawerState = rememberDrawerState(initialValue = DrawerValue.Closed)
     val scope = rememberCoroutineScope()
+    var showTermsDialog by remember { mutableStateOf(false) }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentDestination = navBackStackEntry?.destination
     val currentRoute = currentDestination?.route?.split(".")?.lastOrNull()
@@ -53,6 +60,16 @@ fun NavigationWrapper(
 
     LaunchedEffect(currentDestination?.route) {
         drawerState.close()
+    }
+
+    LaunchedEffect(currentDestination?.route, sessionManager.currentUserId) {
+        val shouldValidateTerms = currentDestination?.let {
+            !it.hasRoute<Login>() && !it.hasRoute<Register>()
+        } ?: false
+
+        showTermsDialog = shouldValidateTerms &&
+            sessionManager.isLoggedIn() &&
+            !sessionManager.hasAcceptedCurrentTerms()
     }
 
     val isLoginRoute = currentDestination?.hasRoute<Login>() ?: true
@@ -274,6 +291,23 @@ fun NavigationWrapper(
                         )
                     }
                 }
+            }
+
+            if (showTermsDialog) {
+                TermsAndConditionsDialog(
+                    onAccept = {
+                        sessionManager.acceptCurrentTerms()
+                        showTermsDialog = false
+                    },
+                    onReject = {
+                        sessionManager.clearSession()
+                        showTermsDialog = false
+                        navController.navigate(Login) {
+                            popUpTo(0) { inclusive = true }
+                        }
+                        activity?.finishAffinity()
+                    }
+                )
             }
         }
     }
