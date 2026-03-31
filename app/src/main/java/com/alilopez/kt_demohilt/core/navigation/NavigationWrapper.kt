@@ -2,6 +2,7 @@ package com.alilopez.kt_demohilt.core.navigation
 
 import androidx.activity.compose.LocalActivity
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.DrawerValue
 import androidx.compose.material3.ModalNavigationDrawer
@@ -15,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavDestination.Companion.hasRoute
 import androidx.navigation.compose.NavHost
@@ -79,6 +81,7 @@ fun NavigationWrapper(
     val showDrawer = !isAuthRoute
 
     Scaffold(
+        contentWindowInsets = WindowInsets(0.dp), // Elimina el espacio extra arriba
         bottomBar = {
             if (!isLoginRoute && membership == "gratuito") {
                 StartIoBanner()

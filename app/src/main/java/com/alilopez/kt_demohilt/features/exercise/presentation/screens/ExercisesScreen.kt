@@ -40,6 +40,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
@@ -88,10 +89,11 @@ fun ExercisesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
 
-    val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
-    val surfaceColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    // Usar colores del tema unificado
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainer
+    val textColor = MaterialTheme.colorScheme.onBackground
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val accentColor = Color(0xFF10B981)
     val clearButtonColor = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
 
@@ -143,7 +145,7 @@ fun ExercisesScreen(
                 textColor = textColor,
                 secondaryTextColor = secondaryTextColor,
                 accentColor = accentColor,
-                surfaceColor = surfaceColor,
+                surfaceColor = backgroundColor, // Cambiado para que coincida con el fondo
                 isDarkTheme = isDarkTheme,
                 onOpenDrawer = onOpenDrawer,
                 onNavigateToAddExercise = onNavigateToAddExercise,
@@ -286,7 +288,7 @@ private fun ExercisesTopSection(
                 .fillMaxWidth()
                 .height(34.dp),
             shape = RoundedCornerShape(11.dp),
-            color = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
+            color = if (isDarkTheme) Color(0xFF1E293B) else Color(0xFFE2E8F0)
         ) {
             Row(
                 modifier = Modifier
@@ -392,7 +394,8 @@ private fun LocalExercisesList(
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(8.dp)
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(localExercises) { exercise ->
                 ExerciseCard(
@@ -439,7 +442,8 @@ private fun CommunityExercisesList(
         else -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp)
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(exercises) { exercise ->
                     ExerciseCard(
@@ -501,7 +505,7 @@ private fun RemoteExercisesList(
             DropdownMenu(
                 expanded = uiState.isFilterExpanded,
                 onDismissRequest = { viewModel.toggleFilter() },
-                containerColor = surfaceColor
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
             ) {
                 bodyParts.forEach { bodyPart ->
                     val selected = uiState.selectedBodyPart == bodyPart
@@ -558,7 +562,8 @@ private fun RemoteExercisesList(
             else -> {
                 LazyColumn(
                     modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp)
+                    contentPadding = PaddingValues(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     items(exercises) { exercise ->
                         ExerciseCard(

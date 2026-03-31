@@ -41,7 +41,7 @@ fun SliderMenu(
         drawerContainerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White,
         modifier = Modifier.width(280.dp)
     ) {
-        Spacer(Modifier.height(24.dp))
+        // Eliminado Spacer(Modifier.height(24.dp)) para evitar espacio doble arriba
         Text(
             "FitnessPro",
             modifier = Modifier.padding(16.dp),

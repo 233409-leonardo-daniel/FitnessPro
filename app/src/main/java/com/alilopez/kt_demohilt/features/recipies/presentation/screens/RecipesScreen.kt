@@ -37,11 +37,13 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -55,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -84,10 +85,11 @@ fun RecipesScreen(
     var showDeleteDialog by remember { mutableStateOf(false) }
     var recipeToDelete by remember { mutableStateOf<Recipe?>(null) }
 
-    val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
-    val surfaceColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+    // Usar colores del tema unificado
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val surfaceColor = MaterialTheme.colorScheme.surfaceContainer
+    val textColor = MaterialTheme.colorScheme.onBackground
+    val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val accentColor = Color(0xFF10B981)
 
     val pagerState = rememberPagerState(pageCount = { 3 })
@@ -138,7 +140,7 @@ fun RecipesScreen(
                 textColor = textColor,
                 secondaryTextColor = secondaryTextColor,
                 accentColor = accentColor,
-                surfaceColor = surfaceColor,
+                surfaceColor = backgroundColor,
                 isDarkTheme = isDarkTheme,
                 onOpenDrawer = onOpenDrawer,
                 onNavigateToAddRecipe = onNavigateToAddRecipe,
@@ -206,7 +208,6 @@ fun RecipesScreen(
             }
         }
 
-        // Diálogo de confirmación para eliminar
         if (showDeleteDialog && recipeToDelete != null) {
             AlertDialog(
                 onDismissRequest = {
@@ -252,7 +253,7 @@ fun RecipesScreen(
                         Text("Cancelar", color = secondaryTextColor)
                     }
                 },
-                containerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+                containerColor = MaterialTheme.colorScheme.surfaceContainer
             )
         }
     }
@@ -339,7 +340,7 @@ private fun RecipesTopSection(
                 .fillMaxWidth()
                 .height(34.dp),
             shape = RoundedCornerShape(11.dp),
-            color = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
+            color = if (isDarkTheme) Color(0xFF1E293B) else Color(0xFFE2E8F0)
         ) {
             Row(
                 modifier = Modifier
@@ -449,7 +450,8 @@ private fun LocalRecipesList(
     } else {
         LazyColumn(
             modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(8.dp)
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             items(localRecipes) { recipe ->
                 RecipeCard(
@@ -496,7 +498,8 @@ private fun CommunityRecipesList(
         else -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp)
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(recipes) { recipe ->
                     RecipeCard(
@@ -534,7 +537,7 @@ private fun PremiumRecipesList(
                 Text(
                     text = "Error cargando recetas remotas: $errorMessage",
                     color = Color(0xFFEF4444),
-                    textAlign = TextAlign.Center,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
@@ -549,7 +552,7 @@ private fun PremiumRecipesList(
                         "No hay recetas remotas disponibles"
                     },
                     color = if (isSearchActive) accentColor else secondaryTextColor,
-                    textAlign = TextAlign.Center,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
                     modifier = Modifier.padding(horizontal = 24.dp)
                 )
             }
@@ -558,7 +561,8 @@ private fun PremiumRecipesList(
         else -> {
             LazyColumn(
                 modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(8.dp)
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 items(recipes) { recipe ->
                     RecipeCard(

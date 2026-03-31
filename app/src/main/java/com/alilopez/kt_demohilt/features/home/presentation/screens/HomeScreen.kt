@@ -14,9 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -36,12 +34,12 @@ fun HomeScreen(
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
-
-    val backgroundColor = if (isDarkTheme) Color(0xFF090C14) else Color(0xFFF8FAFC)
-    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    
+    // Usar colores directamente del MaterialTheme para consistencia
+    val backgroundColor = MaterialTheme.colorScheme.background
+    val textColor = MaterialTheme.colorScheme.onBackground
     val recipesAccentColor = Color(0xFF10B981)
-    val trainingAccentColor = if (isDarkTheme) Color(0xFFF59E0B) else Color(0xFF10B981)
+    val trainingAccentColor = Color(0xFFF59E0B)
 
     val currentDay = uiState.day.ifBlank { "Hoy" }
     val todaysRecipes = uiState.recipes
@@ -104,8 +102,7 @@ fun HomeScreen(
                 item {
                     EmptyDayCard(
                         title = "No se pudo cargar tu plan diario",
-                        subtitle = message,
-                        isDarkTheme = isDarkTheme
+                        subtitle = message
                     )
                 }
             }
@@ -123,7 +120,7 @@ fun HomeScreen(
 
             item {
                 if (todaysRecipes.isEmpty()) {
-                    EmptyDayCard("No tienes comidas para hoy", "Agrega días a tus recetas para verlas aquí", isDarkTheme)
+                    EmptyDayCard("No tienes comidas para hoy", "Agrega días a tus recetas para verlas aquí")
                 } else {
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -154,7 +151,7 @@ fun HomeScreen(
 
             item {
                 if (todaysExercises.isEmpty()) {
-                    EmptyDayCard("Día de descanso", "No hay ejercicios programados para hoy", isDarkTheme)
+                    EmptyDayCard("Día de descanso", "No hay ejercicios programados para hoy")
                 } else {
                     LazyRow(
                         modifier = Modifier.fillMaxWidth(),
@@ -220,13 +217,13 @@ private fun SectionHeader(
 }
 
 @Composable
-private fun EmptyDayCard(title: String, subtitle: String, isDarkTheme: Boolean) {
+private fun EmptyDayCard(title: String, subtitle: String) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isDarkTheme) Color(0xFF1A2232) else Color.White
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
         ),
         shape = RoundedCornerShape(12.dp)
     ) {
@@ -234,8 +231,8 @@ private fun EmptyDayCard(title: String, subtitle: String, isDarkTheme: Boolean) 
             modifier = Modifier.padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(title, fontWeight = FontWeight.Bold, color = if (isDarkTheme) Color.White else Color.Black)
-            Text(subtitle, fontSize = 12.sp, color = Color.Gray, textAlign = TextAlign.Center)
+            Text(title, fontWeight = FontWeight.Bold, color = MaterialTheme.colorScheme.onSurface)
+            Text(subtitle, fontSize = 12.sp, color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = androidx.compose.ui.text.style.TextAlign.Center)
         }
     }
 }
