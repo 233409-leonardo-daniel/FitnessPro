@@ -9,8 +9,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,9 +53,6 @@ fun RecipePlansScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { viewModel.loadRecipePlans() }) {
-                        Icon(Icons.Default.Refresh, contentDescription = "Actualizar", tint = accentColor)
-                    }
                     IconButton(onClick = { showCreateDialog = true }) {
                         Icon(Icons.Default.Add, contentDescription = "Crear lista", tint = accentColor)
                     }
@@ -64,7 +61,9 @@ fun RecipePlansScreen(
             )
         }
     ) { paddingValues ->
-        Box(
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = viewModel::loadRecipePlans,
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)

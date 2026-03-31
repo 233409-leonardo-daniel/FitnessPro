@@ -88,19 +88,23 @@ class RecipesListViewModel @Inject constructor(
     fun loadUserRecipes() {
         val userId = sessionManager.currentUserId
         if (userId == null) {
-            _uiState.update { it.copy(localRecipes = emptyList(), errorMessage = "Usuario no autenticado") }
+            _uiState.update {
+                it.copy(isLoading = false, localRecipes = emptyList(), errorMessage = "Usuario no autenticado")
+            }
             return
         }
+
+        _uiState.update { it.copy(isLoading = true, errorMessage = null) }
 
         viewModelScope.launch {
             try {
                 val recipes = getUserRecipesUseCase(userId)
                 _uiState.update { currentState ->
-                    currentState.copy(localRecipes = recipes)
+                    currentState.copy(isLoading = false, localRecipes = recipes)
                 }
             } catch (e: Exception) {
                 _uiState.update {
-                    it.copy(localRecipes = emptyList(), errorMessage = e.message)
+                    it.copy(isLoading = false, localRecipes = emptyList(), errorMessage = e.message)
                 }
             }
         }

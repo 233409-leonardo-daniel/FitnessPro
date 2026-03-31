@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -41,7 +42,6 @@ fun HomeScreen(
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val recipesAccentColor = Color(0xFF10B981)
     val trainingAccentColor = if (isDarkTheme) Color(0xFFF59E0B) else Color(0xFF10B981)
-    val accentColor = Color(0xFF10B981)
 
     val currentDay = uiState.day.ifBlank { "Hoy" }
     val todaysRecipes = uiState.recipes
@@ -84,37 +84,21 @@ fun HomeScreen(
                         )
                     }
                 },
-                actions = {
-                    IconButton(onClick = { viewModel.loadData() }) {
-                        Icon(
-                            imageVector = Icons.Default.Refresh,
-                            contentDescription = "Actualizar",
-                            tint = recipesAccentColor
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = backgroundColor)
             )
         }
     ) { paddingValues ->
-        LazyColumn(
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = viewModel::loadData,
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues),
-            contentPadding = PaddingValues(bottom = 24.dp)
+                .padding(paddingValues)
         ) {
-            if (uiState.isLoading) {
-                item {
-                    Box(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(horizontal = 16.dp, vertical = 24.dp),
-                        contentAlignment = Alignment.Center
-                    ) {
-                        CircularProgressIndicator(color = accentColor)
-                    }
-                }
-            }
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(bottom = 24.dp)
+            ) {
 
             uiState.errorMessage?.let { message ->
                 item {
@@ -192,6 +176,7 @@ fun HomeScreen(
                     }
                 }
             }
+        }
         }
     }
 }

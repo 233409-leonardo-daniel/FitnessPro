@@ -36,9 +36,11 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -76,6 +78,7 @@ private val bodyParts = listOf(
     "PANTORRILLAS"
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExercisesScreen(
     onNavigateToAddExercise: () -> Unit,
@@ -151,40 +154,52 @@ fun ExercisesScreen(
             )
         }
     ) { innerPadding ->
-        HorizontalPager(
-            state = pagerState,
+        PullToRefreshBox(
+            isRefreshing = uiState.isRefreshing,
+            onRefresh = {
+                when (pagerState.currentPage) {
+                    0 -> viewModel.loadUserExercises(isUserRefresh = true)
+                    1 -> viewModel.loadCommunityExercises(isUserRefresh = true)
+                    else -> viewModel.loadRemoteExercises(isUserRefresh = true)
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(backgroundColor),
-            verticalAlignment = Alignment.Top
-        ) { page ->
-            when (page) {
-                0 -> LocalExercisesList(
-                    localExercises = filteredLocalExercises,
-                    isSearchActive = uiState.isSearchActive,
-                    accentColor = accentColor,
-                    secondaryTextColor = secondaryTextColor,
-                    onNavigateToAddExercise = onNavigateToAddExercise
-                )
+                .background(backgroundColor)
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.Top
+            ) { page ->
+                when (page) {
+                    0 -> LocalExercisesList(
+                        localExercises = filteredLocalExercises,
+                        isSearchActive = uiState.isSearchActive,
+                        accentColor = accentColor,
+                        secondaryTextColor = secondaryTextColor,
+                        onNavigateToAddExercise = onNavigateToAddExercise
+                    )
 
-                1 -> CommunityExercisesList(
-                    exercises = filteredCommunityExercises,
-                    isLoading = uiState.isLoading,
-                    isSearchActive = uiState.isSearchActive,
-                    accentColor = accentColor,
-                    secondaryTextColor = secondaryTextColor
-                )
+                    1 -> CommunityExercisesList(
+                        exercises = filteredCommunityExercises,
+                        isLoading = uiState.isLoading,
+                        isSearchActive = uiState.isSearchActive,
+                        accentColor = accentColor,
+                        secondaryTextColor = secondaryTextColor
+                    )
 
-                2 -> RemoteExercisesList(
-                    exercises = filteredRemoteExercises,
-                    uiState = uiState,
-                    viewModel = viewModel,
-                    textColor = textColor,
-                    accentColor = accentColor,
-                    clearButtonColor = clearButtonColor,
-                    surfaceColor = surfaceColor
-                )
+                    2 -> RemoteExercisesList(
+                        exercises = filteredRemoteExercises,
+                        uiState = uiState,
+                        viewModel = viewModel,
+                        textColor = textColor,
+                        accentColor = accentColor,
+                        clearButtonColor = clearButtonColor,
+                        surfaceColor = surfaceColor
+                    )
+                }
             }
         }
     }

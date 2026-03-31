@@ -13,6 +13,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -24,6 +25,10 @@ class ExerciseViewModel @Inject constructor(
     private val getCommunityExercisesUseCase: GetCommunityExercisesUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
+    private companion object {
+        const val MIN_PULL_REFRESH_DURATION_MS = 1200L
+    }
+
     private val _uiState = MutableStateFlow(ExercisesUiState())
     val uiState = _uiState.asStateFlow()
     val currentUserId: Int? get() = sessionManager.currentUserId
@@ -32,52 +37,130 @@ class ExerciseViewModel @Inject constructor(
         loadUserExercises()
     }
 
-    fun loadRemoteExercises() {
-        _uiState.update { it.copy(isLoading = true) }
+    fun loadRemoteExercises(isUserRefresh: Boolean = false) {
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                isRefreshing = isUserRefresh
+            )
+        }
 
         viewModelScope.launch {
+            val startTime = System.currentTimeMillis()
             val result = getExercisesUseCase()
+            applyRefreshDelayIfNeeded(isUserRefresh, startTime)
             _uiState.update { currentState ->
                 result.fold(
-                    onSuccess = { list -> currentState.copy(isLoading = false, exercises = list) },
-                    onFailure = { error -> currentState.copy(isLoading = false, error = error.message) }
+                    onSuccess = {
+                        list -> currentState.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            exercises = list
+                        )
+                    },
+                    onFailure = {
+                        error -> currentState.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            error = error.message
+                        )
+                    }
                 )
             }
         }
     }
 
-    fun loadCommunityExercises() {
-        _uiState.update { it.copy(isLoading = true) }
+    fun loadCommunityExercises(isUserRefresh: Boolean = false) {
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                isRefreshing = isUserRefresh
+            )
+        }
 
         currentUserId?.let { userId ->
             viewModelScope.launch {
+                val startTime = System.currentTimeMillis()
                 val result = getCommunityExercisesUseCase(userId)
+                applyRefreshDelayIfNeeded(isUserRefresh, startTime)
                 _uiState.update { currentState ->
                     result.fold(
-                        onSuccess = { list -> currentState.copy(isLoading = false, communityExercises = list) },
-                        onFailure = { error -> currentState.copy(isLoading = false, error = error.message) }
+                        onSuccess = {
+                            list -> currentState.copy(
+                                isLoading = false,
+                                isRefreshing = false,
+                                communityExercises = list
+                            )
+                        },
+                        onFailure = {
+                            error -> currentState.copy(
+                                isLoading = false,
+                                isRefreshing = false,
+                                error = error.message
+                            )
+                        }
                     )
                 }
             }
         } ?: run {
-            _uiState.update { it.copy(isLoading = false, error = "Usuario no autenticado") }
+            viewModelScope.launch {
+                applyRefreshDelayIfNeeded(isUserRefresh, System.currentTimeMillis())
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        error = "Usuario no autenticado"
+                    )
+                }
+            }
         }
     }
 
-    fun loadUserExercises() {
+    fun loadUserExercises(isUserRefresh: Boolean = false) {
+        val startTime = System.currentTimeMillis()
         val userId = sessionManager.currentUserId
         if (userId == null) {
-            _uiState.update { it.copy(localExercises = emptyList(), error = "Usuario no autenticado") }
+            viewModelScope.launch {
+                applyRefreshDelayIfNeeded(isUserRefresh, startTime)
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        isRefreshing = false,
+                        localExercises = emptyList(),
+                        error = "Usuario no autenticado"
+                    )
+                }
+            }
             return
+        }
+
+        _uiState.update {
+            it.copy(
+                isLoading = true,
+                error = null,
+                isRefreshing = isUserRefresh
+            )
         }
 
         viewModelScope.launch {
             val result = getExercisesByUserIdUseCase(userId)
+            applyRefreshDelayIfNeeded(isUserRefresh, startTime)
             _uiState.update { currentState ->
                 result.fold(
-                    onSuccess = { list -> currentState.copy(localExercises = list) },
+                    onSuccess = {
+                        list -> currentState.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            localExercises = list
+                        )
+                    },
                     onFailure = { error ->
-                        currentState.copy(localExercises = emptyList(), error = error.message)
+                        currentState.copy(
+                            isLoading = false,
+                            isRefreshing = false,
+                            localExercises = emptyList(),
+                            error = error.message
+                        )
                     }
                 )
             }
@@ -99,6 +182,14 @@ class ExerciseViewModel @Inject constructor(
                     }
                 )
             }
+        }
+    }
+
+    private suspend fun applyRefreshDelayIfNeeded(isUserRefresh: Boolean, startTime: Long) {
+        if (!isUserRefresh) return
+        val elapsed = System.currentTimeMillis() - startTime
+        if (elapsed < MIN_PULL_REFRESH_DURATION_MS) {
+            delay(MIN_PULL_REFRESH_DURATION_MS - elapsed)
         }
     }
 

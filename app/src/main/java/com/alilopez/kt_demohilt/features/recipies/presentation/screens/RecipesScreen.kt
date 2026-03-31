@@ -30,12 +30,14 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -66,6 +68,7 @@ import com.alilopez.kt_demohilt.features.recipies.presentation.components.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels.RecipesListViewModel
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecipesScreen(
     onNavigateToAddRecipe: () -> Unit,
@@ -146,48 +149,60 @@ fun RecipesScreen(
             )
         }
     ) { innerPadding ->
-        HorizontalPager(
-            state = pagerState,
+        PullToRefreshBox(
+            isRefreshing = uiState.isLoading,
+            onRefresh = {
+                when (pagerState.currentPage) {
+                    0 -> viewModel.loadUserRecipes()
+                    1 -> viewModel.loadCommunityRecipes()
+                    else -> viewModel.loadRemoteRecipes()
+                }
+            },
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .background(backgroundColor),
-            verticalAlignment = Alignment.Top
-        ) { page ->
-            when (page) {
-                0 -> LocalRecipesList(
-                    localRecipes = filteredLocalRecipes,
-                    isSearchActive = uiState.isSearchActive,
-                    accentColor = accentColor,
-                    secondaryTextColor = secondaryTextColor,
-                    currentUserId = viewModel.currentUserId,
-                    onNavigateToAddRecipe = onNavigateToAddRecipe,
-                    onNavigateToRecipeDetail = onNavigateToRecipeDetail,
-                    onNavigateToEditRecipe = onNavigateToEditRecipe,
-                    onDelete = { recipe ->
-                        recipeToDelete = recipe
-                        showDeleteDialog = true
-                    }
-                )
+                .background(backgroundColor)
+        ) {
+            HorizontalPager(
+                state = pagerState,
+                modifier = Modifier.fillMaxSize(),
+                verticalAlignment = Alignment.Top
+            ) { page ->
+                when (page) {
+                    0 -> LocalRecipesList(
+                        localRecipes = filteredLocalRecipes,
+                        isSearchActive = uiState.isSearchActive,
+                        accentColor = accentColor,
+                        secondaryTextColor = secondaryTextColor,
+                        currentUserId = viewModel.currentUserId,
+                        onNavigateToAddRecipe = onNavigateToAddRecipe,
+                        onNavigateToRecipeDetail = onNavigateToRecipeDetail,
+                        onNavigateToEditRecipe = onNavigateToEditRecipe,
+                        onDelete = { recipe ->
+                            recipeToDelete = recipe
+                            showDeleteDialog = true
+                        }
+                    )
 
-                1 -> CommunityRecipesList(
-                    recipes = filteredCommunityRecipes,
-                    isLoading = uiState.isLoading,
-                    isSearchActive = uiState.isSearchActive,
-                    accentColor = accentColor,
-                    secondaryTextColor = secondaryTextColor,
-                    onNavigateToRecipeDetail = onNavigateToRecipeDetail
-                )
+                    1 -> CommunityRecipesList(
+                        recipes = filteredCommunityRecipes,
+                        isLoading = uiState.isLoading,
+                        isSearchActive = uiState.isSearchActive,
+                        accentColor = accentColor,
+                        secondaryTextColor = secondaryTextColor,
+                        onNavigateToRecipeDetail = onNavigateToRecipeDetail
+                    )
 
-                2 -> PremiumRecipesList(
-                    recipes = filteredRemoteRecipes,
-                    isLoading = uiState.isLoading,
-                    errorMessage = uiState.errorMessage,
-                    isSearchActive = uiState.isSearchActive,
-                    accentColor = accentColor,
-                    secondaryTextColor = secondaryTextColor,
-                    onNavigateToRecipeDetail = onNavigateToRecipeDetail
-                )
+                    2 -> PremiumRecipesList(
+                        recipes = filteredRemoteRecipes,
+                        isLoading = uiState.isLoading,
+                        errorMessage = uiState.errorMessage,
+                        isSearchActive = uiState.isSearchActive,
+                        accentColor = accentColor,
+                        secondaryTextColor = secondaryTextColor,
+                        onNavigateToRecipeDetail = onNavigateToRecipeDetail
+                    )
+                }
             }
         }
 
