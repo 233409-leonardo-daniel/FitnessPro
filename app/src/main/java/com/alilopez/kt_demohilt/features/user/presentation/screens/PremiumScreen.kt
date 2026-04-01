@@ -1,20 +1,52 @@
 package com.alilopez.kt_demohilt.features.user.presentation.screens
 
+import android.net.Uri
+import androidx.browser.customtabs.CustomTabsIntent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Block
+import androidx.compose.material.icons.filled.FlashOn
+import androidx.compose.material.icons.filled.RestaurantMenu
+import androidx.compose.material.icons.filled.Stars
+import androidx.compose.material.icons.filled.SupportAgent
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -32,15 +64,21 @@ fun PremiumScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val cardColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
-    val premiumColor = Color(0xFFF59E0B) // Gold/Amber
+    val premiumColor = Color(0xFFF59E0B)
 
     LaunchedEffect(uiState.isSuccess) {
-        if (uiState.isSuccess) {
-            onSuccess()
+        if (uiState.isSuccess) onSuccess()
+    }
+
+    LaunchedEffect(uiState.checkoutUrl) {
+        uiState.checkoutUrl?.let { url ->
+            CustomTabsIntent.Builder().build().launchUrl(context, Uri.parse(url))
+            viewModel.onCheckoutUrlConsumed()
         }
     }
 
@@ -108,7 +146,6 @@ fun PremiumScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Beneficios
             BenefitItem(Icons.Default.Block, "Cero Anuncios", "Disfruta de la app sin interrupciones publicitarias.", textColor)
             BenefitItem(Icons.Default.FlashOn, "Rutinas Avanzadas", "Acceso exclusivo a planes de entrenamiento nivel PRO.", textColor)
             BenefitItem(Icons.Default.RestaurantMenu, "Dietas Personalizadas", "Recetas adaptadas a tus objetivos específicos.", textColor)
@@ -128,7 +165,7 @@ fun PremiumScreen(
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Text(
-                        text = "$120 / mes",
+                        text = "$149 MXN / mes",
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Black,
                         color = premiumColor
@@ -138,31 +175,56 @@ fun PremiumScreen(
                         fontSize = 12.sp,
                         color = Color.Gray
                     )
-                    
+
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    Button(
-                        onClick = { viewModel.upgradeToPremium() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(containerColor = premiumColor),
-                        enabled = !uiState.isLoading,
-                        shape = RoundedCornerShape(12.dp)
-                    ) {
-                        if (uiState.isLoading) {
-                            CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
-                        } else {
-                            Text("¡QUIERO SER PREMIUM!", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                    if (uiState.isPolling) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            CircularProgressIndicator(
+                                color = premiumColor,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Verificando tu pago...",
+                                fontSize = 14.sp,
+                                color = Color.Gray
+                            )
+                        }
+                    } else {
+                        Button(
+                            onClick = { viewModel.startCheckout() },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(56.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = premiumColor),
+                            enabled = !uiState.isLoading,
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            if (uiState.isLoading) {
+                                CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            } else {
+                                Text("¡QUIERO SER PREMIUM!", fontWeight = FontWeight.Bold, fontSize = 16.sp)
+                            }
                         }
                     }
                 }
             }
-            
-            if (uiState.errorMessage != null) {
+
+            val message = when (uiState.paymentResult) {
+                PaymentResult.REJECTED ->
+                    "Tu pago fue rechazado. Verifica tu método de pago e intenta de nuevo."
+                PaymentResult.TIMEOUT ->
+                    "Tu pago está siendo verificado. Si pagaste, recibirás acceso Premium en unos minutos."
+                else -> uiState.errorMessage
+            }
+            if (message != null) {
                 Text(
-                    text = uiState.errorMessage!!,
-                    color = MaterialTheme.colorScheme.error,
+                    text = message,
+                    color = if (uiState.paymentResult == PaymentResult.TIMEOUT)
+                        Color.Gray
+                    else
+                        MaterialTheme.colorScheme.error,
                     modifier = Modifier.padding(top = 16.dp),
                     textAlign = TextAlign.Center
                 )

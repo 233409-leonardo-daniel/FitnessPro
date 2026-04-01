@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleDevDebug)",
+      "Bash(./gradlew dependencies:*)",
+      "Bash(./gradlew app:dependencies)",
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew testDevDebugUnitTest --tests \"com.alilopez.kt_demohilt.features.user.domain.usecases.CreateCheckoutUseCaseTest\")",
+      "Bash(./gradlew testDevDebugUnitTest --tests \"com.alilopez.kt_demohilt.features.user.domain.usecases.PollPaymentStatusUseCaseTest\")"
+    ]
+  }
+}

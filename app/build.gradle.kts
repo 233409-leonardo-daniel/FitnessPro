@@ -114,6 +114,11 @@ dependencies {
     // Start.io Ads
     implementation(libs.startio.sdk)
 
+    // Browser, MockK, Coroutines Test
+    implementation(libs.androidx.browser)
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)

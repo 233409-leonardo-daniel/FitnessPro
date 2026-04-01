@@ -7,6 +7,9 @@ import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mod
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RemoteRecipesResponse
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.PaymentCheckoutRequestDto
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.PaymentCheckoutResponseDto
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.PaymentStatusResponseDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDailyResponse
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
@@ -242,4 +245,16 @@ interface FitnessProApi {
     suspend fun getRandomRemoteRecipes(
         @Query("limit") limit: Int
     ): RemoteRecipesResponse
+
+    // --- PAYMENTS ---
+
+    @POST("payments/checkout")
+    suspend fun createCheckout(
+        @Body body: PaymentCheckoutRequestDto
+    ): PaymentCheckoutResponseDto
+
+    @GET("payments/status/{preference_id}")
+    suspend fun getPaymentStatus(
+        @Path("preference_id") preferenceId: String
+    ): PaymentStatusResponseDto
 }

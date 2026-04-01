@@ -3,8 +3,11 @@ package com.alilopez.kt_demohilt.features.user.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
+import com.alilopez.kt_demohilt.features.user.domain.usecases.CreateCheckoutUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.GetUserUseCase
-import com.alilopez.kt_demohilt.features.user.domain.usecases.UpdateUserUseCase
+import com.alilopez.kt_demohilt.features.user.domain.usecases.PaymentPollResult
+import com.alilopez.kt_demohilt.features.user.domain.usecases.PollPaymentStatusUseCase
+import com.alilopez.kt_demohilt.features.user.presentation.screens.PaymentResult
 import com.alilopez.kt_demohilt.features.user.presentation.screens.PremiumUIState
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,45 +19,70 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PremiumViewModel @Inject constructor(
+    private val createCheckoutUseCase: CreateCheckoutUseCase,
+    private val pollPaymentStatusUseCase: PollPaymentStatusUseCase,
     private val getUserUseCase: GetUserUseCase,
-    private val updateUserUseCase: UpdateUserUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(PremiumUIState())
     val uiState: StateFlow<PremiumUIState> = _uiState.asStateFlow()
 
-    fun upgradeToPremium() {
+    fun startCheckout() {
         val userId = sessionManager.currentUserId ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, paymentResult = null) }
             try {
-                // Primero obtenemos los datos actuales para no sobreescribir con nulos
-                val currentUser = getUserUseCase(userId)
-                
-                // Actualizamos a premium
-                updateUserUseCase(
-                    id = userId,
-                    email = currentUser.email,
-                    name = currentUser.name,
-                    lastname = currentUser.lastname,
-                    birthdate = currentUser.birthdate,
-                    weight = currentUser.weight,
-                    height = currentUser.height,
-                    gender = currentUser.gender,
-                    membership = "premium"
-                )
-                
-                // Actualizamos la sesión local
-                sessionManager.saveSession(
-                    userId = userId,
-                    token = sessionManager.accessToken ?: "",
-                    membership = "premium"
-                )
-                
-                _uiState.update { it.copy(isLoading = false, isSuccess = true) }
+                val (preferenceId, url) = createCheckoutUseCase(userId)
+                _uiState.update { it.copy(isLoading = false, checkoutUrl = url) }
+                pollPayment(preferenceId)
             } catch (e: Exception) {
-                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+                _uiState.update {
+                    it.copy(
+                        isLoading = false,
+                        errorMessage = "No pudimos conectar con el sistema de pagos. Intenta de nuevo."
+                    )
+                }
+            }
+        }
+    }
+
+    fun onCheckoutUrlConsumed() {
+        _uiState.update { it.copy(checkoutUrl = null) }
+    }
+
+    private fun pollPayment(preferenceId: String) {
+        val userId = sessionManager.currentUserId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isPolling = true) }
+            pollPaymentStatusUseCase(preferenceId) { result ->
+                when (result) {
+                    PaymentPollResult.Approved -> {
+                        viewModelScope.launch {
+                            try {
+                                val user = getUserUseCase(userId)
+                                sessionManager.saveSession(
+                                    userId = userId,
+                                    token = sessionManager.accessToken ?: "",
+                                    membership = user.membership
+                                )
+                            } catch (e: Exception) {
+                                // El refresh del membership es best-effort; navegar a Home de todas formas
+                            }
+                            _uiState.update {
+                                it.copy(
+                                    isPolling = false,
+                                    paymentResult = PaymentResult.APPROVED,
+                                    isSuccess = true
+                                )
+                            }
+                        }
+                    }
+                    PaymentPollResult.Rejected ->
+                        _uiState.update { it.copy(isPolling = false, paymentResult = PaymentResult.REJECTED) }
+                    PaymentPollResult.Timeout ->
+                        _uiState.update { it.copy(isPolling = false, paymentResult = PaymentResult.TIMEOUT) }
+                }
             }
         }
     }
