@@ -98,7 +98,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     
-    // Google Login (Nombres corregidos)
+    // Google Login
     implementation(libs.google.auth.credentials)
     implementation(libs.google.auth.play.services)
     implementation(libs.google.auth.id)
@@ -112,7 +112,10 @@ dependencies {
     ksp(libs.room.compiler)
 
     // Start.io Ads
-    implementation(libs.startio.sdk)
+    implementation(libs.startio)
+
+    // MPAndroidChart
+    implementation(libs.mpandroidchart)
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

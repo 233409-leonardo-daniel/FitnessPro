@@ -30,6 +30,7 @@ import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerci
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
+import com.alilopez.kt_demohilt.features.progression.presentation.screens.ProgressionScreen
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlanDetailScreen
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansScreen
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.AddRecipeScreen
@@ -81,7 +82,7 @@ fun NavigationWrapper(
     val showDrawer = !isAuthRoute
 
     Scaffold(
-        contentWindowInsets = WindowInsets(0.dp), // Elimina el espacio extra arriba
+        contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
             if (!isLoginRoute && membership == "gratuito") {
                 StartIoBanner()
@@ -117,6 +118,11 @@ fun NavigationWrapper(
                             },
                             onNavigateToRecipePlans = {
                                 navController.navigate(RecipePlans) {
+                                    launchSingleTop = true
+                                }
+                            },
+                            onNavigateToProgression = {
+                                navController.navigate(Progression) {
                                     launchSingleTop = true
                                 }
                             },
@@ -254,6 +260,12 @@ fun NavigationWrapper(
 
                     composable<AddExercise> {
                         AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
+                    }
+
+                    composable<Progression> {
+                        ProgressionScreen(
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                        )
                     }
 
                     composable<WorkoutPlans> {

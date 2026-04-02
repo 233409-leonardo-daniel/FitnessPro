@@ -22,6 +22,9 @@ hiltNavigationCompose = "1.3.0"
 ksp = "2.3.2"
 credentials = "1.5.0"
 googleid = "1.2.0"
+startio = "5.0.2"
+vico = "2.0.1"
+mpAndroidChart = "3.1.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -58,11 +61,21 @@ room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "
 room-ktx = { group = "androidx.room", name = "room-ktx", version.ref = "room" }
 room-compiler = { group = "androidx.room", name = "room-compiler", version.ref = "room" }
 
-# Google Login (Nombres únicos para evitar colisiones)
+# Google Login
 google-auth-credentials = { group = "androidx.credentials", name = "credentials", version.ref = "credentials" }
 google-auth-play-services = { group = "androidx.credentials", name = "credentials-play-services-auth", version.ref = "credentials" }
 google-auth-id = { group = "com.google.android.libraries.identity.googleid", name = "googleid", version.ref = "googleid" }
 
+# Start.io Ads
+startio = { group = "com.startapp", name = "inapp-sdk", version.ref = "startio" }
+
+# Vico Charts
+vico-core = { group = "com.patrykandpatrick.vico", name = "core", version.ref = "vico" }
+vico-compose = { group = "com.patrykandpatrick.vico", name = "compose", version.ref = "vico" }
+vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", version.ref = "vico" }
+
+# MPAndroidChart
+mpandroidchart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpAndroidChart" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
