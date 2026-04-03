@@ -1,6 +1,6 @@
 package com.alilopez.kt_demohilt.features.user.di
 
-import com.alilopez.kt_demohilt.features.user.data.repositories.PaymentRepositoryImp
+import com.alilopez.kt_demohilt.features.user.data.repositories.PaymentRepositoryImpl
 import com.alilopez.kt_demohilt.features.user.data.repositories.UserRepositoryImp
 import com.alilopez.kt_demohilt.features.user.domain.repositories.PaymentRepository
 import com.alilopez.kt_demohilt.features.user.domain.repositories.UserRepository
@@ -23,6 +23,6 @@ abstract class UserRepositoryModule {
     @Binds
     @Singleton
     abstract fun bindPaymentRepository(
-        paymentRepositoryImp: PaymentRepositoryImp
+        paymentRepositoryImpl: PaymentRepositoryImpl
     ): PaymentRepository
 }

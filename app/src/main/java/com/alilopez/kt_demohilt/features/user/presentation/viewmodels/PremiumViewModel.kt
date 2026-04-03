@@ -33,9 +33,9 @@ class PremiumViewModel @Inject constructor(
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null, paymentResult = null) }
             try {
-                val (preferenceId, url) = createCheckoutUseCase(userId)
-                _uiState.update { it.copy(isLoading = false, checkoutUrl = url) }
-                pollPayment(preferenceId)
+                val checkout = createCheckoutUseCase(userId)
+                _uiState.update { it.copy(isLoading = false, checkoutUrl = checkout.checkoutUrl) }
+                pollPayment(checkout.preferenceId)
             } catch (e: Exception) {
                 _uiState.update {
                     it.copy(
@@ -67,7 +67,7 @@ class PremiumViewModel @Inject constructor(
                                     membership = user.membership
                                 )
                             } catch (e: Exception) {
-                                // El refresh del membership es best-effort; navegar a Home de todas formas
+                                // Refresh success is best-effort
                             }
                             _uiState.update {
                                 it.copy(

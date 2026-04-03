@@ -1,2 +1,3 @@
 <resources>
+    <string name="payment_connection_error">No pudimos conectar con el sistema de pagos. Intenta de nuevo.</string>
 </resources>

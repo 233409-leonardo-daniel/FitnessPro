@@ -47,12 +47,14 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.alilopez.kt_demohilt.R
 import com.alilopez.kt_demohilt.features.user.presentation.viewmodels.PremiumViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -216,7 +218,11 @@ fun PremiumScreen(
                     "Tu pago fue rechazado. Verifica tu método de pago e intenta de nuevo."
                 PaymentResult.TIMEOUT ->
                     "Tu pago está siendo verificado. Si pagaste, recibirás acceso Premium en unos minutos."
-                else -> uiState.errorMessage
+                else -> {
+                   if (uiState.errorMessage != null) {
+                       stringResource(id = R.string.payment_connection_error)
+                   } else null
+                }
             }
             if (message != null) {
                 Text(
