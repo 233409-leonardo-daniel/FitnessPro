@@ -1,48 +1,50 @@
 package com.alilopez.kt_demohilt.features.user.domain.usecases
 
-import com.alilopez.kt_demohilt.features.user.domain.entities.PaymentStatus
-import com.alilopez.kt_demohilt.features.user.domain.repositories.PaymentRepository
+import com.alilopez.kt_demohilt.features.user.domain.entities.SubscriptionStatus
+import com.alilopez.kt_demohilt.features.user.domain.repositories.SubscriptionRepository
 import kotlinx.coroutines.delay
 import javax.inject.Inject
 
-sealed class PaymentPollResult {
-    object Approved : PaymentPollResult()
-    object Rejected : PaymentPollResult()
-    object Timeout  : PaymentPollResult()
+sealed class SubscriptionPollResult {
+    object Authorized : SubscriptionPollResult()
+    object Paused     : SubscriptionPollResult()
+    object Cancelled  : SubscriptionPollResult()
+    object Timeout    : SubscriptionPollResult()
 }
 
 class PollPaymentStatusUseCase @Inject constructor(
-    private val paymentRepository: PaymentRepository
+    private val subscriptionRepository: SubscriptionRepository
 ) {
     suspend operator fun invoke(
-        preferenceId: String,
+        subscriptionId: Int,
         maxAttempts: Int = 30,
         intervalMs: Long = 3000L,
-        onResult: (PaymentPollResult) -> Unit
+        onResult: (SubscriptionPollResult) -> Unit
     ) {
         repeat(maxAttempts) {
             delay(intervalMs)
             try {
-                when (paymentRepository.getPaymentStatus(preferenceId)) {
-                    PaymentStatus.APPROVED -> {
-                        onResult(PaymentPollResult.Approved)
+                when (subscriptionRepository.getSubscriptionStatus(subscriptionId)) {
+                    SubscriptionStatus.AUTHORIZED -> {
+                        onResult(SubscriptionPollResult.Authorized)
                         return
                     }
-                    PaymentStatus.REJECTED -> {
-                        onResult(PaymentPollResult.Rejected)
+                    SubscriptionStatus.PAUSED -> {
+                        onResult(SubscriptionPollResult.Paused)
                         return
                     }
-                    PaymentStatus.PENDING -> {
+                    SubscriptionStatus.CANCELLED -> {
+                        onResult(SubscriptionPollResult.Cancelled)
+                        return
+                    }
+                    SubscriptionStatus.PENDING, SubscriptionStatus.UNKNOWN -> {
                         // Continue polling
-                    }
-                    PaymentStatus.UNKNOWN -> {
-                        // Could be an error or unexpected status, continue polling for now
                     }
                 }
             } catch (e: Exception) {
-                // Network error - continue to next attempt (retry logic)
+                // Network error - continue to next attempt
             }
         }
-        onResult(PaymentPollResult.Timeout)
+        onResult(SubscriptionPollResult.Timeout)
     }
 }

@@ -1,12 +1,16 @@
 package com.alilopez.kt_demohilt.features.user.domain.usecases
 
-import com.alilopez.kt_demohilt.features.user.domain.entities.PaymentCheckout
-import com.alilopez.kt_demohilt.features.user.domain.repositories.PaymentRepository
+import com.alilopez.kt_demohilt.features.user.domain.entities.SubscriptionCheckout
+import com.alilopez.kt_demohilt.features.user.domain.repositories.SubscriptionRepository
 import javax.inject.Inject
 
-class CreateCheckoutUseCase @Inject constructor(
-    private val paymentRepository: PaymentRepository
+class CreateSubscriptionUseCase @Inject constructor(
+    private val subscriptionRepository: SubscriptionRepository
 ) {
-    suspend operator fun invoke(userId: Int): PaymentCheckout =
-        paymentRepository.createCheckout(userId)
+    suspend operator fun invoke(userId: Int, planId: Int = PREMIUM_PLAN_ID): SubscriptionCheckout =
+        subscriptionRepository.createSubscription(userId, planId)
+
+    companion object {
+        const val PREMIUM_PLAN_ID = 2
+    }
 }

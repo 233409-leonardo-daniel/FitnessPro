@@ -188,7 +188,7 @@ fun PremiumScreen(
                             )
                             Spacer(modifier = Modifier.height(8.dp))
                             Text(
-                                text = "Verificando tu pago...",
+                                text = "Verificando tu suscripción...",
                                 fontSize = 14.sp,
                                 color = Color.Gray
                             )
@@ -213,21 +213,24 @@ fun PremiumScreen(
                 }
             }
 
-            val message = when (uiState.paymentResult) {
-                PaymentResult.REJECTED ->
-                    "Tu pago fue rechazado. Verifica tu método de pago e intenta de nuevo."
-                PaymentResult.TIMEOUT ->
-                    "Tu pago está siendo verificado. Si pagaste, recibirás acceso Premium en unos minutos."
+            val message = when (uiState.subscriptionResult) {
+                SubscriptionResult.CANCELLED ->
+                    "Tu suscripción fue cancelada. Verifica tu método de pago e intenta de nuevo."
+                SubscriptionResult.PAUSED ->
+                    "Tu suscripción está pausada. Puedes reactivarla desde Mercado Pago."
+                SubscriptionResult.TIMEOUT ->
+                    "Tu suscripción está siendo verificada. Si confirmaste el pago, recibirás acceso Premium en breve."
                 else -> {
-                   if (uiState.errorMessage != null) {
-                       stringResource(id = R.string.payment_connection_error)
-                   } else null
+                    if (uiState.errorMessage != null) {
+                        stringResource(id = R.string.payment_connection_error)
+                    } else null
                 }
             }
             if (message != null) {
                 Text(
                     text = message,
-                    color = if (uiState.paymentResult == PaymentResult.TIMEOUT)
+                    color = if (uiState.subscriptionResult == SubscriptionResult.TIMEOUT ||
+                                uiState.subscriptionResult == SubscriptionResult.PAUSED)
                         Color.Gray
                     else
                         MaterialTheme.colorScheme.error,

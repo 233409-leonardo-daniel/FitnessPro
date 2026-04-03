@@ -1,6 +1,6 @@
 package com.alilopez.kt_demohilt.features.user.presentation.screens
 
-enum class PaymentResult { APPROVED, REJECTED, TIMEOUT }
+enum class SubscriptionResult { AUTHORIZED, PAUSED, CANCELLED, TIMEOUT }
 
 data class PremiumUIState(
     val isLoading: Boolean = false,
@@ -8,5 +8,5 @@ data class PremiumUIState(
     val errorMessage: String? = null,
     val checkoutUrl: String? = null,
     val isPolling: Boolean = false,
-    val paymentResult: PaymentResult? = null
+    val subscriptionResult: SubscriptionResult? = null
 )

@@ -1,8 +1,9 @@
 package com.alilopez.kt_demohilt.features.user.domain.entities
 
-enum class PaymentStatus {
+enum class SubscriptionStatus {
     PENDING,
-    APPROVED,
-    REJECTED,
+    AUTHORIZED,
+    PAUSED,
+    CANCELLED,
     UNKNOWN
 }
