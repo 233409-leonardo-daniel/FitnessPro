@@ -94,7 +94,6 @@ fun ExercisesScreen(
 
     // Usar colores del tema unificado
     val backgroundColor = MaterialTheme.colorScheme.background
-    val surfaceColor = MaterialTheme.colorScheme.surfaceContainer
     val textColor = MaterialTheme.colorScheme.onBackground
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val accentColor = Color(0xFF10B981)
@@ -104,19 +103,6 @@ fun ExercisesScreen(
     val scope = rememberCoroutineScope()
     val query = uiState.searchQuery.trim()
 
-    val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
-        uiState.localExercises.filter { it.name.contains(query, ignoreCase = true) }
-    } else {
-        uiState.localExercises
-    }
-
-    val filteredExploreExercises = if (uiState.isSearchActive && query.isNotBlank()) {
-        uiState.exercises.filter { it.name.contains(query, ignoreCase = true) }
-    } else {
-        uiState.exercises
-    }
-
-    val query = uiState.searchQuery.trim()
     val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
         uiState.localExercises.filter { it.name.contains(query, ignoreCase = true) }
     } else {
@@ -161,7 +147,6 @@ fun ExercisesScreen(
                 textColor = textColor,
                 secondaryTextColor = secondaryTextColor,
                 accentColor = accentColor,
-                surfaceColor = backgroundColor, // Cambiado para que coincida con el fondo
                 isDarkTheme = isDarkTheme,
                 onOpenDrawer = onOpenDrawer,
                 onNavigateToAddExercise = onNavigateToAddExercise,
@@ -230,8 +215,7 @@ fun ExercisesScreen(
                             viewModel = viewModel,
                             textColor = textColor,
                             accentColor = accentColor,
-                            clearButtonColor = clearButtonColor,
-                            surfaceColor = surfaceColor
+                            clearButtonColor = clearButtonColor
                         )
                     } else {
                         PremiumGateContent(onNavigateToPremium = onNavigateToPremium)
@@ -249,7 +233,6 @@ private fun ExercisesTopSection(
     textColor: Color,
     secondaryTextColor: Color,
     accentColor: Color,
-    surfaceColor: Color,
     isDarkTheme: Boolean,
     onOpenDrawer: () -> Unit,
     onNavigateToAddExercise: () -> Unit,
@@ -261,7 +244,7 @@ private fun ExercisesTopSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(surfaceColor)
+            .background(MaterialTheme.colorScheme.surface)
             .statusBarsPadding()
             .padding(bottom = 8.dp)
     ) {
@@ -499,8 +482,7 @@ private fun RemoteExercisesList(
     viewModel: ExerciseViewModel,
     textColor: Color,
     accentColor: Color,
-    clearButtonColor: Color,
-    surfaceColor: Color
+    clearButtonColor: Color
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(

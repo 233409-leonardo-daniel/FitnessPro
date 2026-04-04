@@ -6,14 +6,14 @@ import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetCommunityExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByBodyPartUseCase
-import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByUserIdUseCase
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesUiState
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -225,25 +225,6 @@ class ExerciseViewModel @Inject constructor(
     fun clearFilters() {
         _uiState.update { it.copy(selectedBodyPart = null, isFiltered = false) }
         loadRemoteExercises()
-    }
-
-    fun onSearchQueryChange(query: String) {
-        _uiState.update {
-            it.copy(
-                searchQuery = query,
-                isSearchActive = if (query.isBlank()) false else it.isSearchActive
-            )
-        }
-    }
-
-    fun searchExercises() {
-        _uiState.update {
-            it.copy(isSearchActive = it.searchQuery.trim().isNotBlank())
-        }
-    }
-
-    fun clearSearch() {
-        _uiState.update { it.copy(searchQuery = "", isSearchActive = false) }
     }
 
     fun onSearchQueryChange(query: String) {
