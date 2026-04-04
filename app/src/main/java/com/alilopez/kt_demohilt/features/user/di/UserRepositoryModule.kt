@@ -1,8 +1,8 @@
 package com.alilopez.kt_demohilt.features.user.di
 
-import com.alilopez.kt_demohilt.features.user.data.repositories.PaymentRepositoryImp
+import com.alilopez.kt_demohilt.features.user.data.repositories.SubscriptionRepositoryImpl
 import com.alilopez.kt_demohilt.features.user.data.repositories.UserRepositoryImp
-import com.alilopez.kt_demohilt.features.user.domain.repositories.PaymentRepository
+import com.alilopez.kt_demohilt.features.user.domain.repositories.SubscriptionRepository
 import com.alilopez.kt_demohilt.features.user.domain.repositories.UserRepository
 import dagger.Binds
 import dagger.Module
@@ -22,7 +22,7 @@ abstract class UserRepositoryModule {
 
     @Binds
     @Singleton
-    abstract fun bindPaymentRepository(
-        paymentRepositoryImp: PaymentRepositoryImp
-    ): PaymentRepository
+    abstract fun bindSubscriptionRepository(
+        subscriptionRepositoryImpl: SubscriptionRepositoryImpl
+    ): SubscriptionRepository
 }

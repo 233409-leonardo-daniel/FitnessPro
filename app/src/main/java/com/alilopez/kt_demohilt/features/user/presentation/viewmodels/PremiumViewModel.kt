@@ -3,12 +3,13 @@ package com.alilopez.kt_demohilt.features.user.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
-import com.alilopez.kt_demohilt.features.user.domain.usecases.CreateCheckoutUseCase
+import com.alilopez.kt_demohilt.features.user.domain.entities.SubscriptionException
+import com.alilopez.kt_demohilt.features.user.domain.usecases.CreateSubscriptionUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.GetUserUseCase
-import com.alilopez.kt_demohilt.features.user.domain.usecases.PaymentPollResult
 import com.alilopez.kt_demohilt.features.user.domain.usecases.PollPaymentStatusUseCase
-import com.alilopez.kt_demohilt.features.user.presentation.screens.PaymentResult
+import com.alilopez.kt_demohilt.features.user.domain.usecases.SubscriptionPollResult
 import com.alilopez.kt_demohilt.features.user.presentation.screens.PremiumUIState
+import com.alilopez.kt_demohilt.features.user.presentation.screens.SubscriptionResult
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -19,7 +20,7 @@ import javax.inject.Inject
 
 @HiltViewModel
 class PremiumViewModel @Inject constructor(
-    private val createCheckoutUseCase: CreateCheckoutUseCase,
+    private val createSubscriptionUseCase: CreateSubscriptionUseCase,
     private val pollPaymentStatusUseCase: PollPaymentStatusUseCase,
     private val getUserUseCase: GetUserUseCase,
     private val sessionManager: SessionManager
@@ -31,18 +32,25 @@ class PremiumViewModel @Inject constructor(
     fun startCheckout() {
         val userId = sessionManager.currentUserId ?: return
         viewModelScope.launch {
-            _uiState.update { it.copy(isLoading = true, errorMessage = null, paymentResult = null) }
+            _uiState.update { it.copy(isLoading = true, errorMessage = null, subscriptionResult = null) }
             try {
-                val (preferenceId, url) = createCheckoutUseCase(userId)
-                _uiState.update { it.copy(isLoading = false, checkoutUrl = url) }
-                pollPayment(preferenceId)
-            } catch (e: Exception) {
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "No pudimos conectar con el sistema de pagos. Intenta de nuevo."
-                    )
+                val checkout = createSubscriptionUseCase(userId)
+                _uiState.update { it.copy(isLoading = false, checkoutUrl = checkout.checkoutUrl) }
+                pollSubscription(checkout.subscriptionId)
+            } catch (e: SubscriptionException) {
+                val message = when (e) {
+                    is SubscriptionException.ActiveSubscriptionExists ->
+                        "Ya tienes una suscripción activa o pendiente. Si ya pagaste, espera unos minutos."
+                    is SubscriptionException.UserOrPlanNotFound ->
+                        "Usuario o plan no encontrado. Contacta soporte."
+                    is SubscriptionException.ServiceUnavailable ->
+                        "El sistema de pagos no está disponible. Intenta de nuevo."
+                    is SubscriptionException.NetworkUnavailable ->
+                        "Sin conexión. Verifica tu internet e intenta de nuevo."
+                    is SubscriptionException.Unexpected ->
+                        "No pudimos conectar con el sistema de pagos. Intenta de nuevo."
                 }
+                _uiState.update { it.copy(isLoading = false, errorMessage = message) }
             }
         }
     }
@@ -51,13 +59,13 @@ class PremiumViewModel @Inject constructor(
         _uiState.update { it.copy(checkoutUrl = null) }
     }
 
-    private fun pollPayment(preferenceId: String) {
+    private fun pollSubscription(subscriptionId: Int) {
         val userId = sessionManager.currentUserId ?: return
         viewModelScope.launch {
             _uiState.update { it.copy(isPolling = true) }
-            pollPaymentStatusUseCase(preferenceId) { result ->
+            pollPaymentStatusUseCase(subscriptionId) { result ->
                 when (result) {
-                    PaymentPollResult.Approved -> {
+                    SubscriptionPollResult.Authorized -> {
                         viewModelScope.launch {
                             try {
                                 val user = getUserUseCase(userId)
@@ -66,22 +74,18 @@ class PremiumViewModel @Inject constructor(
                                     token = sessionManager.accessToken ?: "",
                                     membership = user.membership
                                 )
-                            } catch (e: Exception) {
-                                // El refresh del membership es best-effort; navegar a Home de todas formas
-                            }
+                            } catch (_: Exception) { }
                             _uiState.update {
-                                it.copy(
-                                    isPolling = false,
-                                    paymentResult = PaymentResult.APPROVED,
-                                    isSuccess = true
-                                )
+                                it.copy(isPolling = false, subscriptionResult = SubscriptionResult.AUTHORIZED, isSuccess = true)
                             }
                         }
                     }
-                    PaymentPollResult.Rejected ->
-                        _uiState.update { it.copy(isPolling = false, paymentResult = PaymentResult.REJECTED) }
-                    PaymentPollResult.Timeout ->
-                        _uiState.update { it.copy(isPolling = false, paymentResult = PaymentResult.TIMEOUT) }
+                    SubscriptionPollResult.Paused ->
+                        _uiState.update { it.copy(isPolling = false, subscriptionResult = SubscriptionResult.PAUSED) }
+                    SubscriptionPollResult.Cancelled ->
+                        _uiState.update { it.copy(isPolling = false, subscriptionResult = SubscriptionResult.CANCELLED) }
+                    SubscriptionPollResult.Timeout ->
+                        _uiState.update { it.copy(isPolling = false, subscriptionResult = SubscriptionResult.TIMEOUT) }
                 }
             }
         }

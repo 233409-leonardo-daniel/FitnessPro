@@ -23,6 +23,9 @@ android {
         val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
         buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("BACKEND_URL")}\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${properties.getProperty("GOOGLE_CLIENT_ID")}\"")
+        
+        // AÑADE ESTA LÍNEA PARA SOLUCIONAR EL ERROR DEL MANIFEST
+        manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713" 
     }
 
     buildTypes {
@@ -98,7 +101,7 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     
-    // Google Login (Nombres corregidos)
+    // Google Login
     implementation(libs.google.auth.credentials)
     implementation(libs.google.auth.play.services)
     implementation(libs.google.auth.id)

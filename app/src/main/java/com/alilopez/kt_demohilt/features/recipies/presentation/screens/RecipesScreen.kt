@@ -30,20 +30,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -63,6 +62,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.R
+import com.alilopez.kt_demohilt.core.components.PremiumGateContent
 import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipies.presentation.components.RecipeCard
@@ -76,6 +76,8 @@ fun RecipesScreen(
     onNavigateToEditRecipe: (Int) -> Unit,
     onNavigateToRecipeDetail: (Int) -> Unit,
     onOpenDrawer: () -> Unit,
+    membership: String? = null,
+    onNavigateToPremium: () -> Unit = {},
     modifier: Modifier = Modifier,
     viewModel: RecipesListViewModel = hiltViewModel()
 ) {
@@ -195,15 +197,19 @@ fun RecipesScreen(
                         onNavigateToRecipeDetail = onNavigateToRecipeDetail
                     )
 
-                    2 -> PremiumRecipesList(
-                        recipes = filteredRemoteRecipes,
-                        isLoading = uiState.isLoading,
-                        errorMessage = uiState.errorMessage,
-                        isSearchActive = uiState.isSearchActive,
-                        accentColor = accentColor,
-                        secondaryTextColor = secondaryTextColor,
-                        onNavigateToRecipeDetail = onNavigateToRecipeDetail
-                    )
+                    2 -> if (membership != null && membership != "gratuito") {
+                        PremiumRecipesList(
+                            recipes = filteredRemoteRecipes,
+                            isLoading = uiState.isLoading,
+                            errorMessage = uiState.errorMessage,
+                            isSearchActive = uiState.isSearchActive,
+                            accentColor = accentColor,
+                            secondaryTextColor = secondaryTextColor,
+                            onNavigateToRecipeDetail = onNavigateToRecipeDetail
+                        )
+                    } else {
+                        PremiumGateContent(onNavigateToPremium = onNavigateToPremium)
+                    }
                 }
             }
         }

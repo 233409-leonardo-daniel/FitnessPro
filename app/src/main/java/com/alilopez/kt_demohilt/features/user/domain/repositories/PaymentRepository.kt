@@ -1,7 +1,9 @@
 package com.alilopez.kt_demohilt.features.user.domain.repositories
 
-interface PaymentRepository {
-    // Devuelve Pair(preferenceId, checkoutUrl) — la URL ya está seleccionada según el flavor
-    suspend fun createCheckout(userId: Int): Pair<String, String>
-    suspend fun getPaymentStatus(preferenceId: String): String
+import com.alilopez.kt_demohilt.features.user.domain.entities.SubscriptionCheckout
+import com.alilopez.kt_demohilt.features.user.domain.entities.SubscriptionStatus
+
+interface SubscriptionRepository {
+    suspend fun createSubscription(userId: Int, planId: Int): SubscriptionCheckout
+    suspend fun getSubscriptionStatus(subscriptionId: Int): SubscriptionStatus
 }
