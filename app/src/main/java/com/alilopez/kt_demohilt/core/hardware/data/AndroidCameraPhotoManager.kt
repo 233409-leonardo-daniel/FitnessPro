@@ -37,6 +37,28 @@ class AndroidCameraPhotoManager @Inject constructor(
         return currentPhotoFile?.takeIf { it.exists() && it.length() > 0 }
     }
 
+    override fun copyGalleryImageToFile(uri: Uri): File? {
+        return try {
+            val tempFile = File.createTempFile(
+                "gallery_${System.currentTimeMillis()}",
+                ".jpg",
+                context.cacheDir
+            )
+            context.contentResolver.openInputStream(uri)?.use { input ->
+                tempFile.outputStream().use { output -> input.copyTo(output) }
+            }
+            if (tempFile.length() > 0) {
+                currentPhotoFile = tempFile
+                tempFile
+            } else {
+                tempFile.delete()
+                null
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+
     override fun hasCamera(): Boolean {
         val hasFeature = context.packageManager.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY)
         val hasCameraDevice = try {
