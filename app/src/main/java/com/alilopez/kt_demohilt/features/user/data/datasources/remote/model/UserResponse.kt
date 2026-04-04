@@ -16,7 +16,8 @@ data class UserDto(
     val height: Double?,
     val gender: String?,
     val age: Int? = null,
-    val membership: String? = null
+    val membership: String? = null,
+    @SerializedName("target_weight") val targetWeight: Float? = null
 )
 
 data class UserCreateDto(
@@ -39,7 +40,8 @@ data class UserUpdateDto(
     val height: Double?,
     val gender: String?,
     val membership: String?,
-    val password: String? = null
+    val password: String? = null,
+    @SerializedName("target_weight") val targetWeight: Float? = null
 )
 
 data class UserLoginResponseDto(
@@ -54,7 +56,8 @@ data class UserLoginResponseDto(
     val age: Int? = null,
     val access_token: String,
     val token_type: String,
-    val membership: String? = null
+    val membership: String? = null,
+    @SerializedName("target_weight") val targetWeight: Float? = null
 )
 
 data class GoogleErrorResponseDto(

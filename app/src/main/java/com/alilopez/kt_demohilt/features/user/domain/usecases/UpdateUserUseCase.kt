@@ -16,7 +16,8 @@ class UpdateUserUseCase @Inject constructor(
         weight: Double?,
         height: Double?,
         gender: String?,
-        membership: String?
+        membership: String?,
+        targetWeight: Float? = null
     ): User {
         return userRepository.updateUser(
             id = id,
@@ -27,7 +28,8 @@ class UpdateUserUseCase @Inject constructor(
             weight = weight,
             height = height,
             gender = gender,
-            membership = membership
+            membership = membership,
+            targetWeight = targetWeight
         )
     }
 }

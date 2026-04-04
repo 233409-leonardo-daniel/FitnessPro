@@ -46,3 +46,6 @@ data class Profile(val isOnboarding: Boolean = false)
 
 @Serializable
 object Premium
+
+@Serializable
+object Progression

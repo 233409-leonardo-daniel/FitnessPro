@@ -49,6 +49,9 @@ class ProfileViewModel @Inject constructor(
     private val _gender = MutableStateFlow("")
     val gender: StateFlow<String> = _gender.asStateFlow()
 
+    private val _targetWeight = MutableStateFlow("")
+    val targetWeight: StateFlow<String> = _targetWeight.asStateFlow()
+
     init {
         loadUserProfile()
     }
@@ -66,6 +69,7 @@ class ProfileViewModel @Inject constructor(
                 _weight.value = user.weight?.toString() ?: ""
                 _height.value = user.height?.toString() ?: ""
                 _gender.value = user.gender ?: ""
+                _targetWeight.value = user.targetWeight?.toString() ?: ""
                 _uiState.update { it.copy(isLoading = false, user = user) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
@@ -79,6 +83,7 @@ class ProfileViewModel @Inject constructor(
     fun onWeightChange(value: String) { _weight.value = value }
     fun onHeightChange(value: String) { _height.value = value }
     fun onGenderChange(value: String) { _gender.value = value }
+    fun onTargetWeightChange(value: String) { _targetWeight.value = value }
 
     fun onSaveClick() {
         val userId = sessionManager.currentUserId ?: return
@@ -94,7 +99,8 @@ class ProfileViewModel @Inject constructor(
                     weight = _weight.value.toDoubleOrNull(),
                     height = _height.value.toDoubleOrNull(),
                     gender = _gender.value,
-                    membership = resolveMembershipForUpdate()
+                    membership = _uiState.value.user?.membership ?: "gratuito",
+                    targetWeight = _targetWeight.value.toFloatOrNull()
                 )
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {
