@@ -118,6 +118,11 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
+    // Start.io Ads
+    implementation(libs.startio)
+
+    // MPAndroidChart
+    implementation(libs.mpandroidchart)
     // Google AdMob
     implementation("com.google.android.gms:play-services-ads:24.4.0")
 

@@ -8,8 +8,10 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowDropDown
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material.icons.filled.Face
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material3.*
@@ -48,6 +50,7 @@ fun RegisterScreen(
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val cardBackgroundColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
 
     val email by viewModel.email.collectAsStateWithLifecycle()
     val name by viewModel.name.collectAsStateWithLifecycle()
@@ -61,6 +64,8 @@ fun RegisterScreen(
     var showDatePicker by remember { mutableStateOf(false) }
     var showTermsDialog by remember { mutableStateOf(false) }
     var termsAccepted by remember { mutableStateOf(false) }
+    var showGenderMenu by remember { mutableStateOf(false) }
+    
     val datePickerState = rememberDatePickerState()
     val dateFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()) }
 
@@ -103,7 +108,7 @@ fun RegisterScreen(
                     text = "Crear Cuenta",
                     fontSize = 32.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+                    color = textColor
                 )
 
                 Text(
@@ -141,7 +146,7 @@ fun RegisterScreen(
                     keyboardType = KeyboardType.Text
                 )
 
-                // Birthdate Input (calendar + green style)
+                // Birthdate Input
                 InputFitness(
                     value = birthdate,
                     onValueChange = {},
@@ -179,24 +184,63 @@ fun RegisterScreen(
                 InputFitness(
                     value = weight,
                     onValueChange = { viewModel.onWeightChange(it) },
-                    placeholder = "Peso (ej. 70)",
+                    placeholder = "Peso (kg)",
                     keyboardType = KeyboardType.Decimal
                 )
 
                 InputFitness(
                     value = height,
                     onValueChange = { viewModel.onHeightChange(it) },
-                    placeholder = "Altura (ej. 1.75)",
+                    placeholder = "Altura (cm)",
                     keyboardType = KeyboardType.Decimal
                 )
 
-                InputFitness(
-                    value = gender,
-                    onValueChange = { viewModel.onGenderChange(it) },
-                    placeholder = "Genero",
-                    leadingIcon = Icons.Default.Person,
-                    keyboardType = KeyboardType.Text
-                )
+                // Selector de Género
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = gender,
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = { Text("Género") },
+                        leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
+                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showGenderMenu = true },
+                        enabled = false,
+                        shape = androidx.compose.foundation.shape.RoundedCornerShape(12.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = textColor,
+                            disabledBorderColor = if (isDarkTheme) Color(0xFF346544) else Color(0xFFE2E8F0),
+                            disabledLeadingIconColor = if (isDarkTheme) Color(0xFF5e8c6d) else Color(0xFF94A3B8),
+                            disabledTrailingIconColor = if (isDarkTheme) Color(0xFF5e8c6d) else Color(0xFF94A3B8),
+                            disabledPlaceholderColor = if (isDarkTheme) Color(0xFF5e8c6d) else Color(0xFF94A3B8),
+                            disabledContainerColor = if (isDarkTheme) Color(0xFF1a3222) else Color.White
+                        )
+                    )
+                    Box(modifier = Modifier.matchParentSize().clickable { showGenderMenu = true })
+                    
+                    DropdownMenu(
+                        expanded = showGenderMenu,
+                        onDismissRequest = { showGenderMenu = false },
+                        modifier = Modifier.fillMaxWidth(0.7f)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Hombre") },
+                            onClick = { 
+                                viewModel.onGenderChange("Hombre")
+                                showGenderMenu = false 
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Mujer") },
+                            onClick = { 
+                                viewModel.onGenderChange("Mujer")
+                                showGenderMenu = false 
+                            }
+                        )
+                    }
+                }
 
                 // Password Input
                 InputFitness(

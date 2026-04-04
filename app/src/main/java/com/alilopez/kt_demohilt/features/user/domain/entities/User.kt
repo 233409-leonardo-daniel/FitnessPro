@@ -10,5 +10,6 @@ data class User(
     val height: Double?,
     val gender: String?,
     val age: Int? = null,
-    val membership: String? = null
+    val membership: String? = null,
+    val targetWeight: Float? = null
 )

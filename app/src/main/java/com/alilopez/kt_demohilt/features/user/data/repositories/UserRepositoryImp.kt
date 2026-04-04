@@ -75,7 +75,8 @@ class UserRepositoryImp @Inject constructor(
         weight: Double?,
         height: Double?,
         gender: String?,
-        membership: String?
+        membership: String?,
+        targetWeight: Float?
     ): User {
         val userUpdateDto = UserUpdateDto(
             email = email,
@@ -85,7 +86,8 @@ class UserRepositoryImp @Inject constructor(
             weight = weight,
             height = height,
             gender = gender,
-            membership = membership
+            membership = membership,
+            targetWeight = targetWeight
         )
         val userDto = fitnessProApi.updateUser(id, userUpdateDto)
         return userDto.toDomain()

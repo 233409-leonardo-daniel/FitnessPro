@@ -2,6 +2,9 @@ package com.alilopez.kt_demohilt.core.network
 
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExercisesResponse
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.LocalExerciseDto
+import com.alilopez.kt_demohilt.features.progression.data.datasources.remote.model.AddProgressionEntryDto
+import com.alilopez.kt_demohilt.features.progression.data.datasources.remote.model.ProgressionEntryDto
+import com.alilopez.kt_demohilt.features.progression.data.datasources.remote.model.ProgressionSummaryDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.AddRecipeToPlanDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanCreateDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
@@ -246,6 +249,23 @@ interface FitnessProApi {
         @Query("limit") limit: Int
     ): RemoteRecipesResponse
 
+    // --- PROGRESSION ---
+
+    @POST("users/{user_id}/progression")
+    suspend fun addProgressionEntry(
+        @Path("user_id") userId: Int,
+        @Body entry: AddProgressionEntryDto
+    ): ProgressionEntryDto
+
+    @GET("users/{user_id}/progression")
+    suspend fun getProgressionHistory(
+        @Path("user_id") userId: Int
+    ): List<ProgressionEntryDto>
+
+    @GET("users/{user_id}/progression/summary")
+    suspend fun getProgressionSummary(
+        @Path("user_id") userId: Int
+    ): ProgressionSummaryDto
     // --- SUBSCRIPTIONS ---
 
     @POST("subscriptions")

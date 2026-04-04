@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.features.user.presentation.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -37,10 +38,13 @@ fun ProfileScreen(
     val weight by viewModel.weight.collectAsStateWithLifecycle()
     val height by viewModel.height.collectAsStateWithLifecycle()
     val gender by viewModel.gender.collectAsStateWithLifecycle()
+    val targetWeight by viewModel.targetWeight.collectAsStateWithLifecycle()
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val accentColor = Color(0xFF10B981)
+
+    var showGenderMenu by remember { mutableStateOf(false) }
 
     LaunchedEffect(uiState.isSuccess) {
         if (uiState.isSuccess) {
@@ -111,7 +115,7 @@ fun ProfileScreen(
                 InputFitness(
                     value = weight,
                     onValueChange = { viewModel.onWeightChange(it) },
-                    placeholder = "Peso (kg)",
+                    placeholder = "Peso Actual (kg)",
                     leadingIcon = Icons.Default.MonitorWeight
                 )
 
@@ -123,11 +127,56 @@ fun ProfileScreen(
                 )
 
                 InputFitness(
-                    value = gender,
-                    onValueChange = { viewModel.onGenderChange(it) },
-                    placeholder = "Género (Masculino/Femenino/Otro)",
-                    leadingIcon = Icons.Default.Face
+                    value = targetWeight,
+                    onValueChange = { viewModel.onTargetWeightChange(it) },
+                    placeholder = "Peso Objetivo (kg)",
+                    leadingIcon = Icons.Default.Flag
                 )
+
+                // Selector de Género
+                Box(modifier = Modifier.fillMaxWidth()) {
+                    OutlinedTextField(
+                        value = gender,
+                        onValueChange = {},
+                        readOnly = true,
+                        placeholder = { Text("Género") },
+                        leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
+                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { showGenderMenu = true },
+                        enabled = false,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            disabledTextColor = textColor,
+                            disabledBorderColor = MaterialTheme.colorScheme.outline,
+                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
+                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    )
+                    Box(modifier = Modifier.matchParentSize().clickable { showGenderMenu = true })
+                    
+                    DropdownMenu(
+                        expanded = showGenderMenu,
+                        onDismissRequest = { showGenderMenu = false },
+                        modifier = Modifier.fillMaxWidth(0.8f)
+                    ) {
+                        DropdownMenuItem(
+                            text = { Text("Hombre") },
+                            onClick = { 
+                                viewModel.onGenderChange("Hombre")
+                                showGenderMenu = false 
+                            }
+                        )
+                        DropdownMenuItem(
+                            text = { Text("Mujer") },
+                            onClick = { 
+                                viewModel.onGenderChange("Mujer")
+                                showGenderMenu = false 
+                            }
+                        )
+                    }
+                }
 
                 if (uiState.errorMessage != null) {
                     Text(text = uiState.errorMessage!!, color = MaterialTheme.colorScheme.error)

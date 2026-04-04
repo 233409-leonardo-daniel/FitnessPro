@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ListAlt
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
@@ -33,6 +34,7 @@ fun SliderMenu(
     onNavigateToExercises: () -> Unit,
     onNavigateToWorkoutPlans: () -> Unit,
     onNavigateToRecipePlans: () -> Unit,
+    onNavigateToProgression: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onLogout: () -> Unit,
@@ -49,7 +51,6 @@ fun SliderMenu(
         drawerContainerColor = if (isDarkTheme) Color(0xFF1E293B) else Color.White,
         modifier = Modifier.width(280.dp)
     ) {
-        // Eliminado Spacer(Modifier.height(24.dp)) para evitar espacio doble arriba
         Text(
             "FitnessPro",
             modifier = Modifier.padding(16.dp),
@@ -113,6 +114,18 @@ fun SliderMenu(
             selected = currentRoute == "RecipePlans",
             onClick = {
                 onNavigateToRecipePlans()
+                onCloseDrawer()
+            },
+            accentColor = accentColor,
+            textColor = textColor
+        )
+
+        DrawerItem(
+            label = "Mi Progreso",
+            icon = Icons.AutoMirrored.Filled.TrendingUp,
+            selected = currentRoute == "Progression",
+            onClick = {
+                onNavigateToProgression()
                 onCloseDrawer()
             },
             accentColor = accentColor,

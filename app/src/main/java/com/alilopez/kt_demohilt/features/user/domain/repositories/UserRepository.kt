@@ -29,6 +29,7 @@ interface UserRepository {
         weight: Double?,
         height: Double?,
         gender: String?,
-        membership: String?
+        membership: String?,
+        targetWeight: Float? = null
     ): User
 }

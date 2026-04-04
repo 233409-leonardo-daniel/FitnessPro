@@ -18,7 +18,8 @@ fun UserDto.toDomain(): User {
         height = height,
         gender = gender,
         age = age,
-        membership = membership
+        membership = membership,
+        targetWeight = targetWeight
     )
 }
 
@@ -33,4 +34,3 @@ fun UserDailyResponse.toDomain(): UserDailyContent {
         recipes = this.recipes.map { it.recipeToDomain() }
     )
 }
-
