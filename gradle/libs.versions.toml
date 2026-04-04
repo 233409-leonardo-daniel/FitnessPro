@@ -25,6 +25,9 @@ googleid = "1.2.0"
 startio = "5.0.2"
 vico = "2.0.1"
 mpAndroidChart = "3.1.0"
+browser = "1.8.0"
+mockk = "1.13.10"
+coroutinesTest = "1.8.1"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -76,6 +79,12 @@ vico-compose-m3 = { group = "com.patrykandpatrick.vico", name = "compose-m3", ve
 
 # MPAndroidChart
 mpandroidchart = { group = "com.github.PhilJay", name = "MPAndroidChart", version.ref = "mpAndroidChart" }
+startio-sdk = { group = "com.startapp", name = "inapp-sdk", version.ref = "startio" }
+
+# Browser, MockK, Coroutines Test
+androidx-browser = { group = "androidx.browser", name = "browser", version.ref = "browser" }
+mockk = { group = "io.mockk", name = "mockk", version.ref = "mockk" }
+kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-test", version.ref = "coroutinesTest" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

@@ -24,10 +24,10 @@ data class UserCreateDto(
     val email: String,
     val name: String,
     val lastname: String,
-    val birthdate: String? = "",
+    val birthdate: String?,
     val weight: Double? = 0.0,
     val height: Double? = 0.0,
-    val gender: String? = "Otro",
+    val gender: String?,
     val password: String
 )
 
@@ -39,7 +39,7 @@ data class UserUpdateDto(
     val weight: Double?,
     val height: Double?,
     val gender: String?,
-    val membership: String? = "gratuito",
+    val membership: String?,
     val password: String? = null,
     @SerializedName("target_weight") val targetWeight: Float? = null
 )

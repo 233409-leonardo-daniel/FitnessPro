@@ -1,7 +1,8 @@
 package com.alilopez.kt_demohilt.features.home.presentation.components
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ListAlt
@@ -12,7 +13,13 @@ import androidx.compose.material.icons.filled.MenuBook
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Restaurant
 import androidx.compose.material.icons.filled.Stars
-import androidx.compose.material3.*
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalDrawerSheet
+import androidx.compose.material3.NavigationDrawerItem
+import androidx.compose.material3.NavigationDrawerItemDefaults
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +38,7 @@ fun SliderMenu(
     onNavigateToProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onLogout: () -> Unit,
+    isPremium: Boolean = false,
     currentRoute: String? = null,
     onCloseDrawer: () -> Unit
 ) {
@@ -138,17 +146,19 @@ fun SliderMenu(
             textColor = textColor
         )
 
-        DrawerItem(
-            label = "Hazte Premium",
-            icon = Icons.Default.Stars,
-            selected = currentRoute == "Premium",
-            onClick = {
-                onNavigateToPremium()
-                onCloseDrawer()
-            },
-            accentColor = premiumColor,
-            textColor = premiumColor
-        )
+        if (!isPremium) {
+            DrawerItem(
+                label = "Hazte Premium",
+                icon = Icons.Default.Stars,
+                selected = currentRoute == "Premium",
+                onClick = {
+                    onNavigateToPremium()
+                    onCloseDrawer()
+                },
+                accentColor = premiumColor,
+                textColor = premiumColor
+            )
+        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 

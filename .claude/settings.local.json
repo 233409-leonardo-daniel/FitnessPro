@@ -1,0 +1,16 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(./gradlew assembleDevDebug)",
+      "Bash(./gradlew dependencies:*)",
+      "Bash(./gradlew app:dependencies)",
+      "Bash(./gradlew test:*)",
+      "Bash(./gradlew testDevDebugUnitTest --tests \"com.alilopez.kt_demohilt.features.user.domain.usecases.CreateCheckoutUseCaseTest\")",
+      "Bash(./gradlew testDevDebugUnitTest --tests \"com.alilopez.kt_demohilt.features.user.domain.usecases.PollPaymentStatusUseCaseTest\")",
+      "Bash(find . -name \"*.kt\" -type f -exec grep -l \"membership\\\\|gratuito\" {} \\\\;)",
+      "Bash(xargs grep:*)",
+      "Bash(grep -E \"\\\\.kt$\")",
+      "Bash(find:*)"
+    ]
+  }
+}

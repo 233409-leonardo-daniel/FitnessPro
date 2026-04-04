@@ -10,6 +10,9 @@ import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mod
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RecipeDto
 import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.model.RemoteRecipesResponse
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.CreateSubscriptionRequestDto
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.CreateSubscriptionResponseDto
+import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.SubscriptionStatusResponseDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserCreateDto
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDailyResponse
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.UserDto
@@ -263,4 +266,15 @@ interface FitnessProApi {
     suspend fun getProgressionSummary(
         @Path("user_id") userId: Int
     ): ProgressionSummaryDto
+    // --- SUBSCRIPTIONS ---
+
+    @POST("subscriptions")
+    suspend fun createSubscription(
+        @Body body: CreateSubscriptionRequestDto
+    ): CreateSubscriptionResponseDto
+
+    @GET("subscriptions/{subscription_id}/status")
+    suspend fun getSubscriptionStatus(
+        @Path("subscription_id") subscriptionId: Int
+    ): SubscriptionStatusResponseDto
 }

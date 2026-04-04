@@ -136,6 +136,7 @@ fun NavigationWrapper(
                                     launchSingleTop = true
                                 }
                             },
+                            isPremium = membership != null && membership != "gratuito",
                             onLogout = {
                                 sessionManager.clearSession()
                                 navController.navigate(Login) {
@@ -225,7 +226,9 @@ fun NavigationWrapper(
                             onNavigateToAddRecipe = { navController.navigate(AddRecipe) },
                             onNavigateToEditRecipe = { recipeId -> navController.navigate(EditRecipe(recipeId)) },
                             onNavigateToRecipeDetail = { recipeId -> navController.navigate(RecipeDetail(recipeId)) },
-                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                            onOpenDrawer = { scope.launch { drawerState.open() } },
+                            membership = membership,
+                            onNavigateToPremium = { navController.navigate(Premium) { launchSingleTop = true } }
                         )
                     }
 
@@ -246,7 +249,9 @@ fun NavigationWrapper(
                             onNavigateToAddExercise = {
                                 navController.navigate(AddExercise)
                             },
-                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                            onOpenDrawer = { scope.launch { drawerState.open() } },
+                            membership = membership,
+                            onNavigateToPremium = { navController.navigate(Premium) { launchSingleTop = true } }
                         )
                     }
 
