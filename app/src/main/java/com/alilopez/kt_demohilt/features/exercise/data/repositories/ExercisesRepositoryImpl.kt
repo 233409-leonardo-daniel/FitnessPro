@@ -83,6 +83,51 @@ class ExercisesRepositoryImpl @Inject constructor(
         return api.getExerciseById(exerciseId).toDomain()
     }
 
+    override suspend fun updateLocalExercise(
+        exerciseId: Int,
+        name: String,
+        description: String,
+        scheduledDays: List<String>,
+        bodyparts: List<String>,
+        equipment: List<String>,
+        targetMuscles: List<String>,
+        secondaryMuscles: List<String>,
+        exerciseType: String?,
+        instructions: String?,
+        difficulty: String,
+        imageUrl: String?
+    ): Exercise {
+        val textType = "text/plain".toMediaTypeOrNull()
+
+        val namePart = name.toRequestBody(textType)
+        val descriptionPart = description.toRequestBody(textType)
+        val scheduledDaysPart = scheduledDays.takeIf { it.isNotEmpty() }?.joinToString(",")?.toRequestBody(textType)
+        val bodypartsPart = bodyparts.takeIf { it.isNotEmpty() }?.joinToString(",")?.toRequestBody(textType)
+        val equipmentPart = equipment.takeIf { it.isNotEmpty() }?.joinToString(",")?.toRequestBody(textType)
+        val targetMusclesPart = targetMuscles.takeIf { it.isNotEmpty() }?.joinToString(",")?.toRequestBody(textType)
+        val secondaryMusclesPart = secondaryMuscles.takeIf { it.isNotEmpty() }?.joinToString(",")?.toRequestBody(textType)
+        val exerciseTypePart = exerciseType?.toRequestBody(textType)
+        val instructionsPart = instructions?.toRequestBody(textType)
+        val difficultyPart = difficulty.toRequestBody(textType)
+        val imageUrlPart = imageUrl?.toRequestBody(textType)
+
+        return api.updateLocalExercise(
+            exerciseId = exerciseId,
+            name = namePart,
+            description = descriptionPart,
+            scheduledDays = scheduledDaysPart,
+            bodyparts = bodypartsPart,
+            equipment = equipmentPart,
+            targetMuscles = targetMusclesPart,
+            secondaryMuscles = secondaryMusclesPart,
+            exerciseType = exerciseTypePart,
+            instructions = instructionsPart,
+            difficulty = difficultyPart,
+            imageUrl = imageUrlPart,
+            image = null
+        ).toDomain()
+    }
+
     override suspend fun deleteExercise(exerciseId: Int) {
         api.deleteExercise(exerciseId)
     }

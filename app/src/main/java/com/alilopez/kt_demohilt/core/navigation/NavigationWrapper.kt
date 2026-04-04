@@ -27,6 +27,7 @@ import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.core.components.StartIoBanner
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseScreen
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.EditExerciseScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExerciseDetailScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
@@ -254,7 +255,7 @@ fun NavigationWrapper(
                                 navController.navigate(ExerciseDetail(exerciseId))
                             },
                             onNavigateToEditExercise = { exerciseId ->
-                                navController.navigate(AddExercise)
+                                navController.navigate(EditExercise(exerciseId))
                             },
                             onOpenDrawer = { scope.launch { drawerState.open() } },
                             membership = membership,
@@ -280,6 +281,14 @@ fun NavigationWrapper(
 
                     composable<AddExercise> {
                         AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
+                    }
+
+                    composable<EditExercise> { backStackEntry ->
+                        val route = backStackEntry.toRoute<EditExercise>()
+                        EditExerciseScreen(
+                            exerciseId = route.exerciseId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
                     }
 
                     composable<Progression> {
