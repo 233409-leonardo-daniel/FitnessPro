@@ -1,5 +1,10 @@
 package com.alilopez.kt_demohilt.features.exercise.presentation.screens
 
+import android.Manifest
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.Arrangement
@@ -10,12 +15,16 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.PhotoCamera
+import androidx.compose.material.icons.filled.PhotoLibrary
 import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,12 +49,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
 import com.alilopez.kt_demohilt.core.components.InputFitness
 import com.alilopez.kt_demohilt.features.exercise.presentation.viewmodels.EditExerciseViewModel
 
@@ -65,6 +80,8 @@ fun EditExerciseScreen(
     val selectedExerciseType by viewModel.selectedExerciseType.collectAsStateWithLifecycle()
     val selectedDifficulty by viewModel.selectedDifficulty.collectAsStateWithLifecycle()
     val selectedDays by viewModel.selectedDays.collectAsStateWithLifecycle()
+    val photoUri by viewModel.photoUri.collectAsStateWithLifecycle()
+    val photoTaken by viewModel.photoTaken.collectAsStateWithLifecycle()
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
@@ -76,6 +93,27 @@ fun EditExerciseScreen(
     val exerciseTypes = listOf("CARDIO", "FUERZA", "ESTIRAMIENTO", "AEROBICOS", "YOGA", "LEVANTAMIENTO DE PESAS", "PLIOMETRIA")
     val difficultyOptions = listOf("Facil", "Medio", "Dificil")
     val daysOfWeek = listOf("Lunes", "Martes", "Miercoles", "Jueves", "Viernes", "Sabado", "Domingo")
+
+    val takePictureLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success: Boolean ->
+        viewModel.onPhotoTaken(success)
+    }
+
+    val cameraPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { isGranted: Boolean ->
+        if (isGranted) {
+            val uri = viewModel.createPhotoUri()
+            takePictureLauncher.launch(uri)
+        }
+    }
+
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { viewModel.onGalleryImageSelected(it) }
+    }
 
     LaunchedEffect(exerciseId) {
         viewModel.loadExercise(exerciseId)
@@ -158,6 +196,109 @@ fun EditExerciseScreen(
                             .padding(bottom = 80.dp),
                         verticalArrangement = Arrangement.spacedBy(24.dp)
                     ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Text(
+                                text = "FOTO DEL EJERCICIO (OPCIONAL)",
+                                fontSize = 12.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = labelColor,
+                                letterSpacing = 1.2.sp,
+                                modifier = Modifier.padding(start = 4.dp)
+                            )
+
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(200.dp)
+                                    .clip(RoundedCornerShape(12.dp))
+                                    .border(
+                                        width = 1.dp,
+                                        color = if (photoTaken || !uiState.exercise?.gifUrl.isNullOrBlank()) {
+                                            Color(0xFF10B981)
+                                        } else {
+                                            textFieldBorder
+                                        },
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                val previewModel = photoUri ?: uiState.exercise?.gifUrl
+                                if (previewModel != null) {
+                                    AsyncImage(
+                                        model = ImageRequest.Builder(LocalContext.current)
+                                            .data(previewModel)
+                                            .crossfade(true)
+                                            .build(),
+                                        contentDescription = "Foto del ejercicio",
+                                        modifier = Modifier
+                                            .fillMaxSize()
+                                            .clip(RoundedCornerShape(12.dp)),
+                                        contentScale = ContentScale.Crop
+                                    )
+
+                                    Row(
+                                        modifier = Modifier
+                                            .align(Alignment.TopEnd)
+                                            .padding(8.dp),
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp)
+                                    ) {
+                                        EditExerciseSmallIconButton(
+                                            icon = Icons.Default.PhotoCamera,
+                                            onClick = { cameraPermissionLauncher.launch(Manifest.permission.CAMERA) }
+                                        )
+                                        EditExerciseSmallIconButton(
+                                            icon = Icons.Default.PhotoLibrary,
+                                            onClick = { galleryLauncher.launch("image/*") }
+                                        )
+                                    }
+                                } else {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(24.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                                            modifier = Modifier.clickable {
+                                                cameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.PhotoCamera,
+                                                contentDescription = "Tomar foto",
+                                                tint = labelColor,
+                                                modifier = Modifier.size(36.dp)
+                                            )
+                                            Text(text = "Camara", fontSize = 12.sp, color = placeholderColor)
+                                        }
+
+                                        Box(
+                                            modifier = Modifier
+                                                .width(1.dp)
+                                                .height(48.dp)
+                                                .background(textFieldBorder)
+                                        )
+
+                                        Column(
+                                            horizontalAlignment = Alignment.CenterHorizontally,
+                                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                                            modifier = Modifier.clickable {
+                                                galleryLauncher.launch("image/*")
+                                            }
+                                        ) {
+                                            Icon(
+                                                imageVector = Icons.Default.PhotoLibrary,
+                                                contentDescription = "Elegir de galeria",
+                                                tint = labelColor,
+                                                modifier = Modifier.size(36.dp)
+                                            )
+                                            Text(text = "Galeria", fontSize = 12.sp, color = placeholderColor)
+                                        }
+                                    }
+                                }
+                            }
+                        }
+
                         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(
                                 text = "NOMBRE DEL EJERCICIO",
@@ -407,6 +548,23 @@ fun EditExerciseScreen(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun EditExerciseSmallIconButton(icon: ImageVector, onClick: () -> Unit) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier
+            .background(Color.Black.copy(alpha = 0.45f), RoundedCornerShape(8.dp))
+            .size(36.dp)
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = null,
+            tint = Color.White,
+            modifier = Modifier.size(20.dp)
+        )
     }
 }
 

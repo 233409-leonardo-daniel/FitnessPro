@@ -2,6 +2,7 @@ package com.alilopez.kt_demohilt.features.exercise.domain.usecases
 
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.domain.repositories.ExerciseRepository
+import java.io.File
 import javax.inject.Inject
 
 class UpdateLocalExerciseUseCase @Inject constructor(
@@ -19,7 +20,8 @@ class UpdateLocalExerciseUseCase @Inject constructor(
         exerciseType: String? = null,
         instructions: String? = null,
         difficulty: String = "Facil",
-        imageUrl: String? = null
+        imageUrl: String? = null,
+        imageFile: File? = null
     ): Exercise {
         return repository.updateLocalExercise(
             exerciseId = exerciseId,
@@ -33,7 +35,8 @@ class UpdateLocalExerciseUseCase @Inject constructor(
             exerciseType = exerciseType,
             instructions = instructions,
             difficulty = difficulty,
-            imageUrl = imageUrl
+            imageUrl = imageUrl,
+            imageFile = imageFile
         )
     }
 }

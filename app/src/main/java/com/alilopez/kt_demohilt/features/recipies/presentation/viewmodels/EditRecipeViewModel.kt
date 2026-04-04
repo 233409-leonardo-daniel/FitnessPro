@@ -1,7 +1,9 @@
 package com.alilopez.kt_demohilt.features.recipies.presentation.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alilopez.kt_demohilt.core.hardware.domain.CameraPhotoManager
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.GetRecipesUseCase
 import com.alilopez.kt_demohilt.features.recipies.domain.usecases.UpdateRecipeUseCase
 import com.alilopez.kt_demohilt.features.recipies.presentation.screens.EditRecipeUIState
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EditRecipeViewModel @Inject constructor(
     private val getRecipesUseCase: GetRecipesUseCase,
-    private val updateRecipeUseCase: UpdateRecipeUseCase
+    private val updateRecipeUseCase: UpdateRecipeUseCase,
+    private val cameraPhotoManager: CameraPhotoManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditRecipeUIState())
@@ -40,6 +43,12 @@ class EditRecipeViewModel @Inject constructor(
     private val _selectedDays = MutableStateFlow<List<String>>(emptyList())
     val selectedDays: StateFlow<List<String>> = _selectedDays.asStateFlow()
 
+    private val _photoUri = MutableStateFlow<Uri?>(null)
+    val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
+
+    private val _photoTaken = MutableStateFlow(false)
+    val photoTaken: StateFlow<Boolean> = _photoTaken.asStateFlow()
+
     fun loadRecipe(recipeId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -54,6 +63,8 @@ class EditRecipeViewModel @Inject constructor(
                 _instructions.value = recipe?.instructions ?: ""
                 _selectedMealType.value = recipe?.mealType
                 _selectedDays.value = recipe?.scheduledDays ?: emptyList()
+                _photoUri.value = null
+                _photoTaken.value = false
 
                 _uiState.update {
                     it.copy(
@@ -100,6 +111,24 @@ class EditRecipeViewModel @Inject constructor(
         }
     }
 
+    fun onPhotoTaken(success: Boolean) {
+        _photoTaken.value = success
+    }
+
+    fun createPhotoUri(): Uri {
+        val uri = cameraPhotoManager.createPhotoUri()
+        _photoUri.value = uri
+        return uri
+    }
+
+    fun onGalleryImageSelected(uri: Uri) {
+        val file = cameraPhotoManager.copyGalleryImageToFile(uri)
+        if (file != null) {
+            _photoUri.value = uri
+            _photoTaken.value = true
+        }
+    }
+
     fun updateRecipe(recipeId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -114,7 +143,8 @@ class EditRecipeViewModel @Inject constructor(
                     userId = _uiState.value.recipe?.userId,
                     scheduledDays = _selectedDays.value,
                     mealType = _selectedMealType.value,
-                    imageUrl = _uiState.value.recipe?.imageUrl
+                    imageUrl = if (_photoTaken.value) null else _uiState.value.recipe?.imageUrl,
+                    imageFile = if (_photoTaken.value) cameraPhotoManager.getPhotoFile() else null
                 )
 
                 _uiState.update {

@@ -1,7 +1,9 @@
 package com.alilopez.kt_demohilt.features.exercise.presentation.viewmodels
 
+import android.net.Uri
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alilopez.kt_demohilt.core.hardware.domain.CameraPhotoManager
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExerciseByIdUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.UpdateLocalExerciseUseCase
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.EditExerciseUiState
@@ -16,7 +18,8 @@ import javax.inject.Inject
 @HiltViewModel
 class EditExerciseViewModel @Inject constructor(
     private val getExerciseByIdUseCase: GetExerciseByIdUseCase,
-    private val updateLocalExerciseUseCase: UpdateLocalExerciseUseCase
+    private val updateLocalExerciseUseCase: UpdateLocalExerciseUseCase,
+    private val cameraPhotoManager: CameraPhotoManager
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(EditExerciseUiState())
@@ -40,6 +43,12 @@ class EditExerciseViewModel @Inject constructor(
     private val _selectedDays = MutableStateFlow<List<String>>(emptyList())
     val selectedDays: StateFlow<List<String>> = _selectedDays.asStateFlow()
 
+    private val _photoUri = MutableStateFlow<Uri?>(null)
+    val photoUri: StateFlow<Uri?> = _photoUri.asStateFlow()
+
+    private val _photoTaken = MutableStateFlow(false)
+    val photoTaken: StateFlow<Boolean> = _photoTaken.asStateFlow()
+
     fun loadExercise(exerciseId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -53,6 +62,8 @@ class EditExerciseViewModel @Inject constructor(
                     _selectedExerciseType.value = exercise.exerciseType
                     _selectedDifficulty.value = exercise.difficulty ?: "Facil"
                     _selectedDays.value = exercise.scheduledDays
+                    _photoUri.value = null
+                    _photoTaken.value = false
 
                     _uiState.update {
                         it.copy(
@@ -101,6 +112,24 @@ class EditExerciseViewModel @Inject constructor(
         }
     }
 
+    fun onPhotoTaken(success: Boolean) {
+        _photoTaken.value = success
+    }
+
+    fun createPhotoUri(): Uri {
+        val uri = cameraPhotoManager.createPhotoUri()
+        _photoUri.value = uri
+        return uri
+    }
+
+    fun onGalleryImageSelected(uri: Uri) {
+        val file = cameraPhotoManager.copyGalleryImageToFile(uri)
+        if (file != null) {
+            _photoUri.value = uri
+            _photoTaken.value = true
+        }
+    }
+
     fun updateExercise(exerciseId: Int) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true, errorMessage = null) }
@@ -126,7 +155,8 @@ class EditExerciseViewModel @Inject constructor(
                     exerciseType = _selectedExerciseType.value,
                     instructions = _instructions.value.ifBlank { null },
                     difficulty = _selectedDifficulty.value.ifBlank { "Facil" },
-                    imageUrl = currentExercise.gifUrl.ifBlank { null }
+                    imageUrl = if (_photoTaken.value) null else currentExercise.gifUrl.ifBlank { null },
+                    imageFile = if (_photoTaken.value) cameraPhotoManager.getPhotoFile() else null
                 )
 
                 _uiState.update {

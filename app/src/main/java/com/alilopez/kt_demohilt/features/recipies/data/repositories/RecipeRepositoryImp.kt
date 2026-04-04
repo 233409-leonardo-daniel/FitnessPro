@@ -110,7 +110,8 @@ class RecipeRepositoryImp @Inject constructor(
         userId: Int?,
         scheduledDays: List<String>,
         mealType: String?,
-        imageUrl: String?
+        imageUrl: String?,
+        imageFile: File?
     ): Recipe {
         val namePart = name.toRequestBody("text/plain".toMediaTypeOrNull())
         val descriptionPart = description.toRequestBody("text/plain".toMediaTypeOrNull())
@@ -121,6 +122,11 @@ class RecipeRepositoryImp @Inject constructor(
         } else null
         val mealTypePart = mealType?.toRequestBody("text/plain".toMediaTypeOrNull())
         val imageUrlPart = imageUrl?.toRequestBody("text/plain".toMediaTypeOrNull())
+        val imagePart = imageFile?.let { file ->
+            val mediaType = "image/*".toMediaTypeOrNull()
+            val requestFile = file.asRequestBody(mediaType)
+            MultipartBody.Part.createFormData("image", file.name, requestFile)
+        }
 
         return fitnessProApi.updateRecipe(
             recipeId = recipeId,
@@ -132,7 +138,7 @@ class RecipeRepositoryImp @Inject constructor(
             mealType = mealTypePart,
             imageUrl = imageUrlPart,
             audioUrl = null,
-            image = null,
+            image = imagePart,
             audio = null
         ).toDomain()
     }

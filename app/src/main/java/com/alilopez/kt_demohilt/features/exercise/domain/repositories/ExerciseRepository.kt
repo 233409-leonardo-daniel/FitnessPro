@@ -42,7 +42,8 @@ interface ExerciseRepository {
         exerciseType: String?,
         instructions: String?,
         difficulty: String,
-        imageUrl: String?
+        imageUrl: String?,
+        imageFile: File?
     ): Exercise
     suspend fun deleteExercise(exerciseId: Int)
 }

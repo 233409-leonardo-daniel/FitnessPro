@@ -95,7 +95,8 @@ class ExercisesRepositoryImpl @Inject constructor(
         exerciseType: String?,
         instructions: String?,
         difficulty: String,
-        imageUrl: String?
+        imageUrl: String?,
+        imageFile: File?
     ): Exercise {
         val textType = "text/plain".toMediaTypeOrNull()
 
@@ -110,6 +111,11 @@ class ExercisesRepositoryImpl @Inject constructor(
         val instructionsPart = instructions?.toRequestBody(textType)
         val difficultyPart = difficulty.toRequestBody(textType)
         val imageUrlPart = imageUrl?.toRequestBody(textType)
+        val imagePart = imageFile?.let { file ->
+            val mediaType = "image/*".toMediaTypeOrNull()
+            val requestFile = file.asRequestBody(mediaType)
+            MultipartBody.Part.createFormData("image", file.name, requestFile)
+        }
 
         return api.updateLocalExercise(
             exerciseId = exerciseId,
@@ -124,7 +130,7 @@ class ExercisesRepositoryImpl @Inject constructor(
             instructions = instructionsPart,
             difficulty = difficultyPart,
             imageUrl = imageUrlPart,
-            image = null
+            image = imagePart
         ).toDomain()
     }
 
