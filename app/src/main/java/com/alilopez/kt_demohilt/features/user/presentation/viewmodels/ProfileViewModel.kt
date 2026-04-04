@@ -21,6 +21,10 @@ class ProfileViewModel @Inject constructor(
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
+    private companion object {
+        val VALID_MEMBERSHIPS = setOf("gratuito", "premium", "admin")
+    }
+
     private val _uiState = MutableStateFlow(ProfileUIState())
     val uiState: StateFlow<ProfileUIState> = _uiState.asStateFlow()
 
@@ -90,12 +94,22 @@ class ProfileViewModel @Inject constructor(
                     weight = _weight.value.toDoubleOrNull(),
                     height = _height.value.toDoubleOrNull(),
                     gender = _gender.value,
-                    membership = _uiState.value.user?.age?.toString() ?: "gratuito" // Using age as a placeholder for membership if not present
+                    membership = resolveMembershipForUpdate()
                 )
                 _uiState.update { it.copy(isLoading = false, isSuccess = true) }
             } catch (e: Exception) {
                 _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
             }
         }
+    }
+
+    private fun resolveMembershipForUpdate(): String {
+        val membershipFromProfile = _uiState.value.user?.membership?.trim()?.lowercase()
+        if (membershipFromProfile in VALID_MEMBERSHIPS) return membershipFromProfile!!
+
+        val membershipFromSession = sessionManager.membership.value?.trim()?.lowercase()
+        if (membershipFromSession in VALID_MEMBERSHIPS) return membershipFromSession!!
+
+        return "gratuito"
     }
 }

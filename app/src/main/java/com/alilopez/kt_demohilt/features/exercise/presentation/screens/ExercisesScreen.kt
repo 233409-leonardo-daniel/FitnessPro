@@ -41,10 +41,10 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.R
+import com.alilopez.kt_demohilt.core.components.PremiumGateContent
 import com.alilopez.kt_demohilt.core.components.SearchBar
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.presentation.components.ExerciseCard
@@ -84,6 +85,8 @@ private val bodyParts = listOf(
 fun ExercisesScreen(
     onNavigateToAddExercise: () -> Unit,
     onOpenDrawer: () -> Unit,
+    membership: String? = null,
+    onNavigateToPremium: () -> Unit = {},
     viewModel: ExerciseViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -220,15 +223,19 @@ fun ExercisesScreen(
                         secondaryTextColor = secondaryTextColor
                     )
 
-                    2 -> RemoteExercisesList(
-                        exercises = filteredRemoteExercises,
-                        uiState = uiState,
-                        viewModel = viewModel,
-                        textColor = textColor,
-                        accentColor = accentColor,
-                        clearButtonColor = clearButtonColor,
-                        surfaceColor = surfaceColor
-                    )
+                    2 -> if (membership != null && membership != "gratuito") {
+                        RemoteExercisesList(
+                            exercises = filteredRemoteExercises,
+                            uiState = uiState,
+                            viewModel = viewModel,
+                            textColor = textColor,
+                            accentColor = accentColor,
+                            clearButtonColor = clearButtonColor,
+                            surfaceColor = surfaceColor
+                        )
+                    } else {
+                        PremiumGateContent(onNavigateToPremium = onNavigateToPremium)
+                    }
                 }
             }
         }
