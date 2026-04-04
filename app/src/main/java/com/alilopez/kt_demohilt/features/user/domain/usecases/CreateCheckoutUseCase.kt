@@ -11,6 +11,6 @@ class CreateSubscriptionUseCase @Inject constructor(
         subscriptionRepository.createSubscription(userId, planId)
 
     companion object {
-        const val PREMIUM_PLAN_ID = 2
+        const val PREMIUM_PLAN_ID = 1
     }
 }

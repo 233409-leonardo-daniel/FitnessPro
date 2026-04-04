@@ -25,25 +25,12 @@ class PollPaymentStatusUseCase @Inject constructor(
             delay(intervalMs)
             try {
                 when (subscriptionRepository.getSubscriptionStatus(subscriptionId)) {
-                    SubscriptionStatus.AUTHORIZED -> {
-                        onResult(SubscriptionPollResult.Authorized)
-                        return
-                    }
-                    SubscriptionStatus.PAUSED -> {
-                        onResult(SubscriptionPollResult.Paused)
-                        return
-                    }
-                    SubscriptionStatus.CANCELLED -> {
-                        onResult(SubscriptionPollResult.Cancelled)
-                        return
-                    }
-                    SubscriptionStatus.PENDING, SubscriptionStatus.UNKNOWN -> {
-                        // Continue polling
-                    }
+                    SubscriptionStatus.AUTHORIZED -> { onResult(SubscriptionPollResult.Authorized); return }
+                    SubscriptionStatus.PAUSED     -> { onResult(SubscriptionPollResult.Paused);     return }
+                    SubscriptionStatus.CANCELLED  -> { onResult(SubscriptionPollResult.Cancelled);  return }
+                    SubscriptionStatus.PENDING, SubscriptionStatus.UNKNOWN -> Unit
                 }
-            } catch (e: Exception) {
-                // Network error - continue to next attempt
-            }
+            } catch (_: Exception) { }
         }
         onResult(SubscriptionPollResult.Timeout)
     }

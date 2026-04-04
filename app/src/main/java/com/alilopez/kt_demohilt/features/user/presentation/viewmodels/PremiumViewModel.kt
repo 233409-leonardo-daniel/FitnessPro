@@ -1,9 +1,9 @@
 package com.alilopez.kt_demohilt.features.user.presentation.viewmodels
 
-import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
+import com.alilopez.kt_demohilt.features.user.domain.entities.SubscriptionException
 import com.alilopez.kt_demohilt.features.user.domain.usecases.CreateSubscriptionUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.GetUserUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.PollPaymentStatusUseCase
@@ -16,8 +16,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import retrofit2.HttpException
-import java.io.IOException
 import javax.inject.Inject
 
 @HiltViewModel
@@ -39,33 +37,20 @@ class PremiumViewModel @Inject constructor(
                 val checkout = createSubscriptionUseCase(userId)
                 _uiState.update { it.copy(isLoading = false, checkoutUrl = checkout.checkoutUrl) }
                 pollSubscription(checkout.subscriptionId)
-            } catch (e: HttpException) {
-                val body = e.response()?.errorBody()?.string() ?: ""
-                Log.e("PremiumViewModel", "HTTP ${e.code()} al crear suscripción: $body")
-                val message = when (e.code()) {
-                    400 -> "Ya tienes una suscripción activa o pendiente. Si ya pagaste, espera unos minutos."
-                    404 -> "Usuario o plan no encontrado. Contacta soporte."
-                    503 -> "El sistema de pagos no está disponible. Intenta de nuevo."
-                    else -> "Error del servidor (${e.code()}). Intenta de nuevo."
+            } catch (e: SubscriptionException) {
+                val message = when (e) {
+                    is SubscriptionException.ActiveSubscriptionExists ->
+                        "Ya tienes una suscripción activa o pendiente. Si ya pagaste, espera unos minutos."
+                    is SubscriptionException.UserOrPlanNotFound ->
+                        "Usuario o plan no encontrado. Contacta soporte."
+                    is SubscriptionException.ServiceUnavailable ->
+                        "El sistema de pagos no está disponible. Intenta de nuevo."
+                    is SubscriptionException.NetworkUnavailable ->
+                        "Sin conexión. Verifica tu internet e intenta de nuevo."
+                    is SubscriptionException.Unexpected ->
+                        "No pudimos conectar con el sistema de pagos. Intenta de nuevo."
                 }
                 _uiState.update { it.copy(isLoading = false, errorMessage = message) }
-            } catch (e: IOException) {
-                Log.e("PremiumViewModel", "Error de red al crear suscripción", e)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "Sin conexión. Verifica tu internet e intenta de nuevo."
-                    )
-                }
-            } catch (e: Exception) {
-                Log.e("PremiumViewModel", "Error inesperado al crear suscripción", e)
-                _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        errorMessage = "No pudimos conectar con el sistema de pagos. Intenta de nuevo."
-                    )
-                }
-                Log.e("PremiumViewModel", "Error creating subscription", e)
             }
         }
     }
@@ -89,15 +74,9 @@ class PremiumViewModel @Inject constructor(
                                     token = sessionManager.accessToken ?: "",
                                     membership = user.membership
                                 )
-                            } catch (e: Exception) {
-                                // Refresh is best-effort
-                            }
+                            } catch (_: Exception) { }
                             _uiState.update {
-                                it.copy(
-                                    isPolling = false,
-                                    subscriptionResult = SubscriptionResult.AUTHORIZED,
-                                    isSuccess = true
-                                )
+                                it.copy(isPolling = false, subscriptionResult = SubscriptionResult.AUTHORIZED, isSuccess = true)
                             }
                         }
                     }
