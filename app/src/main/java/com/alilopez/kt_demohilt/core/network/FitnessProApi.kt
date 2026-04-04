@@ -146,6 +146,16 @@ interface FitnessProApi {
         @Path("user_id") userId: Int
     ): List<LocalExerciseDto>
 
+    @GET("exercises/local/{exercise_id}")
+    suspend fun getExerciseById(
+        @Path("exercise_id") exerciseId: Int
+    ): LocalExerciseDto
+
+    @DELETE("exercises/local/{exercise_id}")
+    suspend fun deleteExercise(
+        @Path("exercise_id") exerciseId: Int
+    )
+
     // --- WORKOUT PLANS ---
 
     @GET("workout_plans/user/{user_id}")

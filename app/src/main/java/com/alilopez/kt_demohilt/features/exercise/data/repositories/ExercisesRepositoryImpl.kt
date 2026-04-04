@@ -79,6 +79,14 @@ class ExercisesRepositoryImpl @Inject constructor(
         return api.getExercisesLocalByUserId(userId).map { it.toDomain() }
     }
 
+    override suspend fun getExerciseById(exerciseId: Int): Exercise {
+        return api.getExerciseById(exerciseId).toDomain()
+    }
+
+    override suspend fun deleteExercise(exerciseId: Int) {
+        api.deleteExercise(exerciseId)
+    }
+
     override suspend fun syncExercises() {
         Log.d("ExercisesRepository", "Iniciando syncExercises...")
         try {
