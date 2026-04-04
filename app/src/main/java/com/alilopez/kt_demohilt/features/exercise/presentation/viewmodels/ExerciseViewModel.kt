@@ -245,4 +245,23 @@ class ExerciseViewModel @Inject constructor(
     fun clearSearch() {
         _uiState.update { it.copy(searchQuery = "", isSearchActive = false) }
     }
+
+    fun onSearchQueryChange(query: String) {
+        _uiState.update {
+            it.copy(
+                searchQuery = query,
+                isSearchActive = if (query.isBlank()) false else it.isSearchActive
+            )
+        }
+    }
+
+    fun searchExercises() {
+        _uiState.update {
+            it.copy(isSearchActive = it.searchQuery.trim().isNotBlank())
+        }
+    }
+
+    fun clearSearch() {
+        _uiState.update { it.copy(searchQuery = "", isSearchActive = false) }
+    }
 }
