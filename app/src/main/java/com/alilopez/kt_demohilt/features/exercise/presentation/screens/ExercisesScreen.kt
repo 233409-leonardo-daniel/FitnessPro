@@ -320,7 +320,7 @@ private fun ExercisesTopSection(
                     onClick = { onPageSelected(1) }
                 )
                 CompactTab(
-                    title = "Remotos",
+                    title = "Premium",
                     selected = currentPage == 2,
                     accentColor = accentColor,
                     textColor = textColor,
