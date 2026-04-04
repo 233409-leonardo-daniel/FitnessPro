@@ -14,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -44,6 +45,13 @@ fun HomeScreen(
     val currentDay = uiState.day.ifBlank { "Hoy" }
     val todaysRecipes = uiState.recipes
     val todaysExercises = uiState.exercises
+
+    // Redirigir a completar perfil si es necesario
+    LaunchedEffect(uiState.isProfileIncomplete) {
+        if (uiState.isProfileIncomplete) {
+            onNavigateToProfileOnboarding()
+        }
+    }
 
     // Redirigir a completar perfil si es necesario
     LaunchedEffect(uiState.isProfileIncomplete) {

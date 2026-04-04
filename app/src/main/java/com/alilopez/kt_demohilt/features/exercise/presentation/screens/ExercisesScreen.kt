@@ -102,6 +102,19 @@ fun ExercisesScreen(
 
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
+    val query = uiState.searchQuery.trim()
+
+    val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
+        uiState.localExercises.filter { it.name.contains(query, ignoreCase = true) }
+    } else {
+        uiState.localExercises
+    }
+
+    val filteredExploreExercises = if (uiState.isSearchActive && query.isNotBlank()) {
+        uiState.exercises.filter { it.name.contains(query, ignoreCase = true) }
+    } else {
+        uiState.exercises
+    }
 
     val query = uiState.searchQuery.trim()
     val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
@@ -173,6 +186,21 @@ fun ExercisesScreen(
                 .padding(innerPadding)
                 .background(backgroundColor)
         ) {
+            SearchBar(
+                query = uiState.searchQuery,
+                onQueryChange = viewModel::onSearchQueryChange,
+                onSearch = { viewModel.searchExercises() },
+                onClear = { viewModel.clearSearch() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                placeholder = "Buscar ejercicio por nombre",
+                isDarkTheme = isDarkTheme,
+                accentColor = accentColor,
+                textColor = textColor,
+                secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
+            )
+
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
