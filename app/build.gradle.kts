@@ -10,6 +10,7 @@ plugins {
 android {
     namespace = "com.alilopez.kt_demohilt"
     compileSdk = 36
+    val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
 
     defaultConfig {
         applicationId = "com.alilopez.kt_demohilt"
@@ -20,7 +21,6 @@ android {
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
 
-        val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
         buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("BACKEND_URL")}\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${properties.getProperty("GOOGLE_CLIENT_ID")}\"")
         
@@ -54,6 +54,8 @@ android {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_RICK", "\"https://rickandmortyapi.com/api/\"")
             buildConfigField("String", "BASE_URL_JSON", "\"https://jsonplaceholder.typicode.com/\"")
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"ca-app-pub-3940256099942544/6300978111\"")
+            manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713"
             resValue("string", "app_name", "FitnessPro (DEV)")
         }
 
@@ -61,6 +63,8 @@ android {
             dimension = "environment"
             buildConfigField("String", "BASE_URL_RICK", "\"https://rickandmortyapi.com/api/\"")
             buildConfigField("String", "BASE_URL_JSON", "\"https://jsonplaceholder.typicode.com/\"")
+            buildConfigField("String", "ADMOB_BANNER_UNIT_ID", "\"${properties.getProperty("ADMOB_BANNER_UNIT_ID_PROD")}\"")
+            manifestPlaceholders["admobAppId"] = properties.getProperty("ADMOB_APP_ID_PROD")
             resValue("string", "app_name", "FitnessPro")
         }
     }
@@ -114,8 +118,8 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // Start.io Ads
-    implementation(libs.startio.sdk)
+    // Google AdMob
+    implementation("com.google.android.gms:play-services-ads:24.4.0")
 
     // Browser, MockK, Coroutines Test
     implementation(libs.androidx.browser)
