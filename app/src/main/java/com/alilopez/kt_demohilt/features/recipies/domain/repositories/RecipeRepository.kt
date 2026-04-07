@@ -28,7 +28,8 @@ interface RecipeRepository {
         userId: Int?,
         scheduledDays: List<String>,
         mealType: String?,
-        imageUrl: String?
+        imageUrl: String?,
+        imageFile: File?
     ): Recipe
     suspend fun deleteRecipe(recipeId: Int)
     suspend fun getCommunityRecipes(userId: Int): List<Recipe>

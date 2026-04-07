@@ -27,6 +27,8 @@ import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.core.components.StartIoBanner
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseScreen
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.EditExerciseScreen
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExerciseDetailScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
@@ -249,9 +251,23 @@ fun NavigationWrapper(
                             onNavigateToAddExercise = {
                                 navController.navigate(AddExercise)
                             },
+                            onNavigateToExerciseDetail = { exerciseId ->
+                                navController.navigate(ExerciseDetail(exerciseId))
+                            },
+                            onNavigateToEditExercise = { exerciseId ->
+                                navController.navigate(EditExercise(exerciseId))
+                            },
                             onOpenDrawer = { scope.launch { drawerState.open() } },
                             membership = membership,
                             onNavigateToPremium = { navController.navigate(Premium) { launchSingleTop = true } }
+                        )
+                    }
+
+                    composable<ExerciseDetail> { backStackEntry ->
+                        val route = backStackEntry.toRoute<ExerciseDetail>()
+                        ExerciseDetailScreen(
+                            exerciseId = route.exerciseId,
+                            onNavigateBack = { navController.popBackStack() }
                         )
                     }
 
@@ -265,6 +281,14 @@ fun NavigationWrapper(
 
                     composable<AddExercise> {
                         AddExerciseScreen(onNavigateBack = { navController.popBackStack() })
+                    }
+
+                    composable<EditExercise> { backStackEntry ->
+                        val route = backStackEntry.toRoute<EditExercise>()
+                        EditExerciseScreen(
+                            exerciseId = route.exerciseId,
+                            onNavigateBack = { navController.popBackStack() }
+                        )
                     }
 
                     composable<Progression> {

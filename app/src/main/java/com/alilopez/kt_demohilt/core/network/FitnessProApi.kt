@@ -146,6 +146,34 @@ interface FitnessProApi {
         @Path("user_id") userId: Int
     ): List<LocalExerciseDto>
 
+    @GET("exercises/local/{exercise_id}")
+    suspend fun getExerciseById(
+        @Path("exercise_id") exerciseId: Int
+    ): LocalExerciseDto
+
+    @Multipart
+    @PUT("exercises/local/{exercise_id}")
+    suspend fun updateLocalExercise(
+        @Path("exercise_id") exerciseId: Int,
+        @Part("name") name: RequestBody,
+        @Part("description") description: RequestBody,
+        @Part("scheduled_days") scheduledDays: RequestBody?,
+        @Part("bodyparts") bodyparts: RequestBody?,
+        @Part("equipment") equipment: RequestBody?,
+        @Part("target_muscles") targetMuscles: RequestBody?,
+        @Part("secondary_muscles") secondaryMuscles: RequestBody?,
+        @Part("exercise_type") exerciseType: RequestBody?,
+        @Part("instructions") instructions: RequestBody?,
+        @Part("difficulty") difficulty: RequestBody?,
+        @Part("image_url") imageUrl: RequestBody?,
+        @Part image: MultipartBody.Part?
+    ): LocalExerciseDto
+
+    @DELETE("exercises/local/{exercise_id}")
+    suspend fun deleteExercise(
+        @Path("exercise_id") exerciseId: Int
+    )
+
     // --- WORKOUT PLANS ---
 
     @GET("workout_plans/user/{user_id}")

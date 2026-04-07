@@ -31,6 +31,7 @@ import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
@@ -44,11 +45,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -59,6 +65,9 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.alilopez.kt_demohilt.R
 import com.alilopez.kt_demohilt.core.components.PremiumGateContent
@@ -85,6 +94,8 @@ private val bodyParts = listOf(
 fun ExercisesScreen(
     onNavigateToAddExercise: () -> Unit,
     onOpenDrawer: () -> Unit,
+    onNavigateToExerciseDetail: (Int) -> Unit = {},
+    onNavigateToEditExercise: (Int) -> Unit = {},
     membership: String? = null,
     onNavigateToPremium: () -> Unit = {},
     viewModel: ExerciseViewModel = hiltViewModel()
@@ -92,16 +103,21 @@ fun ExercisesScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
 
-    // Usar colores del tema unificado
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
     val accentColor = Color(0xFF10B981)
     val clearButtonColor = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
 
+    val currentUserId = viewModel.currentUserId
+
+    var showDeleteDialog by remember { mutableStateOf(false) }
+    var exerciseToDelete by remember { mutableStateOf<Exercise?>(null) }
+
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
     val query = uiState.searchQuery.trim()
+    val lifecycleOwner = LocalLifecycleOwner.current
 
     val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
         uiState.localExercises.filter { it.name.contains(query, ignoreCase = true) }
@@ -124,6 +140,21 @@ fun ExercisesScreen(
             1 -> if (uiState.communityExercises.isEmpty()) viewModel.loadCommunityExercises()
             2 -> if (uiState.exercises.isEmpty()) viewModel.loadRemoteExercises()
         }
+    }
+
+    LaunchedEffect(uiState.exerciseDeleted) {
+        if (uiState.exerciseDeleted) viewModel.resetExerciseDeleted()
+    }
+
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) {
+                viewModel.loadUserExercises()
+            }
+        }
+
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
 
     Scaffold(
@@ -171,21 +202,6 @@ fun ExercisesScreen(
                 .padding(innerPadding)
                 .background(backgroundColor)
         ) {
-            SearchBar(
-                query = uiState.searchQuery,
-                onQueryChange = viewModel::onSearchQueryChange,
-                onSearch = { viewModel.searchExercises() },
-                onClear = { viewModel.clearSearch() },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp),
-                placeholder = "Buscar ejercicio por nombre",
-                isDarkTheme = isDarkTheme,
-                accentColor = accentColor,
-                textColor = textColor,
-                secondaryTextColor = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B)
-            )
-
             HorizontalPager(
                 state = pagerState,
                 modifier = Modifier.fillMaxSize(),
@@ -197,7 +213,14 @@ fun ExercisesScreen(
                         isSearchActive = uiState.isSearchActive,
                         accentColor = accentColor,
                         secondaryTextColor = secondaryTextColor,
-                        onNavigateToAddExercise = onNavigateToAddExercise
+                        currentUserId = currentUserId,
+                        onNavigateToAddExercise = onNavigateToAddExercise,
+                        onNavigateToDetail = onNavigateToExerciseDetail,
+                        onNavigateToEdit = onNavigateToEditExercise,
+                        onDelete = { exercise ->
+                            exerciseToDelete = exercise
+                            showDeleteDialog = true
+                        }
                     )
 
                     1 -> CommunityExercisesList(
@@ -205,7 +228,14 @@ fun ExercisesScreen(
                         isLoading = uiState.isLoading,
                         isSearchActive = uiState.isSearchActive,
                         accentColor = accentColor,
-                        secondaryTextColor = secondaryTextColor
+                        secondaryTextColor = secondaryTextColor,
+                        currentUserId = currentUserId,
+                        onNavigateToDetail = onNavigateToExerciseDetail,
+                        onNavigateToEdit = onNavigateToEditExercise,
+                        onDelete = { exercise ->
+                            exerciseToDelete = exercise
+                            showDeleteDialog = true
+                        }
                     )
 
                     2 -> if (membership != null && membership != "gratuito") {
@@ -215,13 +245,45 @@ fun ExercisesScreen(
                             viewModel = viewModel,
                             textColor = textColor,
                             accentColor = accentColor,
-                            clearButtonColor = clearButtonColor
+                            clearButtonColor = clearButtonColor,
+                            onNavigateToDetail = onNavigateToExerciseDetail
                         )
                     } else {
                         PremiumGateContent(onNavigateToPremium = onNavigateToPremium)
                     }
                 }
             }
+        }
+
+        if (showDeleteDialog && exerciseToDelete != null) {
+            AlertDialog(
+                onDismissRequest = {
+                    showDeleteDialog = false
+                    exerciseToDelete = null
+                },
+                title = { Text("Eliminar ejercicio") },
+                text = { Text("¿Estás seguro de que deseas eliminar \"${exerciseToDelete?.name}\"?") },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            exerciseToDelete?.id?.let { id -> viewModel.deleteExercise(id) }
+                            showDeleteDialog = false
+                            exerciseToDelete = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                    ) {
+                        Text("Eliminar", color = Color.White)
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = {
+                        showDeleteDialog = false
+                        exerciseToDelete = null
+                    }) {
+                        Text("Cancelar")
+                    }
+                }
+            )
         }
     }
 }
@@ -376,7 +438,11 @@ private fun LocalExercisesList(
     isSearchActive: Boolean,
     accentColor: Color,
     secondaryTextColor: Color,
-    onNavigateToAddExercise: () -> Unit
+    currentUserId: Int?,
+    onNavigateToAddExercise: () -> Unit,
+    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToEdit: (Int) -> Unit,
+    onDelete: (Exercise) -> Unit
 ) {
     if (localExercises.isEmpty()) {
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
@@ -422,7 +488,12 @@ private fun LocalExercisesList(
                     instructions = exercise.instructions,
                     isLocal = true,
                     exerciseType = exercise.exerciseType,
-                    difficulty = exercise.difficulty
+                    difficulty = exercise.difficulty,
+                    currentUserId = currentUserId,
+                    exerciseUserId = exercise.userId,
+                    onClick = { exercise.id?.let { onNavigateToDetail(it) } },
+                    onEdit = { exercise.id?.let { onNavigateToEdit(it) } },
+                    onDelete = { onDelete(exercise) }
                 )
             }
         }
@@ -435,7 +506,11 @@ private fun CommunityExercisesList(
     isLoading: Boolean,
     isSearchActive: Boolean,
     accentColor: Color,
-    secondaryTextColor: Color
+    secondaryTextColor: Color,
+    currentUserId: Int?,
+    onNavigateToDetail: (Int) -> Unit,
+    onNavigateToEdit: (Int) -> Unit,
+    onDelete: (Exercise) -> Unit
 ) {
     when {
         isLoading -> {
@@ -467,7 +542,12 @@ private fun CommunityExercisesList(
                     ExerciseCard(
                         name = exercise.name,
                         imageUrl = exercise.gifUrl,
-                        instructions = exercise.instructions
+                        instructions = exercise.instructions,
+                        currentUserId = currentUserId,
+                        exerciseUserId = exercise.userId,
+                        onClick = { exercise.id?.let { onNavigateToDetail(it) } },
+                        onEdit = { exercise.id?.let { onNavigateToEdit(it) } },
+                        onDelete = { onDelete(exercise) }
                     )
                 }
             }
@@ -482,7 +562,8 @@ private fun RemoteExercisesList(
     viewModel: ExerciseViewModel,
     textColor: Color,
     accentColor: Color,
-    clearButtonColor: Color
+    clearButtonColor: Color,
+    onNavigateToDetail: (Int) -> Unit
 ) {
     Column(modifier = Modifier.fillMaxSize()) {
         Box(
@@ -586,7 +667,8 @@ private fun RemoteExercisesList(
                         ExerciseCard(
                             name = exercise.name,
                             imageUrl = exercise.gifUrl,
-                            instructions = exercise.instructions
+                            instructions = exercise.instructions,
+                            onClick = { exercise.id?.let { onNavigateToDetail(it) } }
                         )
                     }
                 }

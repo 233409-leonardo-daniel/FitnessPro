@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.DeleteExerciseUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetCommunityExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByBodyPartUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByUserIdUseCase
@@ -23,6 +24,7 @@ class ExerciseViewModel @Inject constructor(
     private val getExercisesByBodyPartUseCase: GetExercisesByBodyPartUseCase,
     private val getExercisesByUserIdUseCase: GetExercisesByUserIdUseCase,
     private val getCommunityExercisesUseCase: GetCommunityExercisesUseCase,
+    private val deleteExerciseUseCase: DeleteExerciseUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private companion object {
@@ -244,5 +246,26 @@ class ExerciseViewModel @Inject constructor(
 
     fun clearSearch() {
         _uiState.update { it.copy(searchQuery = "", isSearchActive = false) }
+    }
+
+    fun deleteExercise(exerciseId: Int) {
+        viewModelScope.launch {
+            try {
+                deleteExerciseUseCase(exerciseId)
+                _uiState.update { state ->
+                    state.copy(
+                        exerciseDeleted = true,
+                        localExercises = state.localExercises.filter { it.id != exerciseId },
+                        communityExercises = state.communityExercises.filter { it.id != exerciseId }
+                    )
+                }
+            } catch (e: Exception) {
+                _uiState.update { it.copy(error = e.message) }
+            }
+        }
+    }
+
+    fun resetExerciseDeleted() {
+        _uiState.update { it.copy(exerciseDeleted = false) }
     }
 }

@@ -17,6 +17,7 @@ fun ExercisesDto.toDomain(): Exercise {
 fun LocalExerciseDto.toDomain(): Exercise {
     return Exercise(
         exerciseId = this.id.toString(),
+        id = this.id,
         name = this.name,
         gifUrl = this.imageUrl ?: "",
         targetMuscles = this.targetMuscles,

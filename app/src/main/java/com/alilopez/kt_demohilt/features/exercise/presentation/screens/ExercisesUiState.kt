@@ -14,5 +14,6 @@ data class ExercisesUiState(
     val isSyncing: Boolean = false,
     val isFiltered: Boolean = false,
     val searchQuery: String = "",
-    val isSearchActive: Boolean = false
+    val isSearchActive: Boolean = false,
+    val exerciseDeleted: Boolean = false
 )

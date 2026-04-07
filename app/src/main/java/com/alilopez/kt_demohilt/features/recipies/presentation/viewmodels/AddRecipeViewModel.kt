@@ -91,6 +91,14 @@ class AddRecipeViewModel @Inject constructor(
         return uri
     }
 
+    fun onGalleryImageSelected(uri: Uri) {
+        val file = cameraPhotoManager.copyGalleryImageToFile(uri)
+        if (file != null) {
+            _photoUri.value = uri
+            _uiState.update { it.copy(photoTaken = true) }
+        }
+    }
+
     fun hasCamera(): Boolean = cameraPhotoManager.hasCamera()
 
     // --- Audio recording ---

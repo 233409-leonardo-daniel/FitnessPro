@@ -7,5 +7,6 @@ interface CameraPhotoManager {
     fun createPhotoUri(): Uri
     fun getPhotoFile(): File?
     fun hasCamera(): Boolean
+    fun copyGalleryImageToFile(uri: Uri): File?
 }
 
