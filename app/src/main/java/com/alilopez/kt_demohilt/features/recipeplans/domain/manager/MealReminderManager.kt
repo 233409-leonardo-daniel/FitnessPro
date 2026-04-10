@@ -3,6 +3,7 @@ package com.alilopez.kt_demohilt.features.recipeplans.domain.manager
 import androidx.work.Constraints
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.alilopez.kt_demohilt.features.recipeplans.data.workers.MealReminderWorker
@@ -23,7 +24,7 @@ class MealReminderManager @Inject constructor(
             .setRequiredNetworkType(NetworkType.CONNECTED)
             .build()
 
-        // Ejecutar cada 4 horas para revisar si toca alguna comida
+        // Ejecutar cada 15 minutos para la prueba (mínimo permitido por Android)
         val mealWorkRequest = PeriodicWorkRequestBuilder<MealReminderWorker>(
             4, TimeUnit.HOURS
         )
@@ -33,9 +34,17 @@ class MealReminderManager @Inject constructor(
 
         workManager.enqueueUniquePeriodicWork(
             MEAL_REMINDER_WORK_NAME,
-            ExistingPeriodicWorkPolicy.KEEP, // Mantiene la existente si ya está programada
+            ExistingPeriodicWorkPolicy.UPDATE, // Forzamos la actualización para que tome los cambios del Worker
             mealWorkRequest
         )
+    }
+
+    // NUEVA FUNCIÓN: Dispara la notificación AL INSTANTE para probar ahora mismo
+    fun runTestNow() {
+        val testRequest = OneTimeWorkRequestBuilder<MealReminderWorker>()
+            .addTag("meal_test_now")
+            .build()
+        workManager.enqueue(testRequest)
     }
 
     fun cancelReminders() {

@@ -92,4 +92,8 @@ class UserRepositoryImp @Inject constructor(
         val userDto = fitnessProApi.updateUser(id, userUpdateDto)
         return userDto.toDomain()
     }
+
+    override suspend fun updateFcmToken(userId: Int, token: String) {
+        fitnessProApi.updateFcmToken(userId, mapOf("fcm_token" to token))
+    }
 }

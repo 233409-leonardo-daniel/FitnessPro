@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.features.user.data.workers
 
 import android.content.Context
+import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.WorkerParameters
@@ -19,18 +20,22 @@ class SyncSubscriptionWorker @AssistedInject constructor(
 
     override suspend fun doWork(): Result {
         val subscriptionId = inputData.getInt("subscription_id", -1)
+        Log.d("SYNC_WORKER", "Iniciando sincronización para ID: $subscriptionId")
+        
         if (subscriptionId == -1) return Result.failure()
 
         return try {
             val status = repository.getSubscriptionStatus(subscriptionId)
-            // Aquí podrías guardar el status en Room si tuvieras una DB local para el usuario
+            Log.d("SYNC_WORKER", "Estado obtenido del servidor: $status")
             
+            // Aquí la notificación se muestra SOLO si el Worker termina con éxito
             notificationHelper.showPaymentNotification(
                 "¡Pago Confirmado!",
                 "Tu suscripción ahora está activa. ¡Disfruta de FitnessPro!"
             )
             Result.success()
         } catch (e: Exception) {
+            Log.e("SYNC_WORKER", "Error en la sincronización: ${e.message}")
             if (runAttemptCount < 3) Result.retry() else Result.failure()
         }
     }

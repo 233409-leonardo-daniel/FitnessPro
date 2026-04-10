@@ -32,4 +32,5 @@ interface UserRepository {
         membership: String?,
         targetWeight: Float? = null
     ): User
+    suspend fun updateFcmToken(userId: Int, token: String)
 }

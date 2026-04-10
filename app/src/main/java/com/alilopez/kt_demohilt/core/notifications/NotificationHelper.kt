@@ -8,12 +8,13 @@ import android.content.Intent
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import com.alilopez.kt_demohilt.MainActivity
+import dagger.hilt.android.qualifiers.ApplicationContext
 import javax.inject.Inject
 import javax.inject.Singleton
 
 @Singleton
 class NotificationHelper @Inject constructor(
-    private val context: Context
+    @ApplicationContext private val context: Context
 ) {
     private val notificationManager =
         context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -21,8 +22,11 @@ class NotificationHelper @Inject constructor(
     companion object {
         const val PAYMENT_CHANNEL_ID = "payment_channel"
         const val MEAL_CHANNEL_ID = "meal_channel"
+        const val CONTENT_CHANNEL_ID = "content_channel"
+        
         const val PAYMENT_NOTIFICATION_ID = 1001
         const val MEAL_NOTIFICATION_ID = 1002
+        const val CONTENT_NOTIFICATION_ID = 1003
     }
 
     init {
@@ -47,41 +51,43 @@ class NotificationHelper @Inject constructor(
                 description = "Avisos para tus desayunos, comidas y cenas"
             }
 
+            val contentChannel = NotificationChannel(
+                CONTENT_CHANNEL_ID,
+                "Novedades de la Comunidad",
+                NotificationManager.IMPORTANCE_DEFAULT
+            ).apply {
+                description = "Avisos sobre nuevas recetas y ejercicios"
+            }
+
             notificationManager.createNotificationChannel(paymentChannel)
             notificationManager.createNotificationChannel(mealChannel)
+            notificationManager.createNotificationChannel(contentChannel)
         }
     }
 
     fun showPaymentNotification(title: String, message: String) {
+        showBasicNotification(title, message, PAYMENT_CHANNEL_ID, PAYMENT_NOTIFICATION_ID)
+    }
+
+    fun showMealNotification(title: String, message: String) {
+        showBasicNotification(title, message, MEAL_CHANNEL_ID, MEAL_NOTIFICATION_ID)
+    }
+
+    fun showContentNotification(title: String, message: String) {
+        showBasicNotification(title, message, CONTENT_CHANNEL_ID, CONTENT_NOTIFICATION_ID)
+    }
+
+    private fun showBasicNotification(title: String, message: String, channelId: String, notificationId: Int) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
         val pendingIntent = PendingIntent.getActivity(
-            context, 0, intent,
+            context, notificationId, intent,
             PendingIntent.FLAG_IMMUTABLE
         )
 
-        val notification = NotificationCompat.Builder(context, PAYMENT_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_dialog_info) // Cambiar por icono de la app luego
-            .setContentTitle(title)
-            .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_HIGH)
-            .setAutoCancel(true)
-            .setContentIntent(pendingIntent)
-            .build()
-
-        notificationManager.notify(PAYMENT_NOTIFICATION_ID, notification)
-    }
-
-    fun showMealNotification(title: String, message: String) {
-        val intent = Intent(context, MainActivity::class.java)
-        val pendingIntent = PendingIntent.getActivity(
-            context, 1, intent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
-        val notification = NotificationCompat.Builder(context, MEAL_CHANNEL_ID)
-            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+        val notification = NotificationCompat.Builder(context, channelId)
+            .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(message)
             .setPriority(NotificationCompat.PRIORITY_DEFAULT)
@@ -89,6 +95,6 @@ class NotificationHelper @Inject constructor(
             .setContentIntent(pendingIntent)
             .build()
 
-        notificationManager.notify(MEAL_NOTIFICATION_ID, notification)
+        notificationManager.notify(notificationId, notification)
     }
 }
