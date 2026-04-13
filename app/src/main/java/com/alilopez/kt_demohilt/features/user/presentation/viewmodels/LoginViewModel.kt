@@ -6,9 +6,11 @@ import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.user.data.datasources.remote.model.GoogleErrorResponseDto
 import com.alilopez.kt_demohilt.features.user.domain.usecases.LoginWithGoogleUseCase
+import com.alilopez.kt_demohilt.features.user.domain.usecases.UpdateFcmTokenUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.UserLoginUseCase
 import com.alilopez.kt_demohilt.features.user.domain.usecases.UserRegisterUseCase
 import com.alilopez.kt_demohilt.features.user.presentation.screens.LoginUIState
+import com.google.firebase.messaging.FirebaseMessaging
 import com.google.gson.Gson
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -16,6 +18,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.tasks.await
 import retrofit2.HttpException
 import javax.inject.Inject
 
@@ -24,6 +27,7 @@ class LoginViewModel @Inject constructor(
     private val userLoginUseCase: UserLoginUseCase,
     private val loginWithGoogleUseCase: LoginWithGoogleUseCase,
     private val userRegisterUseCase: UserRegisterUseCase,
+    private val updateFcmTokenUseCase: UpdateFcmTokenUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -138,6 +142,18 @@ class LoginViewModel @Inject constructor(
         if (token.isNotEmpty()) {
             Log.d("GoogleLogin", "Login exitoso. Guardando sesión...")
             sessionManager.saveSession(userId, token, membership)
+            
+            // Registramos el token de FCM en el backend
+            viewModelScope.launch {
+                try {
+                    val fcmToken = FirebaseMessaging.getInstance().token.await()
+                    updateFcmTokenUseCase(userId, fcmToken)
+                    Log.d("FCM", "Token registrado con éxito en el backend")
+                } catch (e: Exception) {
+                    Log.e("FCM", "Error al registrar token: ${e.message}")
+                }
+            }
+
             _uiState.update { it.copy(isLoggedIn = true, isLoading = false) }
         } else {
             Log.w("GoogleLogin", "Login fallido: El token del servidor está vacío")

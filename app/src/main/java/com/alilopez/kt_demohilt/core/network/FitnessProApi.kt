@@ -305,4 +305,10 @@ interface FitnessProApi {
     suspend fun getSubscriptionStatus(
         @Path("subscription_id") subscriptionId: Int
     ): SubscriptionStatusResponseDto
+
+    @POST("users/{user_id}/fcm-token")
+    suspend fun updateFcmToken(
+        @Path("user_id") userId: Int,
+        @Body body: Map<String, String>
+    )
 }

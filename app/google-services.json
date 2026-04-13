@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "387016122069",
+    "project_id": "fitnesspro-d89da",
+    "storage_bucket": "fitnesspro-d89da.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:387016122069:android:a7e5af1af65ab68e6d4c5c",
+        "android_client_info": {
+          "package_name": "com.alilopez.kt_demohilt"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCJ1guqwN-_TvmBh6boSYE3PcHHgNhMEcs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

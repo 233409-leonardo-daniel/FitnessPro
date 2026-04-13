@@ -5,6 +5,7 @@ plugins {
     alias(libs.plugins.jetbrainsKotlinSerialization)
     alias(libs.plugins.devtools.ksp)
     alias(libs.plugins.hilt.android)
+    alias(libs.plugins.google.services)
 }
 
 android {
@@ -24,7 +25,6 @@ android {
         buildConfigField("String", "BACKEND_URL", "\"${properties.getProperty("BACKEND_URL")}\"")
         buildConfigField("String", "GOOGLE_CLIENT_ID", "\"${properties.getProperty("GOOGLE_CLIENT_ID")}\"")
         
-        // AÑADE ESTA LÍNEA PARA SOLUCIONAR EL ERROR DEL MANIFEST
         manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713" 
     }
 
@@ -105,7 +105,6 @@ dependencies {
     implementation(libs.androidx.navigation.compose)
     implementation(libs.androidx.compose.material.icons.extended)
     
-    // Google Login
     implementation(libs.google.auth.credentials)
     implementation(libs.google.auth.play.services)
     implementation(libs.google.auth.id)
@@ -118,18 +117,20 @@ dependencies {
     implementation(libs.room.ktx)
     ksp(libs.room.compiler)
 
-    // Start.io Ads
     implementation(libs.startio)
-
-    // MPAndroidChart
     implementation(libs.mpandroidchart)
-    // Google AdMob
     implementation("com.google.android.gms:play-services-ads:24.4.0")
 
-    // Browser, MockK, Coroutines Test
     implementation(libs.androidx.browser)
     testImplementation(libs.mockk)
     testImplementation(libs.kotlinx.coroutines.test)
+
+    // Firebase & WorkManager
+    implementation(platform(libs.firebase.bom))
+    implementation(libs.firebase.messaging)
+    implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.androidx.hilt.work)
+    ksp(libs.androidx.hilt.compiler) // Referencia corregida al catálogo
 
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
