@@ -11,6 +11,7 @@ import com.alilopez.kt_demohilt.features.exercise.data.datasources.local.mapper.
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.mapper.toDomain
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
+import com.alilopez.kt_demohilt.features.exercise.domain.entities.PaginatedExercises
 import com.alilopez.kt_demohilt.features.exercise.domain.repositories.ExerciseRepository
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -35,20 +36,38 @@ class ExercisesRepositoryImpl @Inject constructor(
         private const val START_IMAGE_QUALITY = 88
         private const val MIN_IMAGE_QUALITY = 55
     }
-
-    override suspend fun getRemoteExercises(): List<Exercise> {
+    override suspend fun getRemoteExercises(
+        limit: Int,
+        offset: Int?
+    ): PaginatedExercises {
         val response = api.getExercisesRemote(
-            limit = 25
+            limit = limit,
+            offset = offset
         )
-        return response.data.map { it.toDomain() }
+        return PaginatedExercises(
+            exercises = response.data.map { it.toDomain() },
+            hasNextPage = response.meta.hasNextPage,
+            nextCursor = response.meta.nextCursor,
+            total = response.meta.total
+        )
     }
 
-    override suspend fun getRemoteExercisesByBodyPart(bodyPart: String): List<Exercise> {
+    override suspend fun getRemoteExercisesByBodyPart(
+        bodyPart: String,
+        limit: Int,
+        offset: Int?
+    ): PaginatedExercises {
         val response = api.getExercisesByBodyPartRemote(
-            limit = 25,
-            bodyPart = bodyPart
+            bodyPart = bodyPart,
+            limit = limit,
+            offset = offset
         )
-        return response.data.map { it.toDomain() }
+        return PaginatedExercises(
+            exercises = response.data.map { it.toDomain() },
+            hasNextPage = response.meta.hasNextPage,
+            nextCursor = response.meta.nextCursor,
+            total = response.meta.total
+        )
     }
 
     override suspend fun getCommunityExercises(userId: Int): List<Exercise> {

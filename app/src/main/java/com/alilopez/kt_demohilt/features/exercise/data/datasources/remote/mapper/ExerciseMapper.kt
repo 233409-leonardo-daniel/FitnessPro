@@ -8,9 +8,13 @@ fun ExercisesDto.toDomain(): Exercise {
     return Exercise(
         exerciseId = this.exerciseId,
         name = this.name,
-        gifUrl = this.gifUrl,
+        gifUrl = "", // API remota v1.6.1 ya no provee imágenes
         targetMuscles = this.targetMuscles,
-        instructions = this.instructions
+        bodyparts = this.bodyParts,
+        equipments = this.equipments,
+        secondaryMuscles = this.secondaryMuscles,
+        instructions = this.instructions,
+        exerciseType = this.exerciseType
     )
 }
 

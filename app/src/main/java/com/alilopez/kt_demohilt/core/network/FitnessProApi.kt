@@ -1,6 +1,6 @@
 package com.alilopez.kt_demohilt.core.network
 
-import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExercisesResponse
+import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.ExerciseListResponse
 import com.alilopez.kt_demohilt.features.exercise.data.datasources.remote.model.LocalExerciseDto
 import com.alilopez.kt_demohilt.features.progression.data.datasources.remote.model.AddProgressionEntryDto
 import com.alilopez.kt_demohilt.features.progression.data.datasources.remote.model.ProgressionEntryDto
@@ -110,14 +110,16 @@ interface FitnessProApi {
 
     @GET("exercises/remote")
     suspend fun getExercisesRemote(
-        @Query("limit") limit: Int
-    ): ExercisesResponse
+        @Query("limit") limit: Int = 25,
+        @Query("offset") offset: Int? = null
+    ): ExerciseListResponse
 
-    @GET("exercises/bodyPart")
+    @GET("exercises/bodypart/{bodypart}")
     suspend fun getExercisesByBodyPartRemote(
-        @Query("limit") limit: Int,
-        @Query("bodyParts") bodyPart: String
-    ): ExercisesResponse
+        @Path("bodypart") bodyPart: String,
+        @Query("limit") limit: Int = 25,
+        @Query("offset") offset: Int? = null
+    ): ExerciseListResponse
 
     @GET("exercises/community/{user_id}")
     suspend fun getCommunityExercises(
@@ -257,10 +259,15 @@ interface FitnessProApi {
         @Path("name") name: String
     ): List<LocalExerciseDto>
 
-    @GET("users/{user_id}/daily-content")
+    @GET("users/{user_id}/daily")
     suspend fun getUserDailyContent(
         @Path("user_id") userId: Int
     ): UserDailyResponse
+
+    @GET("exercises/remote/search/{name}")
+    suspend fun searchRemoteExercises(
+        @Path("name") name: String
+    ): ExerciseListResponse
 
     @GET("recipes/community/{user_id}")
     suspend fun getCommunityRecipes(
