@@ -31,6 +31,15 @@ Cómo cambiar la versión en el changelog:
 
 (Nota: el versionamiento en este archivo es manual; si usan git tags, pueden agregar tags aparte.)
 
+## [3.3.6] - 2026-04-13
+
+### Added
+- Se implementó la descarga de ejercicios en segundo plano usando `WorkManager` (Función Premium).
+- Se añadió el campo `offline_available` a la base de datos Room (`ExerciseEntity`) incrementando la versión a 3.
+- Se creó `DownloadExerciseWorker` para gestionar las descargas con restricciones de batería y red (Wi-Fi).
+- Se creó `DownloadExerciseUseCase` para encolar la tarea de descarga.
+- Se actualizó `ExerciseCard` para mostrar un botón de descarga, que encola el trabajo para usuarios Premium o muestra el upsell para usuarios Free.
+
 ## [3.3.5] - 2026-03-29
 ### Added
 - Se agrego un nuevo endpoint para buscar recetas y ejercicios por nombre, con soporte para ambos en la pagina de home

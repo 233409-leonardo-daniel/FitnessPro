@@ -17,7 +17,8 @@ fun ExerciseEntity.toDomain() = Exercise(
     secondaryMuscles = secondaryMuscles.split(",").map { it.trim() },
     exerciseType = exercise_type,
     difficulty = difficulty,
-    private = private
+    private = private,
+    offlineAvailable = offline_available
 )
 
 fun Exercise.toEntity() = ExerciseEntity(
@@ -34,6 +35,7 @@ fun Exercise.toEntity() = ExerciseEntity(
     exercise_type = exerciseType ?: "",
     instruccions = instructions.joinToString(","),
     difficulty = difficulty ?: "",
-    private = private
+    private = private,
+    offline_available = offlineAvailable
 )
 

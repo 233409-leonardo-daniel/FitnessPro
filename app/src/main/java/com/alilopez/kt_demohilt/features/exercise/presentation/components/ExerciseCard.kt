@@ -17,6 +17,8 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.DownloadDone
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Image
 import androidx.compose.material3.Card
@@ -68,9 +70,11 @@ fun ExerciseCard(
     accentColor: Color = Color(0xFF10B981),
     currentUserId: Int? = null,
     exerciseUserId: Int? = null,
+    offlineAvailable: Boolean = false,
     onClick: (() -> Unit)? = null,
     onEdit: (() -> Unit)? = null,
     onDelete: (() -> Unit)? = null,
+    onDownload: (() -> Unit)? = null,
     onRemoveClick: (() -> Unit)? = null
 ) {
     val isDarkTheme = MaterialTheme.colorScheme.background.luminance() < 0.5f
@@ -173,6 +177,16 @@ fun ExerciseCard(
                                         tint = Color(0xFFEF4444)
                                     )
                                 }
+                            }
+                        }
+                        
+                        if (onDownload != null) {
+                            IconButton(onClick = onDownload) {
+                                Icon(
+                                    imageVector = if (offlineAvailable) Icons.Default.DownloadDone else Icons.Default.Download,
+                                    contentDescription = if (offlineAvailable) "Disponible offline" else "Descargar ejercicio",
+                                    tint = if (offlineAvailable) accentColor else secondaryTextColor
+                                )
                             }
                         }
                     }

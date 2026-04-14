@@ -19,5 +19,6 @@ data class ExerciseEntity(
     val exercise_type: String,
     val instruccions: String,
     val difficulty: String,
-    val private: Boolean
+    val private: Boolean,
+    val offline_available: Boolean = false
 )

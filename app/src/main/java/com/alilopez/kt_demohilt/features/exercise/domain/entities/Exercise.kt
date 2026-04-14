@@ -15,5 +15,6 @@ data class Exercise(
     val secondaryMuscles: List<String> = emptyList(),
     val exerciseType: String? = null,
     val difficulty: String? = null,
-    val private: Boolean = false
+    val private: Boolean = false,
+    val offlineAvailable: Boolean = false
 )

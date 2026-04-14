@@ -136,6 +136,9 @@ fun ExercisesScreen(
                     exercises = filteredLocal,
                     isLoading = uiState.isLoading,
                     currentUserId = currentUserId,
+                    isPremium = isPremium,
+                    onNavigateToPremium = onNavigateToPremium,
+                    onDownload = viewModel::downloadExercise,
                     onDetail = onNavigateToExerciseDetail,
                     onEdit = onNavigateToEditExercise,
                     onDelete = { exercise ->
@@ -148,6 +151,9 @@ fun ExercisesScreen(
                     exercises = filteredCommunity,
                     isLoading = uiState.isLoading,
                     currentUserId = currentUserId,
+                    isPremium = isPremium,
+                    onNavigateToPremium = onNavigateToPremium,
+                    onDownload = viewModel::downloadExercise,
                     onDetail = onNavigateToExerciseDetail,
                     onEdit = {},
                     onDelete = null
@@ -162,6 +168,9 @@ fun ExercisesScreen(
                                 exercises = filteredRemote,
                                 isLoading = uiState.isLoading,
                                 currentUserId = currentUserId,
+                                isPremium = isPremium,
+                                onNavigateToPremium = onNavigateToPremium,
+                                onDownload = viewModel::downloadExercise,
                                 onDetail = onNavigateToExerciseDetail,
                                 onEdit = {},
                                 onDelete = null,
@@ -223,6 +232,9 @@ private fun ExerciseList(
     exercises: List<Exercise>,
     isLoading: Boolean,
     currentUserId: Int?,
+    isPremium: Boolean,
+    onNavigateToPremium: () -> Unit,
+    onDownload: (Int, String) -> Unit,
     onDetail: (Int) -> Unit,
     onEdit: (Int) -> Unit,
     onDelete: ((Exercise) -> Unit)?,
@@ -257,6 +269,14 @@ private fun ExerciseList(
                 difficulty = exercise.difficulty,
                 currentUserId = currentUserId,
                 exerciseUserId = exercise.userId,
+                offlineAvailable = exercise.offlineAvailable,
+                onDownload = {
+                    if (isPremium) {
+                        exercise.id?.let { onDownload(it, exercise.name) }
+                    } else {
+                        onNavigateToPremium()
+                    }
+                },
                 onClick = { exercise.id?.let(onDetail) },
                 onEdit = { exercise.id?.let(onEdit) },
                 onDelete = onDelete?.let { { it(exercise) } }

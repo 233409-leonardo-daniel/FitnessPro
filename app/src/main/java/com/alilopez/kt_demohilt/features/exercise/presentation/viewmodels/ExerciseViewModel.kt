@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.DeleteExerciseUseCase
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.DownloadExerciseUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetCommunityExercisesUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByBodyPartUseCase
 import com.alilopez.kt_demohilt.features.exercise.domain.usecases.GetExercisesByUserIdUseCase
@@ -25,6 +26,7 @@ class ExerciseViewModel @Inject constructor(
     private val getExercisesByUserIdUseCase: GetExercisesByUserIdUseCase,
     private val getCommunityExercisesUseCase: GetCommunityExercisesUseCase,
     private val deleteExerciseUseCase: DeleteExerciseUseCase,
+    private val downloadExerciseUseCase: DownloadExerciseUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
     private companion object {
@@ -338,5 +340,9 @@ class ExerciseViewModel @Inject constructor(
 
     fun resetExerciseDeleted() {
         _uiState.update { it.copy(exerciseDeleted = false) }
+    }
+
+    fun downloadExercise(exerciseId: Int, exerciseName: String) {
+        downloadExerciseUseCase(exerciseId, exerciseName)
     }
 }
