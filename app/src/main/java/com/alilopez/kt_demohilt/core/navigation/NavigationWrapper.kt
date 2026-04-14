@@ -30,6 +30,7 @@ import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerci
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.EditExerciseScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExerciseDetailScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExercisesScreen
+import com.alilopez.kt_demohilt.features.exercise.presentation.screens.OfflineExercisesScreen
 import com.alilopez.kt_demohilt.features.home.presentation.components.SliderMenu
 import com.alilopez.kt_demohilt.features.home.presentation.screens.HomeScreen
 import com.alilopez.kt_demohilt.features.progression.presentation.screens.ProgressionScreen
@@ -128,6 +129,11 @@ fun NavigationWrapper(
                                     launchSingleTop = true
                                 }
                             },
+                            onNavigateToOffline = {
+                                navController.navigate(OfflineExercises) {
+                                    launchSingleTop = true
+                                }
+                            },
                             onNavigateToProfile = {
                                 navController.navigate(Profile(isOnboarding = false)) {
                                     launchSingleTop = true
@@ -163,6 +169,9 @@ fun NavigationWrapper(
                             },
                             onNavigateToRegister = {
                                 navController.navigate(Register)
+                            },
+                            onNavigateToOffline = {
+                                navController.navigate(OfflineExercises)
                             }
                         )
                     }
@@ -288,6 +297,15 @@ fun NavigationWrapper(
                         EditExerciseScreen(
                             exerciseId = route.exerciseId,
                             onNavigateBack = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable<OfflineExercises> {
+                        OfflineExercisesScreen(
+                            onNavigateBack = { navController.popBackStack() },
+                            onNavigateToDetail = { exerciseId ->
+                                navController.navigate(ExerciseDetail(exerciseId))
+                            }
                         )
                     }
 

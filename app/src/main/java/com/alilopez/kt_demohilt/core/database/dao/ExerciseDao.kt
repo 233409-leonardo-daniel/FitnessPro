@@ -21,6 +21,9 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE offline_available = 1")
     fun getOfflineExercises(): Flow<List<ExerciseEntity>>
 
+    @Query("UPDATE exercises SET offline_available = 0 WHERE offline_available = 1")
+    suspend fun clearAllOfflineExercises()
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercises(exercises: List<ExerciseEntity>)
 

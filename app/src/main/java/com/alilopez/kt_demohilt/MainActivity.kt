@@ -16,6 +16,7 @@ import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.core.ui.theme.AppTheme
 import com.alilopez.kt_demohilt.features.recipeplans.domain.manager.MealReminderManager
 import com.alilopez.kt_demohilt.features.user.domain.usecases.UpdateFcmTokenUseCase
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.ClearAllOfflineExercisesUseCase
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
@@ -36,6 +37,9 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var updateFcmTokenUseCase: UpdateFcmTokenUseCase
+
+    @Inject
+    lateinit var clearAllOfflineExercisesUseCase: ClearAllOfflineExercisesUseCase
 
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -65,6 +69,9 @@ class MainActivity : ComponentActivity() {
         // Asegurar que el token de FCM esté registrado si ya hay sesión
         syncFcmToken()
 
+        // Observar cambios en la membresía para limpiar descargas offline
+        observeMembershipChanges()
+
         enableEdgeToEdge()
         setContent {
             AppTheme {
@@ -93,6 +100,21 @@ class MainActivity : ComponentActivity() {
                     Log.d("FCM", "Token sincronizado en el arranque para usuario $userId")
                 } catch (e: Exception) {
                     Log.e("FCM", "Error sincronizando token en el arranque: ${e.message}")
+                }
+            }
+        }
+    }
+
+    private fun observeMembershipChanges() {
+        lifecycleScope.launch {
+            sessionManager.membership.collect { membership ->
+                if (membership == "gratuito") {
+                    try {
+                        clearAllOfflineExercisesUseCase()
+                        Log.d("OfflineExercises", "Se eliminaron todas las descargas porque la membresia cambió a gratuito")
+                    } catch (e: Exception) {
+                        Log.e("OfflineExercises", "Error al limpiar descargas: ${e.message}")
+                    }
                 }
             }
         }

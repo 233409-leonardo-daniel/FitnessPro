@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
@@ -35,6 +36,7 @@ fun SliderMenu(
     onNavigateToWorkoutPlans: () -> Unit,
     onNavigateToRecipePlans: () -> Unit,
     onNavigateToProgression: () -> Unit,
+    onNavigateToOffline: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
     onLogout: () -> Unit,
@@ -131,6 +133,20 @@ fun SliderMenu(
             accentColor = accentColor,
             textColor = textColor
         )
+
+        if (isPremium) {
+            DrawerItem(
+                label = "Mis Descargas",
+                icon = Icons.Default.Download,
+                selected = currentRoute == "OfflineExercises",
+                onClick = {
+                    onNavigateToOffline()
+                    onCloseDrawer()
+                },
+                accentColor = accentColor,
+                textColor = textColor
+            )
+        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 

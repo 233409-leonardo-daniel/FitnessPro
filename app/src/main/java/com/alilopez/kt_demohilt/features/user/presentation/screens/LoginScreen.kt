@@ -41,6 +41,7 @@ fun LoginScreen(
     viewModel: LoginViewModel = hiltViewModel(),
     onClickLogin: () -> Unit,
     onNavigateToRegister: () -> Unit,
+    onNavigateToOffline: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
@@ -191,6 +192,18 @@ fun LoginScreen(
                         text = "¿No tienes cuenta? Regístrate",
                         color = Color(0xFF10B981),
                         fontSize = 14.sp
+                    )
+                }
+
+                TextButton(
+                    onClick = onNavigateToOffline,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Ver mis descargas (Modo Offline)",
+                        color = if (isDarkTheme) Color(0xFF94A3B8) else Color(0xFF64748B),
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium
                     )
                 }
             }

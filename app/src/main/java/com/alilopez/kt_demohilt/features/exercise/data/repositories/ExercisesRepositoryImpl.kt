@@ -109,6 +109,14 @@ class ExercisesRepositoryImpl @Inject constructor(
         dao.updateOfflineAvailable(exerciseId, isAvailable)
     }
 
+    override suspend fun removeOfflineExercise(exerciseId: Int) {
+        dao.updateOfflineAvailable(exerciseId, false)
+    }
+
+    override suspend fun clearAllOfflineExercises() {
+        dao.clearAllOfflineExercises()
+    }
+
     override fun getOfflineExercises(): Flow<List<Exercise>> {
         return dao.getOfflineExercises().map { entities -> entities.map { it.toDomain() } }
     }
