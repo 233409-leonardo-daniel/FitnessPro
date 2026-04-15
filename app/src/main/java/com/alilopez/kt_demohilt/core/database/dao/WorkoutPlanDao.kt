@@ -18,7 +18,7 @@ interface WorkoutPlanDao {
     suspend fun insertWorkoutPlan(plan: WorkoutPlanEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertWorkoutPlanCrossRef(crossRef: WorkoutPlanExerciseCrossRef)
+    suspend fun insertWorkoutPlanExerciseCrossRef(crossRef: WorkoutPlanExerciseCrossRef)
 
     @Transaction
     @Query("""

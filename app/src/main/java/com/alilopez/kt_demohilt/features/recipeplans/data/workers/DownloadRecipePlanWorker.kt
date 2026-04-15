@@ -2,7 +2,6 @@ package com.alilopez.kt_demohilt.features.recipeplans.data.workers
 
 import android.content.Context
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -25,7 +24,8 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val repository: RecipePlanRepository,
     private val recipeDao: RecipeDao,
-    private val recipePlanDao: RecipePlanDao
+    private val recipePlanDao: RecipePlanDao,
+    private val notificationHelper: NotificationHelper
 ) : CoroutineWorker(context, params) {
 
     companion object {
@@ -33,6 +33,15 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
         const val KEY_PLAN_NAME = "plan_name"
         const val KEY_PLAN_DESC = "plan_desc"
         const val KEY_USER_ID = "user_id"
+    }
+
+    // REQUERIDO para tareas expeditas y para que la notificación se muestre siempre al reanudar
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val planName = inputData.getString(KEY_PLAN_NAME) ?: "Plan"
+        return ForegroundInfo(
+            NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
+            notificationHelper.getDownloadNotification(planName, 0)
+        )
     }
 
     override suspend fun doWork(): Result {
@@ -43,7 +52,8 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
 
         if (planId == -1 || userId == -1) return Result.failure()
 
-        setForeground(createForegroundInfo(planName, 0))
+        // Mostramos la notificación inmediatamente
+        setForeground(getForegroundInfo())
 
         return try {
             val recipes = repository.getPlanRecipes(planId)
@@ -62,7 +72,12 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
 
             recipes.forEachIndexed { index, recipe ->
                 val progress = ((index + 1).toFloat() / total * 100).toInt()
-                setForeground(createForegroundInfo(planName, progress))
+                
+                // Actualizamos el progreso
+                setForeground(ForegroundInfo(
+                    NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
+                    notificationHelper.getDownloadNotification(planName, progress)
+                ))
 
                 delay(300)
 
@@ -83,31 +98,18 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
                     )
                 ))
 
-                recipePlanDao.insertRecipePlanCrossRef(
+                recipePlanDao.insertRecipePlanRecipeCrossRef(
                     RecipePlanRecipeCrossRef(planId, recipe.id)
                 )
             }
 
             Result.success()
         } catch (e: IOException) {
-            // Error de red: indicamos a WorkManager que REINTENTE automáticamente
-            // cuando las restricciones (WiFi) se vuelvan a cumplir.
-            Log.e("DOWNLOAD_WORKER", "Error de red, reintentando... ${e.message}")
+            Log.e("DOWNLOAD_WORKER", "Error de red, reintentando...")
             Result.retry()
         } catch (e: Exception) {
             Log.e("DOWNLOAD_WORKER", "Error fatal: ${e.message}")
             Result.failure()
         }
-    }
-
-    private fun createForegroundInfo(planName: String, progress: Int): ForegroundInfo {
-        val notification = NotificationCompat.Builder(context, NotificationHelper.DOWNLOAD_CHANNEL_ID)
-            .setContentTitle("Descargando $planName")
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setOngoing(true)
-            .setProgress(100, progress, false)
-            .build()
-
-        return ForegroundInfo(NotificationHelper.DOWNLOAD_NOTIFICATION_ID, notification)
     }
 }

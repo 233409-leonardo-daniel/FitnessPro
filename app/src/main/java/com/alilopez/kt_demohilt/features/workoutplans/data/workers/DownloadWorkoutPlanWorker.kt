@@ -2,7 +2,6 @@ package com.alilopez.kt_demohilt.features.workoutplans.data.workers
 
 import android.content.Context
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
 import androidx.work.ForegroundInfo
@@ -25,7 +24,8 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
     @Assisted params: WorkerParameters,
     private val repository: WorkoutPlanRepository,
     private val exerciseDao: ExerciseDao,
-    private val workoutPlanDao: WorkoutPlanDao
+    private val workoutPlanDao: WorkoutPlanDao,
+    private val notificationHelper: NotificationHelper
 ) : CoroutineWorker(context, params) {
 
     companion object {
@@ -34,6 +34,14 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
         const val KEY_PLAN_DESC = "plan_desc"
         const val KEY_PLAN_TYPE = "plan_type"
         const val KEY_USER_ID = "user_id"
+    }
+
+    override suspend fun getForegroundInfo(): ForegroundInfo {
+        val planName = inputData.getString(KEY_PLAN_NAME) ?: "Plan"
+        return ForegroundInfo(
+            NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
+            notificationHelper.getDownloadNotification(planName, 0)
+        )
     }
 
     override suspend fun doWork(): Result {
@@ -45,7 +53,7 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
 
         if (planId == -1 || userId == -1) return Result.failure()
 
-        setForeground(createForegroundInfo(planName, 0))
+        setForeground(getForegroundInfo())
 
         return try {
             val exercises = repository.getPlanExercises(planId)
@@ -65,7 +73,11 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
 
             exercises.forEachIndexed { index, exercise ->
                 val progress = ((index + 1).toFloat() / total * 100).toInt()
-                setForeground(createForegroundInfo(planName, progress))
+                
+                setForeground(ForegroundInfo(
+                    NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
+                    notificationHelper.getDownloadNotification(planName, progress)
+                ))
 
                 delay(300)
 
@@ -89,8 +101,11 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
                     )
                 ))
 
-                workoutPlanDao.insertWorkoutPlanCrossRef(
-                    WorkoutPlanExerciseCrossRef(planId, exercise.id ?: 0)
+                workoutPlanDao.insertWorkoutPlanExerciseCrossRef(
+                    WorkoutPlanExerciseCrossRef(
+                        planId = planId,
+                        exerciseId = exercise.id ?: 0
+                    )
                 )
             }
 
@@ -102,16 +117,5 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
             Log.e("DOWNLOAD_WORKER", "Error fatal: ${e.message}")
             Result.failure()
         }
-    }
-
-    private fun createForegroundInfo(planName: String, progress: Int): ForegroundInfo {
-        val notification = NotificationCompat.Builder(context, NotificationHelper.DOWNLOAD_CHANNEL_ID)
-            .setContentTitle("Descargando $planName")
-            .setSmallIcon(android.R.drawable.stat_sys_download)
-            .setOngoing(true)
-            .setProgress(100, progress, false)
-            .build()
-
-        return ForegroundInfo(NotificationHelper.DOWNLOAD_NOTIFICATION_ID, notification)
     }
 }

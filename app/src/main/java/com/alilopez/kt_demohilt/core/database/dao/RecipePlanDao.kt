@@ -18,7 +18,7 @@ interface RecipePlanDao {
     suspend fun insertRecipePlan(plan: RecipePlanEntity)
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    suspend fun insertRecipePlanCrossRef(crossRef: RecipePlanRecipeCrossRef)
+    suspend fun insertRecipePlanRecipeCrossRef(crossRef: RecipePlanRecipeCrossRef)
 
     @Transaction
     @Query("""

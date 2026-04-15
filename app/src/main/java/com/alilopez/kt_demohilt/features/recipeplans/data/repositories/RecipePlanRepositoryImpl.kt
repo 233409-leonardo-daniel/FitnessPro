@@ -2,10 +2,10 @@ package com.alilopez.kt_demohilt.features.recipeplans.data.repositories
 
 import com.alilopez.kt_demohilt.core.database.dao.RecipePlanDao
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
-import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain as toDomainFromDto
-import com.alilopez.kt_demohilt.features.recipies.data.datasources.local.mapper.toDomain as toDomainFromEntity
+import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain as toRecipeDomainFromDto
+import com.alilopez.kt_demohilt.features.recipies.data.datasources.local.mapper.toDomain as toRecipeDomainFromEntity
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
-import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mapper.toDomain as planToDomain
+import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mapper.toDomain as toPlanDomain
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.AddRecipeToPlanDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanCreateDto
 import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
@@ -21,7 +21,7 @@ class RecipePlanRepositoryImpl @Inject constructor(
 
     override suspend fun getUserRecipePlans(userId: Int): List<RecipePlan> {
         return try {
-            val remotePlans = api.getUserRecipePlans(userId).map { it.planToDomain() }
+            val remotePlans = api.getUserRecipePlans(userId).map { it.toPlanDomain() }
             val downloadedIds = recipePlanDao.getDownloadedPlanIds().toSet()
             
             remotePlans.map { plan ->
@@ -33,52 +33,39 @@ class RecipePlanRepositoryImpl @Inject constructor(
             }
         } catch (e: Exception) {
             recipePlanDao.getDownloadedRecipePlans().first().map { 
-                it.planToDomain().copy(isDownloaded = true) 
+                it.toPlanDomain().copy(isDownloaded = true) 
             }
         }
     }
 
-    override suspend fun createRecipePlan(
-        name: String,
-        description: String,
-        userId: Int,
-        isPrivate: Boolean
-    ): RecipePlan {
-        val createDto = RecipePlanCreateDto(
-            name = name,
-            description = description,
-            userId = userId,
-            private = isPrivate
-        )
-        return api.createRecipePlan(createDto).planToDomain()
+    override suspend fun createRecipePlan(name: String, description: String, userId: Int, isPrivate: Boolean): RecipePlan {
+        val createDto = RecipePlanCreateDto(name = name, description = description, userId = userId, private = isPrivate)
+        return api.createRecipePlan(createDto).toPlanDomain()
     }
 
     override suspend fun addRecipeToPlan(planId: Int, recipeId: Int): RecipePlan {
         val addDto = AddRecipeToPlanDto(recipeId = recipeId)
-        return api.addRecipeToPlan(planId, addDto).planToDomain()
+        return api.addRecipeToPlan(planId, addDto).toPlanDomain()
     }
 
     override suspend fun getPlanRecipes(planId: Int): List<Recipe> {
         return try {
-            api.getPlanRecipes(planId).map { it.toDomainFromDto() }
+            api.getPlanRecipes(planId).map { it.toRecipeDomainFromDto() }
         } catch (e: Exception) {
-            // Fallback Offline: Leer de Room usando la tabla de relación
             recipePlanDao.getRecipesForPlan(planId).first().map { 
-                it.toDomainFromEntity().copy(isDownloaded = true) 
+                it.toRecipeDomainFromEntity().copy(isDownloaded = true) 
             }
         }
     }
 
     override suspend fun deleteRecipePlan(planId: Int) {
-        try {
-            api.deleteRecipePlan(planId)
-        } catch (_: Exception) { }
+        try { api.deleteRecipePlan(planId) } catch (_: Exception) { }
         recipePlanDao.deleteRecipePlan(planId)
         recipePlanDao.deleteRecipePlanCrossRefs(planId)
     }
 
     override suspend fun removeRecipeFromPlan(planId: Int, recipeId: Int): RecipePlan {
-        return api.removeRecipeFromPlan(planId, recipeId).planToDomain()
+        return api.removeRecipeFromPlan(planId, recipeId).toPlanDomain()
     }
 
     @OptIn(ExperimentalCoroutinesApi::class)
@@ -89,9 +76,9 @@ class RecipePlanRepositoryImpl @Inject constructor(
             } else {
                 val plansFlows = planEntities.map { entity ->
                     recipePlanDao.getRecipesForPlan(entity.id).map { recipes ->
-                        entity.planToDomain().copy(
+                        entity.toPlanDomain().copy(
                             isDownloaded = true,
-                            recipes = recipes.map { it.toDomainFromEntity().copy(isDownloaded = true) }
+                            recipes = recipes.map { it.toRecipeDomainFromEntity().copy(isDownloaded = true) }
                         )
                     }
                 }
@@ -100,7 +87,5 @@ class RecipePlanRepositoryImpl @Inject constructor(
         }
     }
 
-    override suspend fun getDownloadedPlanIds(): List<Int> {
-        return recipePlanDao.getDownloadedPlanIds()
-    }
+    override suspend fun getDownloadedPlanIds(): List<Int> = recipePlanDao.getDownloadedPlanIds()
 }

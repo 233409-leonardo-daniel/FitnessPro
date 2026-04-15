@@ -1,5 +1,6 @@
 package com.alilopez.kt_demohilt.core.notifications
 
+import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -29,7 +30,7 @@ class NotificationHelper @Inject constructor(
         const val MEAL_NOTIFICATION_ID = 1002
         const val CONTENT_NOTIFICATION_ID = 1003
         const val DOWNLOAD_NOTIFICATION_ID = 2001
-
+        
         const val EXTRA_RECIPE_ID = "extra_recipe_id"
     }
 
@@ -39,43 +40,27 @@ class NotificationHelper @Inject constructor(
 
     private fun createNotificationChannels() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            val paymentChannel = NotificationChannel(
-                PAYMENT_CHANNEL_ID,
-                "Pagos y Suscripciones",
-                NotificationManager.IMPORTANCE_HIGH
-            ).apply {
-                description = "Notificaciones sobre el estado de tus pagos"
-            }
-
-            val mealChannel = NotificationChannel(
-                MEAL_CHANNEL_ID,
-                "Recordatorios de Comidas",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Avisos para tus desayunos, comidas y cenas"
-            }
-
-            val contentChannel = NotificationChannel(
-                CONTENT_CHANNEL_ID,
-                "Novedades de la Comunidad",
-                NotificationManager.IMPORTANCE_DEFAULT
-            ).apply {
-                description = "Avisos sobre nuevas recetas y ejercicios"
-            }
-
-            val downloadChannel = NotificationChannel(
-                DOWNLOAD_CHANNEL_ID,
-                "Descargas Offline",
-                NotificationManager.IMPORTANCE_LOW
-            ).apply {
-                description = "Progreso de descargas de planes"
-            }
-
-            notificationManager.createNotificationChannel(paymentChannel)
-            notificationManager.createNotificationChannel(mealChannel)
-            notificationManager.createNotificationChannel(contentChannel)
-            notificationManager.createNotificationChannel(downloadChannel)
+            val channels = listOf(
+                NotificationChannel(PAYMENT_CHANNEL_ID, "Pagos y Suscripciones", NotificationManager.IMPORTANCE_HIGH),
+                NotificationChannel(MEAL_CHANNEL_ID, "Recordatorios de Comidas", NotificationManager.IMPORTANCE_DEFAULT),
+                NotificationChannel(CONTENT_CHANNEL_ID, "Novedades de la Comunidad", NotificationManager.IMPORTANCE_DEFAULT),
+                NotificationChannel(DOWNLOAD_CHANNEL_ID, "Descargas Offline", NotificationManager.IMPORTANCE_LOW).apply {
+                    setSound(null, null)
+                    enableVibration(false)
+                }
+            )
+            notificationManager.createNotificationChannels(channels)
         }
+    }
+
+    fun getDownloadNotification(planName: String, progress: Int): Notification {
+        return NotificationCompat.Builder(context, DOWNLOAD_CHANNEL_ID)
+            .setContentTitle("Descargando $planName")
+            .setSmallIcon(android.R.drawable.stat_sys_download)
+            .setOngoing(true)
+            .setOnlyAlertOnce(true)
+            .setProgress(100, progress, false)
+            .build()
     }
 
     fun showPaymentNotification(title: String, message: String) {
@@ -85,25 +70,16 @@ class NotificationHelper @Inject constructor(
     fun showMealNotification(title: String, message: String, recipeId: Int? = null) {
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-            if (recipeId != null) {
-                putExtra(EXTRA_RECIPE_ID, recipeId)
-            }
+            if (recipeId != null) putExtra(EXTRA_RECIPE_ID, recipeId)
         }
-        
-        val pendingIntent = PendingIntent.getActivity(
-            context, MEAL_NOTIFICATION_ID, intent,
-            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
-        )
-
+        val pendingIntent = PendingIntent.getActivity(context, MEAL_NOTIFICATION_ID, intent, PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT)
         val notification = NotificationCompat.Builder(context, MEAL_CHANNEL_ID)
             .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
-
         notificationManager.notify(MEAL_NOTIFICATION_ID, notification)
     }
 
@@ -115,20 +91,14 @@ class NotificationHelper @Inject constructor(
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
-        val pendingIntent = PendingIntent.getActivity(
-            context, notificationId, intent,
-            PendingIntent.FLAG_IMMUTABLE
-        )
-
+        val pendingIntent = PendingIntent.getActivity(context, notificationId, intent, PendingIntent.FLAG_IMMUTABLE)
         val notification = NotificationCompat.Builder(context, channelId)
             .setSmallIcon(android.R.drawable.ic_dialog_info)
             .setContentTitle(title)
             .setContentText(message)
-            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
             .setAutoCancel(true)
             .setContentIntent(pendingIntent)
             .build()
-
         notificationManager.notify(notificationId, notification)
     }
 }
