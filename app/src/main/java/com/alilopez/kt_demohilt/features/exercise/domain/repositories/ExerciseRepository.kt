@@ -39,6 +39,7 @@ interface ExerciseRepository {
     suspend fun getExercisesByUserId(userId: Int): List<Exercise>
     suspend fun getCommunityExercises(userId: Int): List<Exercise>
     suspend fun getExerciseById(exerciseId: Int): Exercise
+    suspend fun saveExerciseForOffline(exerciseId: Int)
     suspend fun updateOfflineAvailable(exerciseId: Int, isAvailable: Boolean)
     suspend fun removeOfflineExercise(exerciseId: Int)
     fun getOfflineExercises(): Flow<List<Exercise>>

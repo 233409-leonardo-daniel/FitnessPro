@@ -24,6 +24,46 @@ interface ExerciseDao {
     @Query("UPDATE exercises SET offline_available = 0 WHERE offline_available = 1")
     suspend fun clearAllOfflineExercises()
 
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertExercisesIgnore(exercises: List<ExerciseEntity>): List<Long>
+
+    @androidx.room.Update
+    suspend fun updateExercises(exercises: List<ExerciseEntity>)
+
+    @androidx.room.Transaction
+    suspend fun insertOrUpdateExercises(exercises: List<ExerciseEntity>) {
+        val existingOfflineIds = getOfflineExerciseIds()
+        val insertResults = insertExercisesIgnore(exercises)
+        val updateList = mutableListOf<ExerciseEntity>()
+        
+        for (i in insertResults.indices) {
+            val isIgnored = insertResults[i] == -1L
+            val exercise = exercises[i]
+            if (isIgnored) {
+                // Ya existe, necesitamos actualizar conservando offline_available si lo estaba
+                if (existingOfflineIds.contains(exercise.id)) {
+                    updateList.add(exercise.copy(offline_available = true))
+                } else {
+                    updateList.add(exercise)
+                }
+            } else {
+                // Fue insertado por primera vez. Si el backend mandó offline_available = true (poco probable),
+                // o si por alguna razón estaba en la lista de IDs (casi imposible pero seguro).
+                if (existingOfflineIds.contains(exercise.id)) {
+                    updateOfflineAvailable(exercise.id, true)
+                }
+            }
+        }
+        
+        if (updateList.isNotEmpty()) {
+            updateExercises(updateList)
+        }
+    }
+
+    @Query("SELECT id FROM exercises WHERE offline_available = 1")
+    suspend fun getOfflineExerciseIds(): List<Int>
+
+    // Deprecated for direct use, use insertOrUpdateExercises to preserve offline state
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercises(exercises: List<ExerciseEntity>)
 

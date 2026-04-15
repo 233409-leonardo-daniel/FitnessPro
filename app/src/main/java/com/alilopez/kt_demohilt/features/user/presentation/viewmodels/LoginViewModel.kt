@@ -37,6 +37,7 @@ class LoginViewModel @Inject constructor(
     val email: StateFlow<String> = _email.asStateFlow()
     private val _password = MutableStateFlow("")
     val password: StateFlow<String> = _password.asStateFlow()
+    val membership: StateFlow<String?> = sessionManager.membership
 
     fun onEmailChange(email: String) {
         _email.value = email

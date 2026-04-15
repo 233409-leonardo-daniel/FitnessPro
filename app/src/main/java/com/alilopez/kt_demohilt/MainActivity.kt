@@ -14,9 +14,9 @@ import androidx.lifecycle.lifecycleScope
 import com.alilopez.kt_demohilt.core.navigation.NavigationWrapper
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.core.ui.theme.AppTheme
+import com.alilopez.kt_demohilt.features.exercise.domain.usecases.ClearAllOfflineExercisesUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.manager.MealReminderManager
 import com.alilopez.kt_demohilt.features.user.domain.usecases.UpdateFcmTokenUseCase
-import com.alilopez.kt_demohilt.features.exercise.domain.usecases.ClearAllOfflineExercisesUseCase
 import com.google.android.gms.ads.MobileAds
 import com.google.firebase.messaging.FirebaseMessaging
 import dagger.hilt.android.AndroidEntryPoint
@@ -108,7 +108,7 @@ class MainActivity : ComponentActivity() {
     private fun observeMembershipChanges() {
         lifecycleScope.launch {
             sessionManager.membership.collect { membership ->
-                if (membership == "gratuito") {
+                if (sessionManager.isFreeMembership(membership)) {
                     try {
                         clearAllOfflineExercisesUseCase()
                         Log.d("OfflineExercises", "Se eliminaron todas las descargas porque la membresia cambió a gratuito")

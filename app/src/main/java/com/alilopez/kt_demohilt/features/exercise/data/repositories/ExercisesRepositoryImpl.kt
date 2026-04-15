@@ -93,7 +93,7 @@ class ExercisesRepositoryImpl @Inject constructor(
                     bodyPart = bodyPart
                 )
                 val entities = remoteExercises.map { it.toDomain().toEntity() }
-                dao.insertExercises(entities)
+                dao.insertOrUpdateExercises(entities)
             }
         } catch (e: Exception) {
             e.printStackTrace()
@@ -127,6 +127,15 @@ class ExercisesRepositoryImpl @Inject constructor(
 
     override suspend fun getExerciseById(exerciseId: Int): Exercise {
         return api.getExerciseById(exerciseId).toDomain()
+    }
+
+    override suspend fun saveExerciseForOffline(exerciseId: Int) {
+        val exercise = api.getExerciseById(exerciseId).toDomain()
+        val offlineEntity = exercise
+            .copy(id = exercise.id ?: exerciseId, offlineAvailable = true)
+            .toEntity()
+        dao.insertOrUpdateExercises(listOf(offlineEntity))
+        dao.updateOfflineAvailable(offlineEntity.id, true)
     }
 
     override suspend fun updateLocalExercise(
@@ -192,7 +201,7 @@ class ExercisesRepositoryImpl @Inject constructor(
                 Log.d("ExercisesRepository", "Ejercicios recibidos: ${remoteExercises.size}")
                 
                 val entities = remoteExercises.map { it.toDomain().toEntity() }
-                dao.insertExercises(entities)
+                dao.insertOrUpdateExercises(entities)
                 Log.d("ExercisesRepository", "Ejercicios insertados en DB local")
             } else {
                 Log.e("ExercisesRepository", "No se pudo sincronizar: UserId es NULL")

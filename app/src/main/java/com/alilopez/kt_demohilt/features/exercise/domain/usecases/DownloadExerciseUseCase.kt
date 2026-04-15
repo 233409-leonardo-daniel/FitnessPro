@@ -13,7 +13,7 @@ class DownloadExerciseUseCase @Inject constructor(
 ) {
     operator fun invoke(exerciseId: Int, exerciseName: String) {
         val constraints = Constraints.Builder()
-            .setRequiredNetworkType(NetworkType.UNMETERED) // Solo Wi-Fi o sin medidor
+            .setRequiredNetworkType(NetworkType.CONNECTED)
             .setRequiresBatteryNotLow(true) // No con poca batería
             .build()
 

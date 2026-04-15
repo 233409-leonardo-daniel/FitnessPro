@@ -1,6 +1,5 @@
 package com.alilopez.kt_demohilt.features.exercise.presentation.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -126,6 +125,7 @@ fun OfflineExercisesScreen(
                         contentPadding = PaddingValues(16.dp)
                     ) {
                         items(uiState.exercises, key = { it.id ?: it.exerciseId ?: it.name }) { exercise ->
+                            val resolvedId = exercise.id ?: exercise.exerciseId?.toIntOrNull()
                             ExerciseCard(
                                 name = exercise.name,
                                 imageUrl = exercise.gifUrl,
@@ -134,8 +134,8 @@ fun OfflineExercisesScreen(
                                 exerciseType = exercise.exerciseType,
                                 isLocal = true,
                                 offlineAvailable = exercise.offlineAvailable,
-                                onClick = { onNavigateToDetail(exercise.id ?: 0) },
-                                onRemoveClick = { viewModel.onRemoveExercise(exercise.id ?: 0) },
+                                onClick = { resolvedId?.let(onNavigateToDetail) },
+                                onRemoveClick = { resolvedId?.let(viewModel::onRemoveExercise) },
                                 modifier = Modifier.padding(bottom = 12.dp)
                             )
                         }

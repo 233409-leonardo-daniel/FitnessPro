@@ -87,7 +87,7 @@ fun NavigationWrapper(
     Scaffold(
         contentWindowInsets = WindowInsets(0.dp),
         bottomBar = {
-            if (!isLoginRoute && membership == "gratuito") {
+            if (!isLoginRoute && sessionManager.isFreeMembership(membership)) {
                 StartIoBanner()
             }
         }
@@ -144,7 +144,7 @@ fun NavigationWrapper(
                                     launchSingleTop = true
                                 }
                             },
-                            isPremium = membership != null && membership != "gratuito",
+                            isPremium = sessionManager.isPremiumMembership(membership),
                             onLogout = {
                                 sessionManager.clearSession()
                                 navController.navigate(Login) {

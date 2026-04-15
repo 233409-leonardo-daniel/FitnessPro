@@ -272,7 +272,8 @@ private fun ExerciseList(
                 offlineAvailable = exercise.offlineAvailable,
                 onDownload = {
                     if (isPremium) {
-                        exercise.id?.let { onDownload(it, exercise.name) }
+                        val resolvedId = exercise.id ?: exercise.exerciseId?.toIntOrNull()
+                        resolvedId?.let { onDownload(it, exercise.name) }
                     } else {
                         onNavigateToPremium()
                     }

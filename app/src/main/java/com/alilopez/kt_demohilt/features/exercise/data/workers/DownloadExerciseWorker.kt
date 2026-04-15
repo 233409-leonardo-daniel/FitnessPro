@@ -36,8 +36,8 @@ class DownloadExerciseWorker @AssistedInject constructor(
             // Por ahora, como es de texto/imagen básica, solo marcamos disponible offline.
             delay(2000) 
             
-            // Marcar como disponible offline
-            repository.updateOfflineAvailable(exerciseId, true)
+            // Persistir primero en Room y dejarlo marcado como offline.
+            repository.saveExerciseForOffline(exerciseId)
             
             Log.d("DOWNLOAD_WORKER", "Descarga completada: $exerciseName")
             notificationHelper.showPaymentNotification( // Podemos reusar o crear una específica para descargas
