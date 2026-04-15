@@ -15,5 +15,6 @@ data class RecipeEntity(
     val area: String,
     val tags: List<String>,
     val youtubeUrl: String,
-    val sourceUrl: String
+    val sourceUrl: String,
+    val isDownloaded: Boolean = false // Punto 4: Flag para biblioteca offline
 )

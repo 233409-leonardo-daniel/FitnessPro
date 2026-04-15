@@ -23,10 +23,14 @@ class NotificationHelper @Inject constructor(
         const val PAYMENT_CHANNEL_ID = "payment_channel"
         const val MEAL_CHANNEL_ID = "meal_channel"
         const val CONTENT_CHANNEL_ID = "content_channel"
+        const val DOWNLOAD_CHANNEL_ID = "download_channel"
         
         const val PAYMENT_NOTIFICATION_ID = 1001
         const val MEAL_NOTIFICATION_ID = 1002
         const val CONTENT_NOTIFICATION_ID = 1003
+        const val DOWNLOAD_NOTIFICATION_ID = 2001
+
+        const val EXTRA_RECIPE_ID = "extra_recipe_id"
     }
 
     init {
@@ -59,9 +63,18 @@ class NotificationHelper @Inject constructor(
                 description = "Avisos sobre nuevas recetas y ejercicios"
             }
 
+            val downloadChannel = NotificationChannel(
+                DOWNLOAD_CHANNEL_ID,
+                "Descargas Offline",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                description = "Progreso de descargas de planes"
+            }
+
             notificationManager.createNotificationChannel(paymentChannel)
             notificationManager.createNotificationChannel(mealChannel)
             notificationManager.createNotificationChannel(contentChannel)
+            notificationManager.createNotificationChannel(downloadChannel)
         }
     }
 
@@ -69,8 +82,29 @@ class NotificationHelper @Inject constructor(
         showBasicNotification(title, message, PAYMENT_CHANNEL_ID, PAYMENT_NOTIFICATION_ID)
     }
 
-    fun showMealNotification(title: String, message: String) {
-        showBasicNotification(title, message, MEAL_CHANNEL_ID, MEAL_NOTIFICATION_ID)
+    fun showMealNotification(title: String, message: String, recipeId: Int? = null) {
+        val intent = Intent(context, MainActivity::class.java).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            if (recipeId != null) {
+                putExtra(EXTRA_RECIPE_ID, recipeId)
+            }
+        }
+        
+        val pendingIntent = PendingIntent.getActivity(
+            context, MEAL_NOTIFICATION_ID, intent,
+            PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val notification = NotificationCompat.Builder(context, MEAL_CHANNEL_ID)
+            .setSmallIcon(android.R.drawable.ic_lock_idle_alarm)
+            .setContentTitle(title)
+            .setContentText(message)
+            .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+            .setAutoCancel(true)
+            .setContentIntent(pendingIntent)
+            .build()
+
+        notificationManager.notify(MEAL_NOTIFICATION_ID, notification)
     }
 
     fun showContentNotification(title: String, message: String) {

@@ -15,8 +15,14 @@ interface ExerciseDao {
     @Query("SELECT * FROM exercises WHERE user_id = :userId")
     fun getExercisesByUserId(userId: Int): Flow<List<ExerciseEntity>>
 
+    @Query("SELECT * FROM exercises WHERE isDownloaded = 1")
+    fun getDownloadedExercises(): Flow<List<ExerciseEntity>>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertExercises(exercises: List<ExerciseEntity>)
+
+    @Query("UPDATE exercises SET isDownloaded = :isDownloaded WHERE id = :exerciseId")
+    suspend fun updateDownloadStatus(exerciseId: Int, isDownloaded: Boolean)
 
     @Query("DELETE FROM exercises WHERE user_id = :userId")
     suspend fun deleteExercisesByUserId(userId: Int)

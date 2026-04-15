@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -12,6 +13,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import com.alilopez.kt_demohilt.core.navigation.NavigationWrapper
+import com.alilopez.kt_demohilt.core.notifications.NotificationHelper
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import com.alilopez.kt_demohilt.core.ui.theme.AppTheme
 import com.alilopez.kt_demohilt.features.recipeplans.domain.manager.MealReminderManager
@@ -28,8 +30,6 @@ class MainActivity : ComponentActivity() {
 
     @Inject
     lateinit var sessionManager: SessionManager
-
-
 
     @Inject
     lateinit var mealReminderManager: MealReminderManager
@@ -56,20 +56,35 @@ class MainActivity : ComponentActivity() {
         // Pedir permisos de notificación en Android 13+
         askNotificationPermission()
 
-        // Programar los recordatorios de comida
-        mealReminderManager.scheduleDailyReminders()
+        // Solo programar recordatorios si está logueado (Punto 6)
+        if (sessionManager.isLoggedIn()) {
+            mealReminderManager.scheduleDailyReminders()
+            syncFcmToken()
+        }
 
-        // En MainActivity.kt
-        mealReminderManager.runTestNow()
-
-        // Asegurar que el token de FCM esté registrado si ya hay sesión
-        syncFcmToken()
+        // Obtener ID de receta si viene de una notificación (Punto 7)
+        val initialRecipeId = intent.getIntExtra(NotificationHelper.EXTRA_RECIPE_ID, -1).takeIf { it != -1 }
 
         enableEdgeToEdge()
         setContent {
             AppTheme {
-                NavigationWrapper(sessionManager = sessionManager)
+                NavigationWrapper(
+                    sessionManager = sessionManager,
+                    initialRecipeId = initialRecipeId
+                )
             }
+        }
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        // Manejar el clic en la notificación si la app ya estaba abierta
+        val recipeId = intent.getIntExtra(NotificationHelper.EXTRA_RECIPE_ID, -1).takeIf { it != -1 }
+        if (recipeId != null) {
+            // Aquí se podría usar un StateFlow en un ViewModel compartido para navegar
+            // Por ahora, el relanzamiento de la actividad con el nuevo intent activará el flujo
+            setIntent(intent)
+            recreate()
         }
     }
 

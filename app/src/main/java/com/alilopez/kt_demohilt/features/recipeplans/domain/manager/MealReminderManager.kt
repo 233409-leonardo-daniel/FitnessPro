@@ -26,7 +26,7 @@ class MealReminderManager @Inject constructor(
 
         // Ejecutar cada 15 minutos para la prueba (mínimo permitido por Android)
         val mealWorkRequest = PeriodicWorkRequestBuilder<MealReminderWorker>(
-            4, TimeUnit.HOURS
+            15, TimeUnit.MINUTES
         )
             .setConstraints(constraints)
             .addTag("meal_reminder")

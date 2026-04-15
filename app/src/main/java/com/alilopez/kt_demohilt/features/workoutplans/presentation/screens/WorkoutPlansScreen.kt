@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -15,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.*
+import com.alilopez.kt_demohilt.features.workoutplans.data.workers.DownloadWorkoutPlanWorker
 import com.alilopez.kt_demohilt.features.workoutplans.domain.entities.WorkoutPlan
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels.WorkoutPlansViewModel
 
@@ -39,17 +44,53 @@ val exerciseTypes = listOf(
 @Composable
 fun WorkoutPlansScreen(
     onNavigateToDetail: (Int, String) -> Unit,
+    onNavigateToPremium: () -> Unit,
     onOpenDrawer: () -> Unit,
+    membership: String?,
+    userId: Int?,
     viewModel: WorkoutPlansViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val accentColor = Color(0xFF10B981)
 
     var showCreateDialog by remember { mutableStateOf(false) }
+
+    fun startDownload(plan: WorkoutPlan) {
+        if (membership == null || membership == "gratuito") {
+            onNavigateToPremium()
+            return
+        }
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val data = Data.Builder()
+            .putInt(DownloadWorkoutPlanWorker.KEY_PLAN_ID, plan.id)
+            .putString(DownloadWorkoutPlanWorker.KEY_PLAN_NAME, plan.name)
+            .putString(DownloadWorkoutPlanWorker.KEY_PLAN_DESC, plan.description)
+            .putString(DownloadWorkoutPlanWorker.KEY_PLAN_TYPE, plan.planType)
+            .putInt(DownloadWorkoutPlanWorker.KEY_USER_ID, userId ?: -1)
+            .build()
+
+        val downloadRequest = OneTimeWorkRequestBuilder<DownloadWorkoutPlanWorker>()
+            .setConstraints(constraints)
+            .setInputData(data)
+            .addTag("download_plan_${plan.id}")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "download_workout_${plan.id}",
+            ExistingWorkPolicy.KEEP,
+            downloadRequest
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -110,6 +151,7 @@ fun WorkoutPlansScreen(
                                 plan = plan,
                                 onClick = { onNavigateToDetail(plan.id, plan.name) },
                                 onDelete = { viewModel.deletePlan(plan.id) },
+                                onDownload = { startDownload(plan) },
                                 isDarkTheme = isDarkTheme
                             )
                         }
@@ -135,6 +177,7 @@ fun WorkoutPlanItem(
     plan: WorkoutPlan,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    onDownload: () -> Unit,
     isDarkTheme: Boolean
 ) {
     val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -177,6 +220,20 @@ fun WorkoutPlanItem(
                     Text(text = "• ${plan.exercises.size} ejercicios", fontSize = 12.sp, color = Color.Gray)
                 }
             }
+            
+            if (plan.isDownloaded) {
+                Icon(
+                    Icons.Default.CheckCircle, 
+                    contentDescription = "Descargado", 
+                    tint = Color(0xFF10B981),
+                    modifier = Modifier.padding(12.dp)
+                )
+            } else {
+                IconButton(onClick = onDownload) {
+                    Icon(Icons.Default.Download, contentDescription = "Descargar", tint = Color(0xFF3B82F6))
+                }
+            }
+
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF4444))
             }

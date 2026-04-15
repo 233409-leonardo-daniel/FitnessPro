@@ -7,6 +7,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.automirrored.filled.ListAlt
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.filled.DownloadForOffline
 import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.MenuBook
@@ -37,6 +38,7 @@ fun SliderMenu(
     onNavigateToProgression: () -> Unit,
     onNavigateToProfile: () -> Unit,
     onNavigateToPremium: () -> Unit,
+    onNavigateToDownloads: () -> Unit = {}, // Nuevo
     onLogout: () -> Unit,
     isPremium: Boolean = false,
     currentRoute: String? = null,
@@ -131,6 +133,21 @@ fun SliderMenu(
             accentColor = accentColor,
             textColor = textColor
         )
+
+        // Punto 5: Biblioteca de Descargas (Solo Premium)
+        if (isPremium) {
+            DrawerItem(
+                label = "Mi Biblioteca",
+                icon = Icons.Default.DownloadForOffline,
+                selected = currentRoute == "Downloads",
+                onClick = {
+                    onNavigateToDownloads()
+                    onCloseDrawer()
+                },
+                accentColor = Color(0xFF3B82F6),
+                textColor = textColor
+            )
+        }
 
         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
 

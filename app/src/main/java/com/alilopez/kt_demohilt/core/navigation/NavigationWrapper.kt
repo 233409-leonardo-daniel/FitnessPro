@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
 import com.alilopez.kt_demohilt.core.components.StartIoBanner
 import com.alilopez.kt_demohilt.core.session.SessionManager
+import com.alilopez.kt_demohilt.features.downloads.presentation.screens.DownloadLibraryScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.AddExerciseScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.EditExerciseScreen
 import com.alilopez.kt_demohilt.features.exercise.presentation.screens.ExerciseDetailScreen
@@ -50,7 +51,8 @@ import kotlinx.coroutines.launch
 
 @Composable
 fun NavigationWrapper(
-    sessionManager: SessionManager
+    sessionManager: SessionManager,
+    initialRecipeId: Int? = null 
 ) {
     val navController = rememberNavController()
     val activity = LocalActivity.current
@@ -62,6 +64,13 @@ fun NavigationWrapper(
     val currentRoute = currentDestination?.route?.split(".")?.lastOrNull()
 
     val membership by sessionManager.membership.collectAsStateWithLifecycle()
+    val userId = sessionManager.currentUserId
+
+    LaunchedEffect(initialRecipeId) {
+        if (initialRecipeId != null && sessionManager.isLoggedIn()) {
+            navController.navigate(RecipeDetail(initialRecipeId))
+        }
+    }
 
     LaunchedEffect(currentDestination?.route) {
         drawerState.close()
@@ -138,6 +147,11 @@ fun NavigationWrapper(
                                     launchSingleTop = true
                                 }
                             },
+                            onNavigateToDownloads = {
+                                navController.navigate(Downloads) {
+                                    launchSingleTop = true
+                                }
+                            },
                             isPremium = membership != null && membership != "gratuito",
                             onLogout = {
                                 sessionManager.clearSession()
@@ -153,7 +167,9 @@ fun NavigationWrapper(
                     }
                 }
             ) {
-                NavHost(navController = navController, startDestination = Login) {
+                val startDest = if (sessionManager.isLoggedIn()) Home else Login
+                
+                NavHost(navController = navController, startDestination = startDest) {
                     composable<Login> {
                         LoginScreen(
                             onClickLogin = {
@@ -302,7 +318,10 @@ fun NavigationWrapper(
                             onNavigateToDetail = { planId, planName ->
                                 navController.navigate(WorkoutDetail(planId, planName))
                             },
-                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                            onNavigateToPremium = { navController.navigate(Premium) },
+                            onOpenDrawer = { scope.launch { drawerState.open() } },
+                            membership = membership,
+                            userId = userId
                         )
                     }
 
@@ -321,7 +340,10 @@ fun NavigationWrapper(
                             onNavigateToDetail = { planId, planName ->
                                 navController.navigate(RecipePlanDetail(planId, planName))
                             },
-                            onOpenDrawer = { scope.launch { drawerState.open() } }
+                            onNavigateToPremium = { navController.navigate(Premium) },
+                            onOpenDrawer = { scope.launch { drawerState.open() } },
+                            membership = membership,
+                            userId = userId
                         )
                     }
 
@@ -332,6 +354,18 @@ fun NavigationWrapper(
                             planName = route.planName,
                             onNavigateBack = { navController.popBackStack() },
                             onNavigateToAddRecipe = { navController.navigate(AddRecipe) }
+                        )
+                    }
+
+                    composable<Downloads> {
+                        DownloadLibraryScreen(
+                            onNavigateToWorkoutDetail = { id, name ->
+                                navController.navigate(WorkoutDetail(id, name))
+                            },
+                            onNavigateToRecipeDetail = { id, name ->
+                                navController.navigate(RecipePlanDetail(id, name))
+                            },
+                            onOpenDrawer = { scope.launch { drawerState.open() } }
                         )
                     }
                 }
