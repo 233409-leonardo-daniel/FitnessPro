@@ -2,15 +2,16 @@ package com.alilopez.kt_demohilt.features.recipeplans.data.repositories
 
 import com.alilopez.kt_demohilt.core.database.dao.RecipePlanDao
 import com.alilopez.kt_demohilt.core.network.FitnessProApi
-import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain
+import com.alilopez.kt_demohilt.features.recipies.data.datasources.remote.mapper.toDomain as toDomainFromDto
+import com.alilopez.kt_demohilt.features.recipies.data.datasources.local.mapper.toDomain as toDomainFromEntity
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
-import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mapper.toDomain
+import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.mapper.toDomain as planToDomain
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.AddRecipeToPlanDto
 import com.alilopez.kt_demohilt.features.recipeplans.data.datasources.remote.model.RecipePlanCreateDto
 import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
 import com.alilopez.kt_demohilt.features.recipeplans.domain.repositories.RecipePlanRepository
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.*
 import javax.inject.Inject
 
 class RecipePlanRepositoryImpl @Inject constructor(
@@ -19,14 +20,20 @@ class RecipePlanRepositoryImpl @Inject constructor(
 ) : RecipePlanRepository {
 
     override suspend fun getUserRecipePlans(userId: Int): List<RecipePlan> {
-        val remotePlans = api.getUserRecipePlans(userId).map { it.toDomain() }
-        val downloadedIds = recipePlanDao.getDownloadedPlanIds().toSet()
-        
-        return remotePlans.map { plan ->
-            if (downloadedIds.contains(plan.id)) {
-                plan.copy(isDownloaded = true)
-            } else {
-                plan
+        return try {
+            val remotePlans = api.getUserRecipePlans(userId).map { it.planToDomain() }
+            val downloadedIds = recipePlanDao.getDownloadedPlanIds().toSet()
+            
+            remotePlans.map { plan ->
+                if (downloadedIds.contains(plan.id)) {
+                    plan.copy(isDownloaded = true)
+                } else {
+                    plan
+                }
+            }
+        } catch (e: Exception) {
+            recipePlanDao.getDownloadedRecipePlans().first().map { 
+                it.planToDomain().copy(isDownloaded = true) 
             }
         }
     }
@@ -43,30 +50,53 @@ class RecipePlanRepositoryImpl @Inject constructor(
             userId = userId,
             private = isPrivate
         )
-        return api.createRecipePlan(createDto).toDomain()
+        return api.createRecipePlan(createDto).planToDomain()
     }
 
     override suspend fun addRecipeToPlan(planId: Int, recipeId: Int): RecipePlan {
         val addDto = AddRecipeToPlanDto(recipeId = recipeId)
-        return api.addRecipeToPlan(planId, addDto).toDomain()
+        return api.addRecipeToPlan(planId, addDto).planToDomain()
     }
 
     override suspend fun getPlanRecipes(planId: Int): List<Recipe> {
-        return api.getPlanRecipes(planId).map { it.toDomain() }
+        return try {
+            api.getPlanRecipes(planId).map { it.toDomainFromDto() }
+        } catch (e: Exception) {
+            // Fallback Offline: Leer de Room usando la tabla de relación
+            recipePlanDao.getRecipesForPlan(planId).first().map { 
+                it.toDomainFromEntity().copy(isDownloaded = true) 
+            }
+        }
     }
 
     override suspend fun deleteRecipePlan(planId: Int) {
-        api.deleteRecipePlan(planId)
+        try {
+            api.deleteRecipePlan(planId)
+        } catch (_: Exception) { }
         recipePlanDao.deleteRecipePlan(planId)
+        recipePlanDao.deleteRecipePlanCrossRefs(planId)
     }
 
     override suspend fun removeRecipeFromPlan(planId: Int, recipeId: Int): RecipePlan {
-        return api.removeRecipeFromPlan(planId, recipeId).toDomain()
+        return api.removeRecipeFromPlan(planId, recipeId).planToDomain()
     }
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     override fun getDownloadedRecipePlans(): Flow<List<RecipePlan>> {
-        return recipePlanDao.getDownloadedRecipePlans().map { entities ->
-            entities.map { it.toDomain().copy(isDownloaded = true) }
+        return recipePlanDao.getDownloadedRecipePlans().flatMapLatest { planEntities ->
+            if (planEntities.isEmpty()) {
+                flowOf(emptyList())
+            } else {
+                val plansFlows = planEntities.map { entity ->
+                    recipePlanDao.getRecipesForPlan(entity.id).map { recipes ->
+                        entity.planToDomain().copy(
+                            isDownloaded = true,
+                            recipes = recipes.map { it.toDomainFromEntity().copy(isDownloaded = true) }
+                        )
+                    }
+                }
+                combine(plansFlows) { it.toList() }
+            }
         }
     }
 

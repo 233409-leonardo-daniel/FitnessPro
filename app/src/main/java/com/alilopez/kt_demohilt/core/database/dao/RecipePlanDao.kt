@@ -1,10 +1,9 @@
 package com.alilopez.kt_demohilt.core.database.dao
 
-import androidx.room.Dao
-import androidx.room.Insert
-import androidx.room.OnConflictStrategy
-import androidx.room.Query
+import androidx.room.*
+import com.alilopez.kt_demohilt.core.database.entities.RecipeEntity
 import com.alilopez.kt_demohilt.core.database.entities.RecipePlanEntity
+import com.alilopez.kt_demohilt.core.database.entities.RecipePlanRecipeCrossRef
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -18,6 +17,20 @@ interface RecipePlanDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insertRecipePlan(plan: RecipePlanEntity)
 
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertRecipePlanCrossRef(crossRef: RecipePlanRecipeCrossRef)
+
+    @Transaction
+    @Query("""
+        SELECT * FROM recipes 
+        INNER JOIN RecipePlanRecipeCrossRef ON recipes.id = RecipePlanRecipeCrossRef.recipeId 
+        WHERE RecipePlanRecipeCrossRef.planId = :planId
+    """)
+    fun getRecipesForPlan(planId: Int): Flow<List<RecipeEntity>>
+
     @Query("DELETE FROM recipe_plans WHERE id = :planId")
     suspend fun deleteRecipePlan(planId: Int)
+    
+    @Query("DELETE FROM RecipePlanRecipeCrossRef WHERE planId = :planId")
+    suspend fun deleteRecipePlanCrossRefs(planId: Int)
 }

@@ -1,6 +1,7 @@
 package com.alilopez.kt_demohilt.features.workoutplans.data.workers
 
 import android.content.Context
+import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -10,11 +11,13 @@ import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.database.dao.WorkoutPlanDao
 import com.alilopez.kt_demohilt.core.database.entities.ExerciseEntity
 import com.alilopez.kt_demohilt.core.database.entities.WorkoutPlanEntity
+import com.alilopez.kt_demohilt.core.database.entities.WorkoutPlanExerciseCrossRef
 import com.alilopez.kt_demohilt.core.notifications.NotificationHelper
 import com.alilopez.kt_demohilt.features.workoutplans.domain.repositories.WorkoutPlanRepository
 import dagger.assisted.Assisted
 import dagger.assisted.AssistedInject
 import kotlinx.coroutines.delay
+import java.io.IOException
 
 @HiltWorker
 class DownloadWorkoutPlanWorker @AssistedInject constructor(
@@ -85,10 +88,18 @@ class DownloadWorkoutPlanWorker @AssistedInject constructor(
                         isDownloaded = true
                     )
                 ))
+
+                workoutPlanDao.insertWorkoutPlanCrossRef(
+                    WorkoutPlanExerciseCrossRef(planId, exercise.id ?: 0)
+                )
             }
 
             Result.success()
+        } catch (e: IOException) {
+            Log.e("DOWNLOAD_WORKER", "Error de red, reintentando...")
+            Result.retry()
         } catch (e: Exception) {
+            Log.e("DOWNLOAD_WORKER", "Error fatal: ${e.message}")
             Result.failure()
         }
     }
