@@ -3,9 +3,11 @@ package com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.user.domain.repositories.UserRepository
+import com.alilopez.kt_demohilt.features.workoutplans.domain.entities.WorkoutPlan
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.CreateWorkoutPlanUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.DeleteWorkoutPlanUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.GetUserWorkoutPlansUseCase
+import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.RemoveLocalWorkoutPlanDownloadUseCase
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.screens.WorkoutPlansUIState
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -21,6 +23,7 @@ class WorkoutPlansViewModel @Inject constructor(
     private val getUserWorkoutPlansUseCase: GetUserWorkoutPlansUseCase,
     private val createWorkoutPlanUseCase: CreateWorkoutPlanUseCase,
     private val deleteWorkoutPlanUseCase: DeleteWorkoutPlanUseCase,
+    private val removeLocalWorkoutPlanDownloadUseCase: RemoveLocalWorkoutPlanDownloadUseCase,
     private val userRepository: UserRepository,
     private val sessionManager: SessionManager
 ) : ViewModel() {
@@ -35,7 +38,6 @@ class WorkoutPlansViewModel @Inject constructor(
     fun loadWorkoutPlans() {
         val userId = sessionManager.currentUserId
         
-        // Validar que el usuario esté autenticado
         if (userId == null) {
             _uiState.update { 
                 it.copy(isLoading = false, errorMessage = "Usuario no autenticado", workoutPlans = emptyList()) 
@@ -59,14 +61,7 @@ class WorkoutPlansViewModel @Inject constructor(
 
     fun createPlan(name: String, description: String, planType: String, isPrivate: Boolean) {
         val userId = sessionManager.currentUserId
-        
-        // Validar que el usuario esté autenticado
-        if (userId == null) {
-            _uiState.update { 
-                it.copy(errorMessage = "Usuario no autenticado") 
-            }
-            return
-        }
+        if (userId == null) return
 
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
@@ -82,10 +77,17 @@ class WorkoutPlansViewModel @Inject constructor(
         }
     }
 
-    fun deletePlan(planId: Int) {
+    fun deletePlan(plan: WorkoutPlan) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            deleteWorkoutPlanUseCase(planId).fold(
+            
+            val result = if (plan.isDownloaded) {
+                removeLocalWorkoutPlanDownloadUseCase(plan.id)
+            } else {
+                deleteWorkoutPlanUseCase(plan.id)
+            }
+
+            result.fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planDeleted = true) }
                     loadWorkoutPlans()

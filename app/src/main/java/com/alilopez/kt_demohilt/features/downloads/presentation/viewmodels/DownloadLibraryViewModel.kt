@@ -3,8 +3,12 @@ package com.alilopez.kt_demohilt.features.downloads.presentation.viewmodels
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.alilopez.kt_demohilt.features.downloads.presentation.screens.DownloadLibraryUIState
+import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.GetDownloadedRecipePlansUseCase
+import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.RemoveLocalRecipePlanDownloadUseCase
+import com.alilopez.kt_demohilt.features.workoutplans.domain.entities.WorkoutPlan
 import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.GetDownloadedWorkoutPlansUseCase
+import com.alilopez.kt_demohilt.features.workoutplans.domain.usecases.RemoveLocalWorkoutPlanDownloadUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -17,7 +21,9 @@ import javax.inject.Inject
 @HiltViewModel
 class DownloadLibraryViewModel @Inject constructor(
     private val getDownloadedRecipePlansUseCase: GetDownloadedRecipePlansUseCase,
-    private val getDownloadedWorkoutPlansUseCase: GetDownloadedWorkoutPlansUseCase
+    private val getDownloadedWorkoutPlansUseCase: GetDownloadedWorkoutPlansUseCase,
+    private val removeLocalWorkoutPlanDownloadUseCase: RemoveLocalWorkoutPlanDownloadUseCase,
+    private val removeLocalRecipePlanDownloadUseCase: RemoveLocalRecipePlanDownloadUseCase
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(DownloadLibraryUIState())
@@ -27,7 +33,7 @@ class DownloadLibraryViewModel @Inject constructor(
         loadDownloadedContent()
     }
 
-    private fun loadDownloadedContent() {
+    fun loadDownloadedContent() {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
             
@@ -43,6 +49,18 @@ class DownloadLibraryViewModel @Inject constructor(
             }.collect { newState ->
                 _uiState.value = newState
             }
+        }
+    }
+
+    fun removeWorkoutDownload(planId: Int) {
+        viewModelScope.launch {
+            removeLocalWorkoutPlanDownloadUseCase(planId)
+        }
+    }
+
+    fun removeRecipeDownload(planId: Int) {
+        viewModelScope.launch {
+            removeLocalRecipePlanDownloadUseCase(planId)
         }
     }
 }

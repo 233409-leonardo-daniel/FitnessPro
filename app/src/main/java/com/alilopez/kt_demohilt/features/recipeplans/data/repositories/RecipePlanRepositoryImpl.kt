@@ -88,4 +88,9 @@ class RecipePlanRepositoryImpl @Inject constructor(
     }
 
     override suspend fun getDownloadedPlanIds(): List<Int> = recipePlanDao.getDownloadedPlanIds()
+
+    override suspend fun removeLocalRecipePlanDownload(planId: Int) {
+        recipePlanDao.deleteRecipePlan(planId)
+        recipePlanDao.deleteRecipePlanCrossRefs(planId)
+    }
 }

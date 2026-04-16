@@ -15,4 +15,5 @@ interface RecipePlanRepository {
     // Para modo offline
     fun getDownloadedRecipePlans(): Flow<List<RecipePlan>>
     suspend fun getDownloadedPlanIds(): List<Int>
+    suspend fun removeLocalRecipePlanDownload(planId: Int)
 }

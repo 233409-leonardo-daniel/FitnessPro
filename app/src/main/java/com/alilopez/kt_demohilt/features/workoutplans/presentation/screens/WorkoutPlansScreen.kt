@@ -53,6 +53,7 @@ fun WorkoutPlansScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
     val context = LocalContext.current
+    val isPremium = membership != null && membership != "gratuito"
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
@@ -61,7 +62,7 @@ fun WorkoutPlansScreen(
     var showCreateDialog by remember { mutableStateOf(false) }
 
     fun startDownload(plan: WorkoutPlan) {
-        if (membership == null || membership == "gratuito") {
+        if (!isPremium) {
             onNavigateToPremium()
             return
         }
@@ -120,9 +121,6 @@ fun WorkoutPlansScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accentColor)
-                }
                 uiState.errorMessage != null -> {
                     Text(
                         text = uiState.errorMessage ?: "Error desconocido",
@@ -131,7 +129,7 @@ fun WorkoutPlansScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-                uiState.workoutPlans.isEmpty() -> {
+                !uiState.isLoading && uiState.workoutPlans.isEmpty() -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -149,8 +147,9 @@ fun WorkoutPlansScreen(
                         items(uiState.workoutPlans) { plan ->
                             WorkoutPlanItem(
                                 plan = plan,
+                                isPremium = isPremium,
                                 onClick = { onNavigateToDetail(plan.id, plan.name) },
-                                onDelete = { viewModel.deletePlan(plan.id) },
+                                onDelete = { viewModel.deletePlan(plan) },
                                 onDownload = { startDownload(plan) },
                                 isDarkTheme = isDarkTheme
                             )
@@ -175,6 +174,7 @@ fun WorkoutPlansScreen(
 @Composable
 fun WorkoutPlanItem(
     plan: WorkoutPlan,
+    isPremium: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onDownload: () -> Unit,
@@ -221,7 +221,7 @@ fun WorkoutPlanItem(
                 }
             }
             
-            if (plan.isDownloaded) {
+            if (plan.isDownloaded && isPremium) {
                 Icon(
                     Icons.Default.CheckCircle, 
                     contentDescription = "Descargado", 

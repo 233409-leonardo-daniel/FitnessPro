@@ -43,6 +43,7 @@ fun RecipePlansScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
     val context = LocalContext.current
+    val isPremium = membership != null && membership != "gratuito"
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
@@ -51,7 +52,7 @@ fun RecipePlansScreen(
     var showCreateDialog by remember { mutableStateOf(false) }
 
     fun startDownload(plan: RecipePlan) {
-        if (membership == null || membership == "gratuito") {
+        if (!isPremium) {
             onNavigateToPremium()
             return
         }
@@ -86,7 +87,7 @@ fun RecipePlansScreen(
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mis Menús", fontWeight = FontWeight.Bold) },
+                title = { Text("Mis Listas de Recetas", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
                         Icon(Icons.Default.Menu, contentDescription = null, tint = textColor)
@@ -108,43 +109,39 @@ fun RecipePlansScreen(
                 .fillMaxSize()
                 .padding(paddingValues)
         ) {
-            Box(modifier = Modifier.fillMaxSize()) {
-                when {
-                    uiState.isLoading -> {
-                        CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accentColor)
+            when {
+                uiState.errorMessage != null -> {
+                    Text(
+                        text = uiState.errorMessage ?: "Error desconocido",
+                        color = Color.Red,
+                        modifier = Modifier.align(Alignment.Center).padding(16.dp),
+                        textAlign = TextAlign.Center
+                    )
+                }
+                !uiState.isLoading && uiState.recipePlans.isEmpty() -> {
+                    Column(
+                        modifier = Modifier.align(Alignment.Center),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Text("No tienes listas de recetas", color = textColor, fontSize = 18.sp)
+                        Text("¡Crea tu primera lista para empezar!", color = Color.Gray, fontSize = 14.sp)
                     }
-                    uiState.errorMessage != null -> {
-                        Text(
-                            text = uiState.errorMessage ?: "Error desconocido",
-                            color = Color.Red,
-                            modifier = Modifier.align(Alignment.Center).padding(16.dp),
-                            textAlign = TextAlign.Center
-                        )
-                    }
-                    uiState.recipePlans.isEmpty() -> {
-                        Column(
-                            modifier = Modifier.align(Alignment.Center),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text("No tienes menús creados", color = textColor, fontSize = 18.sp)
-                            Text("¡Crea tu primera lista para empezar!", color = Color.Gray, fontSize = 14.sp)
-                        }
-                    }
-                    else -> {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(uiState.recipePlans) { plan ->
-                                RecipePlanItem(
-                                    plan = plan,
-                                    onClick = { onNavigateToDetail(plan.id, plan.name) },
-                                    onDelete = { viewModel.deletePlan(plan.id) },
-                                    onDownload = { startDownload(plan) },
-                                    isDarkTheme = isDarkTheme
-                                )
-                            }
+                }
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        items(uiState.recipePlans) { plan ->
+                            RecipePlanItem(
+                                plan = plan,
+                                isPremium = isPremium,
+                                onClick = { onNavigateToDetail(plan.id, plan.name) },
+                                onDelete = { viewModel.deletePlan(plan) },
+                                onDownload = { startDownload(plan) },
+                                isDarkTheme = isDarkTheme
+                            )
                         }
                     }
                 }
@@ -166,6 +163,7 @@ fun RecipePlansScreen(
 @Composable
 fun RecipePlanItem(
     plan: RecipePlan,
+    isPremium: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit,
     onDownload: () -> Unit,
@@ -195,7 +193,7 @@ fun RecipePlanItem(
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
-                                "Privado", 
+                                "Privada", 
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 fontSize = 10.sp,
                                 color = Color.Gray
@@ -205,10 +203,11 @@ fun RecipePlanItem(
                 }
                 Text(text = plan.description, fontSize = 14.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "• ${plan.recipes.size} recetas", fontSize = 12.sp, color = Color(0xFF10B981), fontWeight = FontWeight.SemiBold)
+                Text(text = "${plan.recipes.size} recetas", fontSize = 12.sp, color = Color.Gray)
             }
             
-            if (plan.isDownloaded) {
+            // Solo mostrar el estado de descargado si el usuario es Premium
+            if (plan.isDownloaded && isPremium) {
                 Icon(
                     Icons.Default.CheckCircle, 
                     contentDescription = "Descargado", 
@@ -239,7 +238,7 @@ fun CreateRecipePlanDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Menú") },
+        title = { Text("Nueva Lista de Recetas") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -260,7 +259,7 @@ fun CreateRecipePlanDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Menú Privado")
+                    Text("Lista Privada")
                     Switch(
                         checked = isPrivate,
                         onCheckedChange = { isPrivate = it },

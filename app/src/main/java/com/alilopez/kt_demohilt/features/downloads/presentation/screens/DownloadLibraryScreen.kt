@@ -8,6 +8,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DownloadForOffline
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +28,13 @@ fun DownloadLibraryScreen(
     onNavigateToWorkoutDetail: (Int, String) -> Unit,
     onNavigateToRecipeDetail: (Int, String) -> Unit,
     onOpenDrawer: () -> Unit,
+    membership: String?,
     viewModel: DownloadLibraryViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
     var selectedTab by remember { mutableIntStateOf(0) }
+    val isPremium = membership != null && membership != "gratuito"
     
     val tabs = listOf("Rutinas", "Menús")
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
@@ -68,43 +71,51 @@ fun DownloadLibraryScreen(
                 }
             }
 
-            if (uiState.isLoading) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = accentColor)
-                }
-            } else {
-                val isEmpty = if (selectedTab == 0) uiState.downloadedWorkouts.isEmpty() 
-                             else uiState.downloadedRecipes.isEmpty()
+            PullToRefreshBox(
+                isRefreshing = uiState.isLoading,
+                onRefresh = { viewModel.loadDownloadedContent() },
+                modifier = Modifier.fillMaxSize()
+            ) {
+                if (!uiState.isLoading) {
+                    val isEmpty = if (selectedTab == 0) uiState.downloadedWorkouts.isEmpty() 
+                                 else uiState.downloadedRecipes.isEmpty()
 
-                if (isEmpty) {
-                    EmptyLibraryView(textColor)
-                } else {
-                    LazyColumn(
-                        modifier = Modifier.fillMaxSize(),
-                        contentPadding = PaddingValues(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        if (selectedTab == 0) {
-                            items(uiState.downloadedWorkouts) { plan ->
-                                WorkoutPlanItem(
-                                    plan = plan,
-                                    onClick = { onNavigateToWorkoutDetail(plan.id, plan.name) },
-                                    onDelete = { /* Lógica para borrar descarga */ },
-                                    onDownload = {}, // Ya está descargado
-                                    isDarkTheme = isDarkTheme
-                                )
-                            }
-                        } else {
-                            items(uiState.downloadedRecipes) { plan ->
-                                RecipePlanItem(
-                                    plan = plan,
-                                    onClick = { onNavigateToRecipeDetail(plan.id, plan.name) },
-                                    onDelete = { /* Lógica para borrar descarga */ },
-                                    onDownload = {},
-                                    isDarkTheme = isDarkTheme
-                                )
+                    if (isEmpty) {
+                        EmptyLibraryView(textColor)
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            if (selectedTab == 0) {
+                                items(uiState.downloadedWorkouts) { plan ->
+                                    WorkoutPlanItem(
+                                        plan = plan,
+                                        isPremium = isPremium,
+                                        onClick = { onNavigateToWorkoutDetail(plan.id, plan.name) },
+                                        onDelete = { viewModel.removeWorkoutDownload(plan.id) },
+                                        onDownload = {}, 
+                                        isDarkTheme = isDarkTheme
+                                    )
+                                }
+                            } else {
+                                items(uiState.downloadedRecipes) { plan ->
+                                    RecipePlanItem(
+                                        plan = plan,
+                                        isPremium = isPremium,
+                                        onClick = { onNavigateToRecipeDetail(plan.id, plan.name) },
+                                        onDelete = { viewModel.removeRecipeDownload(plan.id) },
+                                        onDownload = {},
+                                        isDarkTheme = isDarkTheme
+                                    )
+                                }
                             }
                         }
+                    }
+                } else {
+                    Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        CircularProgressIndicator(color = accentColor)
                     }
                 }
             }

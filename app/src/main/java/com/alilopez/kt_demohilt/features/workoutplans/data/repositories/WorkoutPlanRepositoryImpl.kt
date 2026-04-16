@@ -92,4 +92,9 @@ class WorkoutPlanRepositoryImpl @Inject constructor(
     override suspend fun getDownloadedPlanIds(): List<Int> {
         return workoutPlanDao.getDownloadedPlanIds()
     }
+
+    override suspend fun removeLocalWorkoutPlanDownload(planId: Int) {
+        workoutPlanDao.deleteWorkoutPlan(planId)
+        workoutPlanDao.deleteWorkoutPlanCrossRefs(planId)
+    }
 }

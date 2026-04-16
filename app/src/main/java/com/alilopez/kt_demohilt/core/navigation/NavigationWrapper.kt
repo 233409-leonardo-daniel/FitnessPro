@@ -365,6 +365,7 @@ fun NavigationWrapper(
                             onNavigateToRecipeDetail = { id, name ->
                                 navController.navigate(RecipePlanDetail(id, name))
                             },
+                            membership = membership,
                             onOpenDrawer = { scope.launch { drawerState.open() } }
                         )
                     }

@@ -21,4 +21,5 @@ interface WorkoutPlanRepository {
     // Para modo offline
     fun getDownloadedWorkoutPlans(): Flow<List<WorkoutPlan>>
     suspend fun getDownloadedPlanIds(): List<Int>
+    suspend fun removeLocalWorkoutPlanDownload(planId: Int)
 }

@@ -11,7 +11,7 @@ interface WorkoutPlanDao {
     @Query("SELECT * FROM workout_plans WHERE isDownloaded = 1")
     fun getDownloadedWorkoutPlans(): Flow<List<WorkoutPlanEntity>>
 
-    @Query("SELECT id FROM workout_plans")
+    @Query("SELECT id FROM workout_plans WHERE isDownloaded = 1")
     suspend fun getDownloadedPlanIds(): List<Int>
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
@@ -27,6 +27,9 @@ interface WorkoutPlanDao {
         WHERE WorkoutPlanExerciseCrossRef.planId = :planId
     """)
     fun getExercisesForPlan(planId: Int): Flow<List<ExerciseEntity>>
+
+    @Query("SELECT exerciseId FROM WorkoutPlanExerciseCrossRef WHERE planId = :planId")
+    suspend fun getExerciseIdsForPlan(planId: Int): List<Int>
 
     @Query("DELETE FROM workout_plans WHERE id = :planId")
     suspend fun deleteWorkoutPlan(planId: Int)
