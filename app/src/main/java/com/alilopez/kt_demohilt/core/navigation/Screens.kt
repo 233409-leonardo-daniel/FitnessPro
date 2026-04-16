@@ -55,3 +55,6 @@ object Premium
 
 @Serializable
 object Progression
+
+@Serializable
+object Downloads

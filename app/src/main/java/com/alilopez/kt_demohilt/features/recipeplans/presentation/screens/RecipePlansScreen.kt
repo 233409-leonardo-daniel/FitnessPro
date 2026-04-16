@@ -7,7 +7,9 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -15,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +25,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.*
+import com.alilopez.kt_demohilt.features.recipeplans.data.workers.DownloadRecipePlanWorker
 import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels.RecipePlansViewModel
 
@@ -29,11 +34,16 @@ import com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels.Rec
 @Composable
 fun RecipePlansScreen(
     onNavigateToDetail: (Int, String) -> Unit,
+    onNavigateToPremium: () -> Unit,
     onOpenDrawer: () -> Unit,
+    membership: String?,
+    userId: Int?,
     viewModel: RecipePlansViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
+    val isPremium = membership != null && membership != "gratuito"
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
@@ -41,12 +51,43 @@ fun RecipePlansScreen(
 
     var showCreateDialog by remember { mutableStateOf(false) }
 
+    fun startDownload(plan: RecipePlan) {
+        if (!isPremium) {
+            onNavigateToPremium()
+            return
+        }
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val data = Data.Builder()
+            .putInt(DownloadRecipePlanWorker.KEY_PLAN_ID, plan.id)
+            .putString(DownloadRecipePlanWorker.KEY_PLAN_NAME, plan.name)
+            .putString(DownloadRecipePlanWorker.KEY_PLAN_DESC, plan.description)
+            .putInt(DownloadRecipePlanWorker.KEY_USER_ID, userId ?: -1)
+            .build()
+
+        val downloadRequest = OneTimeWorkRequestBuilder<DownloadRecipePlanWorker>()
+            .setConstraints(constraints)
+            .setInputData(data)
+            .addTag("download_recipe_plan_${plan.id}")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "download_recipe_${plan.id}",
+            ExistingWorkPolicy.KEEP,
+            downloadRequest
+        )
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = backgroundColor,
         topBar = {
             TopAppBar(
-                title = { Text("Mis Menús", fontWeight = FontWeight.Bold) },
+                title = { Text("Mis Listas de Recetas", fontWeight = FontWeight.Bold) },
                 navigationIcon = {
                     IconButton(onClick = onOpenDrawer) {
                         Icon(Icons.Default.Menu, contentDescription = null, tint = textColor)
@@ -69,9 +110,6 @@ fun RecipePlansScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accentColor)
-                }
                 uiState.errorMessage != null -> {
                     Text(
                         text = uiState.errorMessage ?: "Error desconocido",
@@ -80,12 +118,12 @@ fun RecipePlansScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-                uiState.recipePlans.isEmpty() -> {
+                !uiState.isLoading && uiState.recipePlans.isEmpty() -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
-                        Text("No tienes menús creados", color = textColor, fontSize = 18.sp)
+                        Text("No tienes listas de recetas", color = textColor, fontSize = 18.sp)
                         Text("¡Crea tu primera lista para empezar!", color = Color.Gray, fontSize = 14.sp)
                     }
                 }
@@ -98,8 +136,10 @@ fun RecipePlansScreen(
                         items(uiState.recipePlans) { plan ->
                             RecipePlanItem(
                                 plan = plan,
+                                isPremium = isPremium,
                                 onClick = { onNavigateToDetail(plan.id, plan.name) },
-                                onDelete = { viewModel.deletePlan(plan.id) },
+                                onDelete = { viewModel.deletePlan(plan) },
+                                onDownload = { startDownload(plan) },
                                 isDarkTheme = isDarkTheme
                             )
                         }
@@ -123,8 +163,10 @@ fun RecipePlansScreen(
 @Composable
 fun RecipePlanItem(
     plan: RecipePlan,
+    isPremium: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    onDownload: () -> Unit,
     isDarkTheme: Boolean
 ) {
     val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -151,7 +193,7 @@ fun RecipePlanItem(
                             shape = RoundedCornerShape(4.dp)
                         ) {
                             Text(
-                                "Privado", 
+                                "Privada", 
                                 modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
                                 fontSize = 10.sp,
                                 color = Color.Gray
@@ -161,8 +203,23 @@ fun RecipePlanItem(
                 }
                 Text(text = plan.description, fontSize = 14.sp, color = Color.Gray, maxLines = 1, overflow = TextOverflow.Ellipsis)
                 Spacer(modifier = Modifier.height(4.dp))
-                Text(text = "• ${plan.recipes.size} recetas", fontSize = 12.sp, color = Color(0xFF10B981), fontWeight = FontWeight.SemiBold)
+                Text(text = "${plan.recipes.size} recetas", fontSize = 12.sp, color = Color.Gray)
             }
+            
+            // Solo mostrar el estado de descargado si el usuario es Premium
+            if (plan.isDownloaded && isPremium) {
+                Icon(
+                    Icons.Default.CheckCircle, 
+                    contentDescription = "Descargado", 
+                    tint = Color(0xFF10B981),
+                    modifier = Modifier.padding(12.dp)
+                )
+            } else {
+                IconButton(onClick = onDownload) {
+                    Icon(Icons.Default.Download, contentDescription = "Descargar", tint = Color(0xFF3B82F6))
+                }
+            }
+
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF4444))
             }
@@ -181,7 +238,7 @@ fun CreateRecipePlanDialog(
 
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nuevo Menú") },
+        title = { Text("Nueva Lista de Recetas") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
@@ -202,7 +259,7 @@ fun CreateRecipePlanDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Menú Privado")
+                    Text("Lista Privada")
                     Switch(
                         checked = isPrivate,
                         onCheckedChange = { isPrivate = it },
