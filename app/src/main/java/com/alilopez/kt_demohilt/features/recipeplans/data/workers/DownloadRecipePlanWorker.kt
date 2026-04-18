@@ -1,6 +1,8 @@
 package com.alilopez.kt_demohilt.features.recipeplans.data.workers
 
 import android.content.Context
+import android.content.pm.ServiceInfo
+import android.os.Build
 import android.util.Log
 import androidx.hilt.work.HiltWorker
 import androidx.work.CoroutineWorker
@@ -35,13 +37,20 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
         const val KEY_USER_ID = "user_id"
     }
 
-    // REQUERIDO para tareas expeditas y para que la notificación se muestre siempre al reanudar
-    override suspend fun getForegroundInfo(): ForegroundInfo {
-        val planName = inputData.getString(KEY_PLAN_NAME) ?: "Plan"
-        return ForegroundInfo(
-            NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
-            notificationHelper.getDownloadNotification(planName, 0)
-        )
+    override suspend fun getForegroundInfo(): ForegroundInfo =
+        buildForegroundInfo(inputData.getString(KEY_PLAN_NAME) ?: "Plan", 0)
+
+    private fun buildForegroundInfo(planName: String, progress: Int): ForegroundInfo {
+        val notification = notificationHelper.getDownloadNotification(planName, progress)
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ForegroundInfo(
+                NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
+                notification,
+                ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
+            )
+        } else {
+            ForegroundInfo(NotificationHelper.DOWNLOAD_NOTIFICATION_ID, notification)
+        }
     }
 
     override suspend fun doWork(): Result {
@@ -52,8 +61,7 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
 
         if (planId == -1 || userId == -1) return Result.failure()
 
-        // Mostramos la notificación inmediatamente
-        setForeground(getForegroundInfo())
+        setForeground(buildForegroundInfo(planName, 0))
 
         return try {
             val recipes = repository.getPlanRecipes(planId)
@@ -73,11 +81,7 @@ class DownloadRecipePlanWorker @AssistedInject constructor(
             recipes.forEachIndexed { index, recipe ->
                 val progress = ((index + 1).toFloat() / total * 100).toInt()
                 
-                // Actualizamos el progreso
-                setForeground(ForegroundInfo(
-                    NotificationHelper.DOWNLOAD_NOTIFICATION_ID,
-                    notificationHelper.getDownloadNotification(planName, progress)
-                ))
+                setForeground(buildForegroundInfo(planName, progress))
 
                 delay(300)
 

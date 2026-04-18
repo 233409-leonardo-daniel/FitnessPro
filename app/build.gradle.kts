@@ -14,7 +14,7 @@ android {
     val properties = com.android.build.gradle.internal.cxx.configure.gradleLocalProperties(rootDir, providers)
 
     defaultConfig {
-        applicationId = "com.alilopez.kt_demohilt"
+        applicationId = "com.fitnesspro.app"
         minSdk = 26
         targetSdk = 36
         versionCode = 1
@@ -28,9 +28,19 @@ android {
         manifestPlaceholders["admobAppId"] = "ca-app-pub-3940256099942544~3347511713" 
     }
 
+    signingConfigs {
+        create("release") {
+            storeFile = file(properties.getProperty("KEYSTORE_PATH") ?: "")
+            storePassword = properties.getProperty("KEYSTORE_PASSWORD") ?: ""
+            keyAlias = properties.getProperty("KEY_ALIAS") ?: ""
+            keyPassword = properties.getProperty("KEY_PASSWORD") ?: ""
+        }
+    }
+
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

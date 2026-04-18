@@ -259,7 +259,7 @@ interface FitnessProApi {
         @Path("name") name: String
     ): List<LocalExerciseDto>
 
-    @GET("users/{user_id}/daily")
+    @GET("users/{user_id}/daily-content")
     suspend fun getUserDailyContent(
         @Path("user_id") userId: Int
     ): UserDailyResponse

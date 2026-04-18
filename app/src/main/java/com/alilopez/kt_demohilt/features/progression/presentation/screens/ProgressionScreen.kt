@@ -1,7 +1,17 @@
 package com.alilopez.kt_demohilt.features.progression.presentation.screens
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -9,9 +19,33 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.automirrored.filled.TrendingFlat
 import androidx.compose.material.icons.automirrored.filled.TrendingUp
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -39,6 +73,7 @@ fun ProgressionScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
     var showAddWeightDialog by remember { mutableStateOf(false) }
+    var showEditTargetDialog by remember { mutableStateOf(false) }
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val accentColor = Color(0xFF10B981)
@@ -77,7 +112,12 @@ fun ProgressionScreen(
                 ) {
                     uiState.summary?.let { summary ->
                         item {
-                            SummaryCard(summary = summary, accentColor = accentColor, isDarkTheme = isDarkTheme)
+                            SummaryCard(
+                                summary = summary,
+                                accentColor = accentColor,
+                                isDarkTheme = isDarkTheme,
+                                onEditTargetWeight = { showEditTargetDialog = true }
+                            )
                         }
                     }
 
@@ -127,6 +167,17 @@ fun ProgressionScreen(
             onConfirm = { weight ->
                 viewModel.addWeightEntry(weight)
                 showAddWeightDialog = false
+            }
+        )
+    }
+
+    if (showEditTargetDialog) {
+        EditTargetWeightDialog(
+            currentTarget = uiState.summary?.targetWeight ?: 0f,
+            onDismiss = { showEditTargetDialog = false },
+            onConfirm = { newTarget ->
+                viewModel.updateTargetWeight(newTarget)
+                showEditTargetDialog = false
             }
         )
     }
@@ -213,7 +264,8 @@ fun ChartCard(
 fun SummaryCard(
     summary: com.alilopez.kt_demohilt.features.progression.domain.entities.ProgressionSummary,
     accentColor: Color,
-    isDarkTheme: Boolean
+    isDarkTheme: Boolean,
+    onEditTargetWeight: () -> Unit = {}
 ) {
     val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
     val textColor = if (isDarkTheme) Color.White else Color.Black
@@ -240,9 +292,22 @@ fun SummaryCard(
             Spacer(modifier = Modifier.height(20.dp))
 
             Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-                Column {
-                    Text("Objetivo", color = Color.Gray, fontSize = 12.sp)
-                    Text("${summary.targetWeight} kg", fontWeight = FontWeight.Bold, color = textColor)
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column {
+                        Text("Objetivo", color = Color.Gray, fontSize = 12.sp)
+                        Text("${summary.targetWeight} kg", fontWeight = FontWeight.Bold, color = textColor)
+                    }
+                    IconButton(
+                        onClick = onEditTargetWeight,
+                        modifier = Modifier.size(32.dp).padding(start = 4.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Edit,
+                            contentDescription = "Editar peso objetivo",
+                            tint = accentColor,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 }
                 Column(horizontalAlignment = Alignment.End) {
                     Text("Cambio", color = Color.Gray, fontSize = 12.sp)
@@ -311,16 +376,31 @@ fun ProgressionEntryItem(entry: ProgressionEntry, isDarkTheme: Boolean) {
 }
 
 @Composable
-fun AddWeightDialog(onDismiss: () -> Unit, onConfirm: (Float) -> Unit) {
-    var weightText by remember { mutableStateOf("") }
-    
+fun EditTargetWeightDialog(
+    currentTarget: Float,
+    onDismiss: () -> Unit,
+    onConfirm: (Float) -> Unit
+) {
+    var weightText by remember { mutableStateOf(if (currentTarget > 0f) currentTarget.toString() else "") }
+    val accentColor = Color(0xFF10B981)
+    val isDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Registrar Peso") },
+        containerColor = cardBg,
+        title = {
+            Text(
+                "Peso Objetivo",
+                fontWeight = FontWeight.Bold,
+                color = textColor
+            )
+        },
         text = {
             Column {
-                Text("Ingresa tu peso actual en kg:")
-                Spacer(modifier = Modifier.height(8.dp))
+                Text("Ingresa tu nuevo peso objetivo en kg:", color = Color.Gray, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
                 OutlinedTextField(
                     value = weightText,
                     onValueChange = { weightText = it },
@@ -328,21 +408,88 @@ fun AddWeightDialog(onDismiss: () -> Unit, onConfirm: (Float) -> Unit) {
                         keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
                     ),
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accentColor,
+                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.4f),
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = accentColor,
+                        cursorColor = accentColor
+                    ),
+                    label = { Text("Peso (kg)") },
+                    placeholder = { Text("Ej. 70.5", color = Color.Gray) }
                 )
             }
         },
         confirmButton = {
             Button(
                 onClick = { weightText.toFloatOrNull()?.let { onConfirm(it) } },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                enabled = weightText.toFloatOrNull() != null
             ) {
                 Text("Guardar")
             }
         },
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("Cancelar")
+                Text("Cancelar", color = Color.Gray)
+            }
+        }
+    )
+}
+
+@Composable
+fun AddWeightDialog(onDismiss: () -> Unit, onConfirm: (Float) -> Unit) {
+    var weightText by remember { mutableStateOf("") }
+    val accentColor = Color(0xFF10B981)
+    val isDarkTheme = androidx.compose.foundation.isSystemInDarkTheme()
+    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        containerColor = cardBg,
+        title = {
+            Text("Registrar Peso", fontWeight = FontWeight.Bold, color = textColor)
+        },
+        text = {
+            Column {
+                Text("Ingresa tu peso actual en kg:", color = Color.Gray, fontSize = 14.sp)
+                Spacer(modifier = Modifier.height(12.dp))
+                OutlinedTextField(
+                    value = weightText,
+                    onValueChange = { weightText = it },
+                    label = { Text("Peso (kg)") },
+                    placeholder = { Text("Ej. 70.5", color = Color.Gray) },
+                    keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
+                        keyboardType = androidx.compose.ui.text.input.KeyboardType.Decimal
+                    ),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = accentColor,
+                        unfocusedBorderColor = Color.Gray.copy(alpha = 0.4f),
+                        focusedTextColor = textColor,
+                        unfocusedTextColor = textColor,
+                        focusedLabelColor = accentColor,
+                        cursorColor = accentColor
+                    )
+                )
+            }
+        },
+        confirmButton = {
+            Button(
+                onClick = { weightText.toFloatOrNull()?.let { onConfirm(it) } },
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                enabled = weightText.toFloatOrNull() != null
+            ) {
+                Text("Guardar")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancelar", color = Color.Gray)
             }
         }
     )

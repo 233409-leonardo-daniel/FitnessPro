@@ -1,6 +1,11 @@
 package com.alilopez.kt_demohilt.core.database.dao
 
-import androidx.room.*
+import androidx.room.Dao
+import androidx.room.Insert
+import androidx.room.OnConflictStrategy
+import androidx.room.Query
+import androidx.room.RewriteQueriesToDropUnusedColumns
+import androidx.room.Transaction
 import com.alilopez.kt_demohilt.core.database.entities.ExerciseEntity
 import com.alilopez.kt_demohilt.core.database.entities.WorkoutPlanEntity
 import com.alilopez.kt_demohilt.core.database.entities.WorkoutPlanExerciseCrossRef
@@ -21,9 +26,10 @@ interface WorkoutPlanDao {
     suspend fun insertWorkoutPlanExerciseCrossRef(crossRef: WorkoutPlanExerciseCrossRef)
 
     @Transaction
+    @RewriteQueriesToDropUnusedColumns
     @Query("""
-        SELECT * FROM exercises 
-        INNER JOIN WorkoutPlanExerciseCrossRef ON exercises.id = WorkoutPlanExerciseCrossRef.exerciseId 
+        SELECT * FROM exercises
+        INNER JOIN WorkoutPlanExerciseCrossRef ON exercises.id = WorkoutPlanExerciseCrossRef.exerciseId
         WHERE WorkoutPlanExerciseCrossRef.planId = :planId
     """)
     fun getExercisesForPlan(planId: Int): Flow<List<ExerciseEntity>>

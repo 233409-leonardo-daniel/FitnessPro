@@ -1,7 +1,16 @@
 package com.alilopez.kt_demohilt.features.recipeplans.presentation.screens
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -11,9 +20,30 @@ import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -25,7 +55,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.work.*
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
 import com.alilopez.kt_demohilt.features.recipeplans.data.workers.DownloadRecipePlanWorker
 import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels.RecipePlansViewModel
@@ -236,34 +271,50 @@ fun CreateRecipePlanDialog(
     var desc by remember { mutableStateOf("") }
     var isPrivate by remember { mutableStateOf(true) }
 
+    val accentColor = Color(0xFF10B981)
+    val isDarkTheme = isSystemInDarkTheme()
+    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = accentColor,
+        unfocusedBorderColor = Color.Gray.copy(alpha = 0.4f),
+        focusedTextColor = textColor,
+        unfocusedTextColor = textColor,
+        focusedLabelColor = accentColor,
+        cursorColor = accentColor
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nueva Lista de Recetas") },
+        containerColor = cardBg,
+        title = { Text("Nueva Lista de Recetas", fontWeight = FontWeight.Bold, color = textColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nombre") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = fieldColors
                 )
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
                     label = { Text("Descripción") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = fieldColors
                 )
-                
+
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Lista Privada")
+                    Text("Lista Privada", color = textColor)
                     Switch(
                         checked = isPrivate,
                         onCheckedChange = { isPrivate = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF10B981))
+                        colors = SwitchDefaults.colors(checkedThumbColor = accentColor)
                     )
                 }
             }
@@ -271,13 +322,14 @@ fun CreateRecipePlanDialog(
         confirmButton = {
             Button(
                 onClick = { if (name.isNotBlank()) onConfirm(name, desc, isPrivate) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                enabled = name.isNotBlank()
             ) {
                 Text("Crear")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = Color.Gray) }
         }
     )
 }
