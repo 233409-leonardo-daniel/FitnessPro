@@ -1,21 +1,65 @@
-# Add project specific ProGuard rules here.
-# You can control the set of applied configuration files using the
-# proguardFiles setting in build.gradle.
-#
-# For more details, see
-#   http://developer.android.com/guide/developing/tools/proguard.html
+# ── Stack traces legibles ────────────────────────────────────────────────────
+-keepattributes SourceFile,LineNumberTable
+-renamesourcefileattribute SourceFile
 
-# If your project uses WebView with JS, uncomment the following
-# and specify the fully qualified class name to the JavaScript interface
-# class:
-#-keepclassmembers class fqcn.of.javascript.interface.for.webview {
-#   public *;
-#}
+# ── Kotlin ───────────────────────────────────────────────────────────────────
+-keep class kotlin.Metadata { *; }
+-dontwarn kotlin.**
 
-# Uncomment this to preserve the line number information for
-# debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+# ── Hilt / Dagger ────────────────────────────────────────────────────────────
+-keep class dagger.hilt.** { *; }
+-keep class javax.inject.** { *; }
+-keep @dagger.hilt.android.lifecycle.HiltViewModel class * { *; }
+-keepclasseswithmembers class * {
+    @javax.inject.Inject <fields>;
+}
+-keepclasseswithmembers class * {
+    @javax.inject.Inject <init>(...);
+}
 
-# If you keep the line number information, uncomment this to
-# hide the original source file name.
-#-renamesourcefileattribute SourceFile
+# ── Retrofit + Gson ──────────────────────────────────────────────────────────
+-keepattributes Signature
+-keepattributes *Annotation*
+-keep class retrofit2.** { *; }
+-keepclassmembernames interface * {
+    @retrofit2.http.* <methods>;
+}
+-dontwarn retrofit2.**
+
+# Gson: mantener DTOs del paquete data
+-keep class com.alilopez.kt_demohilt.**.data.**.dto.** { *; }
+-keep class com.alilopez.kt_demohilt.**.data.**.model.** { *; }
+-keepclassmembers class * {
+    @com.google.gson.annotations.SerializedName <fields>;
+}
+
+# ── Room ─────────────────────────────────────────────────────────────────────
+-keep class * extends androidx.room.RoomDatabase
+-keep @androidx.room.Entity class * { *; }
+-keep @androidx.room.Dao class * { *; }
+-dontwarn androidx.room.**
+
+# ── Coil ─────────────────────────────────────────────────────────────────────
+-dontwarn coil.**
+
+# ── Google Sign-In / Credentials ─────────────────────────────────────────────
+-keep class com.google.android.libraries.identity.googleid.** { *; }
+-dontwarn com.google.android.libraries.identity.googleid.**
+
+# ── AdMob ────────────────────────────────────────────────────────────────────
+-keep public class com.google.android.gms.ads.** { *; }
+-dontwarn com.google.android.gms.ads.**
+
+# ── Firebase / FCM ───────────────────────────────────────────────────────────
+-keep class com.google.firebase.** { *; }
+-dontwarn com.google.firebase.**
+-keep class com.alilopez.kt_demohilt.core.notifications.** { *; }
+
+# ── WorkManager ──────────────────────────────────────────────────────────────
+-keep class androidx.work.** { *; }
+-keep class * extends androidx.work.Worker
+-keep class * extends androidx.work.CoroutineWorker
+-dontwarn androidx.work.**
+
+# ── MPAndroidChart ───────────────────────────────────────────────────────────
+-keep class com.github.mikephil.charting.** { *; }

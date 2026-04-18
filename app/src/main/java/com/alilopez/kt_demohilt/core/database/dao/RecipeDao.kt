@@ -12,6 +12,9 @@ interface RecipeDao {
     @Query("SELECT * FROM recipes")
     fun getDAORecipes(): Flow<List<RecipeEntity>>
 
+    @Query("SELECT * FROM recipes WHERE isDownloaded = 0")
+    fun getSyncedRemoteRecipes(): Flow<List<RecipeEntity>>
+
     @Query("SELECT * FROM recipes WHERE isDownloaded = 1")
     fun getDownloadedRecipes(): Flow<List<RecipeEntity>>
 

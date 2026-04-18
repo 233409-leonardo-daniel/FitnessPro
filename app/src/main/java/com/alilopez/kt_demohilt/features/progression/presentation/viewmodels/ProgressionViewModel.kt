@@ -7,6 +7,8 @@ import com.alilopez.kt_demohilt.features.progression.domain.usecases.AddProgress
 import com.alilopez.kt_demohilt.features.progression.domain.usecases.GetProgressionHistoryUseCase
 import com.alilopez.kt_demohilt.features.progression.domain.usecases.GetProgressionSummaryUseCase
 import com.alilopez.kt_demohilt.features.progression.presentation.screens.ProgressionUIState
+import com.alilopez.kt_demohilt.features.user.domain.usecases.GetUserUseCase
+import com.alilopez.kt_demohilt.features.user.domain.usecases.UpdateUserUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -20,6 +22,8 @@ class ProgressionViewModel @Inject constructor(
     private val getProgressionHistoryUseCase: GetProgressionHistoryUseCase,
     private val getProgressionSummaryUseCase: GetProgressionSummaryUseCase,
     private val addProgressionEntryUseCase: AddProgressionEntryUseCase,
+    private val getUserUseCase: GetUserUseCase,
+    private val updateUserUseCase: UpdateUserUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -62,6 +66,31 @@ class ProgressionViewModel @Inject constructor(
         }
     }
     
+    fun updateTargetWeight(newTarget: Float) {
+        val userId = sessionManager.currentUserId ?: return
+        viewModelScope.launch {
+            _uiState.update { it.copy(isLoading = true) }
+            try {
+                val user = getUserUseCase(userId)
+                updateUserUseCase(
+                    id = userId,
+                    email = user.email,
+                    name = user.name,
+                    lastname = user.lastname,
+                    birthdate = user.birthdate,
+                    weight = user.weight,
+                    height = user.height,
+                    gender = user.gender,
+                    membership = user.membership,
+                    targetWeight = newTarget
+                )
+                loadProgressionData()
+            } catch (e: Exception) {
+                _uiState.update { it.copy(isLoading = false, errorMessage = e.message) }
+            }
+        }
+    }
+
     fun resetSuccess() {
         _uiState.update { it.copy(isSuccess = false) }
     }

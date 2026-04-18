@@ -25,6 +25,7 @@ fun InputFitness(
     onValueChange: (String) -> Unit,
     placeholder: String,
     modifier: Modifier = Modifier,
+    label: String? = null,
     isPassword: Boolean = false,
     leadingIcon: ImageVector? = null,
     keyboardType: KeyboardType = KeyboardType.Text,
@@ -46,6 +47,9 @@ fun InputFitness(
         onValueChange = onValueChange,
         modifier = modifier.fillMaxWidth(),
         readOnly = readOnly,
+        label = label?.let {
+            { Text(text = it) }
+        },
         placeholder = {
             Text(
                 text = placeholder,
@@ -98,6 +102,8 @@ fun InputFitness(
             unfocusedBorderColor = borderColor,
             focusedTextColor = textColor,
             unfocusedTextColor = textColor,
+            focusedLabelColor = focusedBorderColor,
+            unfocusedLabelColor = placeholderColor,
             cursorColor = focusedBorderColor
         ),
         singleLine = true
