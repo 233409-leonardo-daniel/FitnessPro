@@ -54,7 +54,7 @@ class RecipeRepositoryImp @Inject constructor(
     }
 
     override fun getRemoteRecipes(): Flow<List<Recipe>> {
-        return dao.getDAORecipes().map { entities -> entities.map { it.toDomain() } }
+        return dao.getSyncedRemoteRecipes().map { entities -> entities.map { it.toDomain() } }
     }
 
     override suspend fun syncRecipes() {

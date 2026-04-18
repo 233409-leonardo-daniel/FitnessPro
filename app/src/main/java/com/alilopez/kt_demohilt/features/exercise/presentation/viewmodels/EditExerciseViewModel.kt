@@ -61,15 +61,12 @@ class EditExerciseViewModel @Inject constructor(
                     _instructions.value = exercise.instructions.joinToString("\n")
                     _selectedExerciseType.value = exercise.exerciseType
                     _selectedDifficulty.value = exercise.difficulty ?: "Facil"
-                    _selectedDays.value = exercise.scheduledDays
                     _photoUri.value = null
                     _photoTaken.value = false
+                    _selectedDays.value = exercise.scheduledDays
 
                     _uiState.update {
-                        it.copy(
-                            isLoading = false,
-                            exercise = exercise
-                        )
+                        it.copy(isLoading = false, exercise = exercise)
                     }
                 },
                 onFailure = { error ->
@@ -160,10 +157,7 @@ class EditExerciseViewModel @Inject constructor(
                 )
 
                 _uiState.update {
-                    it.copy(
-                        isLoading = false,
-                        exerciseUpdated = true
-                    )
+                    it.copy(isLoading = false, exerciseUpdated = true)
                 }
             } catch (e: Exception) {
                 _uiState.update {

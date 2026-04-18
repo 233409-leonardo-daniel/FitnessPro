@@ -40,6 +40,17 @@ class ExerciseViewModel @Inject constructor(
     }
 
     fun loadRemoteExercises(isUserRefresh: Boolean = false) {
+        // En refresh, resetear offset y lista
+        if (isUserRefresh) {
+            _uiState.update {
+                it.copy(
+                    exercises = emptyList(),
+                    nextOffset = 0,
+                    hasNextPage = false
+                )
+            }
+        }
+        
         _uiState.update {
             it.copy(
                 isLoading = true,
@@ -49,21 +60,62 @@ class ExerciseViewModel @Inject constructor(
 
         viewModelScope.launch {
             val startTime = System.currentTimeMillis()
-            val result = getExercisesUseCase()
+            val result = getExercisesUseCase(offset = null)
             applyRefreshDelayIfNeeded(isUserRefresh, startTime)
             _uiState.update { currentState ->
                 result.fold(
-                    onSuccess = {
-                        list -> currentState.copy(
+                    onSuccess = { paginated ->
+                        currentState.copy(
                             isLoading = false,
                             isRefreshing = false,
-                            exercises = list
+                            exercises = paginated.exercises,
+                            hasNextPage = paginated.hasNextPage,
+                            nextOffset = paginated.nextCursor?.toIntOrNull() ?: 25,
+                            totalRemoteExercises = paginated.total
                         )
                     },
-                    onFailure = {
-                        error -> currentState.copy(
+                    onFailure = { error ->
+                        currentState.copy(
                             isLoading = false,
                             isRefreshing = false,
+                            error = error.message
+                        )
+                    }
+                )
+            }
+        }
+    }
+
+    fun loadMoreRemoteExercises() {
+        val currentState = _uiState.value
+        if (!currentState.hasNextPage || currentState.isLoadingMore || currentState.isLoading) return
+
+        _uiState.update { it.copy(isLoadingMore = true) }
+
+        viewModelScope.launch {
+            val result = if (currentState.isFiltered && currentState.selectedBodyPart != null) {
+                getExercisesByBodyPartUseCase(
+                    bodyPart = currentState.selectedBodyPart,
+                    offset = currentState.nextOffset
+                )
+            } else {
+                getExercisesUseCase(offset = currentState.nextOffset)
+            }
+
+            _uiState.update { state ->
+                result.fold(
+                    onSuccess = { paginated ->
+                        state.copy(
+                            isLoadingMore = false,
+                            exercises = state.exercises + paginated.exercises,
+                            hasNextPage = paginated.hasNextPage,
+                            nextOffset = paginated.nextCursor?.toIntOrNull() ?: (state.nextOffset + 25),
+                            totalRemoteExercises = paginated.total
+                        )
+                    },
+                    onFailure = { error ->
+                        state.copy(
+                            isLoadingMore = false,
                             error = error.message
                         )
                     }
@@ -170,14 +222,26 @@ class ExerciseViewModel @Inject constructor(
     }
 
     private fun loadExercisesByBodyPart(bodyPart: String) {
-        _uiState.update { it.copy(isLoading = true) }
+        _uiState.update { 
+            it.copy(
+                isLoading = true,
+                exercises = emptyList(),
+                nextOffset = 0,
+                hasNextPage = false
+            )
+        }
 
         viewModelScope.launch {
-            val result = getExercisesByBodyPartUseCase(bodyPart)
+            val result = getExercisesByBodyPartUseCase(bodyPart = bodyPart, offset = null)
             _uiState.update { currentState ->
                 result.fold(
-                    onSuccess = { list ->
-                        currentState.copy(isLoading = false, exercises = list)
+                    onSuccess = { paginated ->
+                        currentState.copy(
+                            isLoading = false,
+                            exercises = paginated.exercises,
+                            hasNextPage = paginated.hasNextPage,
+                            nextOffset = paginated.nextCursor?.toIntOrNull() ?: 25,
+                        )
                     },
                     onFailure = { error ->
                         currentState.copy(isLoading = false, error = error.message)
@@ -225,7 +289,14 @@ class ExerciseViewModel @Inject constructor(
     }
 
     fun clearFilters() {
-        _uiState.update { it.copy(selectedBodyPart = null, isFiltered = false) }
+        _uiState.update { 
+            it.copy(
+                selectedBodyPart = null, 
+                isFiltered = false,
+                nextOffset = 0,
+                hasNextPage = false
+            )
+        }
         loadRemoteExercises()
     }
 

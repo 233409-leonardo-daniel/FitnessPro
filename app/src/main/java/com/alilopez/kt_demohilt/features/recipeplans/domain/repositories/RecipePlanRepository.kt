@@ -2,6 +2,7 @@ package com.alilopez.kt_demohilt.features.recipeplans.domain.repositories
 
 import com.alilopez.kt_demohilt.features.recipies.domain.entities.Recipe
 import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
+import kotlinx.coroutines.flow.Flow
 
 interface RecipePlanRepository {
     suspend fun getUserRecipePlans(userId: Int): List<RecipePlan>
@@ -10,4 +11,9 @@ interface RecipePlanRepository {
     suspend fun getPlanRecipes(planId: Int): List<Recipe>
     suspend fun deleteRecipePlan(planId: Int)
     suspend fun removeRecipeFromPlan(planId: Int, recipeId: Int): RecipePlan
+    
+    // Para modo offline
+    fun getDownloadedRecipePlans(): Flow<List<RecipePlan>>
+    suspend fun getDownloadedPlanIds(): List<Int>
+    suspend fun removeLocalRecipePlanDownload(planId: Int)
 }

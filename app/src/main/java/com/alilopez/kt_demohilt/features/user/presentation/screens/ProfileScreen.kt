@@ -1,15 +1,46 @@
 package com.alilopez.kt_demohilt.features.user.presentation.screens
 
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.ArrowDropDown
+import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Face
+import androidx.compose.material.icons.filled.Flag
+import androidx.compose.material.icons.filled.Height
+import androidx.compose.material.icons.filled.MonitorWeight
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -94,65 +125,62 @@ fun ProfileScreen(
                 InputFitness(
                     value = name,
                     onValueChange = { viewModel.onNameChange(it) },
-                    placeholder = "Nombre",
+                    label = "Nombre",
+                    placeholder = "Tu nombre",
                     leadingIcon = Icons.Default.Person
                 )
 
                 InputFitness(
                     value = lastname,
                     onValueChange = { viewModel.onLastnameChange(it) },
-                    placeholder = "Apellido",
+                    label = "Apellido",
+                    placeholder = "Tu apellido",
                     leadingIcon = Icons.Default.Person
                 )
 
                 InputFitness(
                     value = birthdate,
                     onValueChange = { viewModel.onBirthdateChange(it) },
-                    placeholder = "Fecha de Nacimiento (YYYY-MM-DD)",
+                    label = "Fecha de Nacimiento",
+                    placeholder = "YYYY-MM-DD",
                     leadingIcon = Icons.Default.DateRange
                 )
 
                 InputFitness(
                     value = weight,
                     onValueChange = { viewModel.onWeightChange(it) },
-                    placeholder = "Peso Actual (kg)",
+                    label = "Peso Actual",
+                    placeholder = "Ej. 70 (kg)",
                     leadingIcon = Icons.Default.MonitorWeight
                 )
 
                 InputFitness(
                     value = height,
                     onValueChange = { viewModel.onHeightChange(it) },
-                    placeholder = "Altura (cm)",
+                    label = "Altura",
+                    placeholder = "Ej. 175 (cm)",
                     leadingIcon = Icons.Default.Height
                 )
 
                 InputFitness(
                     value = targetWeight,
                     onValueChange = { viewModel.onTargetWeightChange(it) },
-                    placeholder = "Peso Objetivo (kg)",
+                    label = "Peso Objetivo",
+                    placeholder = "Ej. 65 (kg)",
                     leadingIcon = Icons.Default.Flag
                 )
 
                 // Selector de Género
                 Box(modifier = Modifier.fillMaxWidth()) {
-                    OutlinedTextField(
+                    InputFitness(
                         value = gender,
                         onValueChange = {},
+                        label = "Género",
+                        placeholder = "Selecciona tu género",
+                        leadingIcon = Icons.Default.Face,
+                        trailingIcon = Icons.Default.ArrowDropDown,
                         readOnly = true,
-                        placeholder = { Text("Género") },
-                        leadingIcon = { Icon(Icons.Default.Face, contentDescription = null) },
-                        trailingIcon = { Icon(Icons.Default.ArrowDropDown, contentDescription = null) },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { showGenderMenu = true },
-                        enabled = false,
-                        colors = OutlinedTextFieldDefaults.colors(
-                            disabledTextColor = textColor,
-                            disabledBorderColor = MaterialTheme.colorScheme.outline,
-                            disabledLeadingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledTrailingIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            disabledPlaceholderColor = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
+                        modifier = Modifier.fillMaxWidth()
                     )
                     Box(modifier = Modifier.matchParentSize().clickable { showGenderMenu = true })
                     

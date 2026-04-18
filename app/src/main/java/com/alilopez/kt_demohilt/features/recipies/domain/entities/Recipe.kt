@@ -10,5 +10,6 @@ data class Recipe(
     val scheduledDays: List<String>?,
     val mealType: String?,
     val imageUrl: String?,
-    val audioUrl: String?
+    val audioUrl: String?,
+    val isDownloaded: Boolean = false
 )

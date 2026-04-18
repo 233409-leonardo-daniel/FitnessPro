@@ -9,5 +9,6 @@ data class WorkoutPlan(
     val userId: Int,
     val planType: String,
     val isPrivate: Boolean,
-    val exercises: List<Exercise> = emptyList()
+    val exercises: List<Exercise> = emptyList(),
+    val isDownloaded: Boolean = false
 )

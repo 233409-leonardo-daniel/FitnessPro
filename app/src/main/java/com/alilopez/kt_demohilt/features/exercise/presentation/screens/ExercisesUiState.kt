@@ -15,5 +15,10 @@ data class ExercisesUiState(
     val isFiltered: Boolean = false,
     val searchQuery: String = "",
     val isSearchActive: Boolean = false,
-    val exerciseDeleted: Boolean = false
+    val exerciseDeleted: Boolean = false,
+    // Paginación - ejercicios remotos (offset/limit)
+    val hasNextPage: Boolean = false,
+    val nextOffset: Int = 0,
+    val isLoadingMore: Boolean = false,
+    val totalRemoteExercises: Int = 0
 )

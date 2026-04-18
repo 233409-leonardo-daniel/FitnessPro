@@ -28,15 +28,11 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Check
-import androidx.compose.material.icons.filled.FilterList
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -61,7 +57,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
@@ -77,18 +72,6 @@ import com.alilopez.kt_demohilt.features.exercise.presentation.components.Exerci
 import com.alilopez.kt_demohilt.features.exercise.presentation.viewmodels.ExerciseViewModel
 import kotlinx.coroutines.launch
 
-private val bodyParts = listOf(
-    "ESPALDA",
-    "PECHO",
-    "ANTEBRAZOS",
-    "CUELLO",
-    "HOMBROS",
-    "MUSLOS",
-    "CINTURA",
-    "BRAZOS",
-    "PANTORRILLAS"
-)
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ExercisesScreen(
@@ -102,48 +85,31 @@ fun ExercisesScreen(
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+    val currentUserId = viewModel.currentUserId
 
+    val isPremium = membership?.equals("premium", ignoreCase = true) == true
+    val accentColor = Color(0xFF10B981)
     val backgroundColor = MaterialTheme.colorScheme.background
     val textColor = MaterialTheme.colorScheme.onBackground
     val secondaryTextColor = MaterialTheme.colorScheme.onSurfaceVariant
-    val accentColor = Color(0xFF10B981)
-    val clearButtonColor = if (isDarkTheme) Color(0xFF334155) else Color(0xFFE2E8F0)
-
-    val currentUserId = viewModel.currentUserId
 
     var showDeleteDialog by remember { mutableStateOf(false) }
     var exerciseToDelete by remember { mutableStateOf<Exercise?>(null) }
 
     val pagerState = rememberPagerState(pageCount = { 3 })
     val scope = rememberCoroutineScope()
-    val query = uiState.searchQuery.trim()
     val lifecycleOwner = LocalLifecycleOwner.current
 
-    val filteredLocalExercises = if (uiState.isSearchActive && query.isNotBlank()) {
-        uiState.localExercises.filter { it.name.contains(query, ignoreCase = true) }
-    } else {
-        uiState.localExercises
-    }
-    val filteredCommunityExercises = if (uiState.isSearchActive && query.isNotBlank()) {
-        uiState.communityExercises.filter { it.name.contains(query, ignoreCase = true) }
-    } else {
-        uiState.communityExercises
-    }
-    val filteredRemoteExercises = if (uiState.isSearchActive && query.isNotBlank()) {
-        uiState.exercises.filter { it.name.contains(query, ignoreCase = true) }
-    } else {
-        uiState.exercises
-    }
+    val query = uiState.searchQuery.trim()
+    val filteredLocal = uiState.localExercises.filterByQuery(uiState.isSearchActive, query)
+    val filteredCommunity = uiState.communityExercises.filterByQuery(uiState.isSearchActive, query)
+    val filteredRemote = uiState.exercises.filterByQuery(uiState.isSearchActive, query)
 
     LaunchedEffect(pagerState.currentPage) {
         when (pagerState.currentPage) {
             1 -> if (uiState.communityExercises.isEmpty()) viewModel.loadCommunityExercises()
-            2 -> if (uiState.exercises.isEmpty()) viewModel.loadRemoteExercises()
+            2 -> if (isPremium && uiState.exercises.isEmpty()) viewModel.loadRemoteExercises()
         }
-    }
-
-    LaunchedEffect(uiState.exerciseDeleted) {
-        if (uiState.exerciseDeleted) viewModel.resetExerciseDeleted()
     }
 
     DisposableEffect(lifecycleOwner) {
@@ -152,7 +118,6 @@ fun ExercisesScreen(
                 viewModel.loadUserExercises()
             }
         }
-
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
@@ -178,6 +143,7 @@ fun ExercisesScreen(
                 textColor = textColor,
                 secondaryTextColor = secondaryTextColor,
                 accentColor = accentColor,
+                surfaceColor = backgroundColor,
                 isDarkTheme = isDarkTheme,
                 onOpenDrawer = onOpenDrawer,
                 onNavigateToAddExercise = onNavigateToAddExercise,
@@ -189,12 +155,12 @@ fun ExercisesScreen(
         }
     ) { innerPadding ->
         PullToRefreshBox(
-            isRefreshing = uiState.isRefreshing,
+            isRefreshing = uiState.isLoading,
             onRefresh = {
                 when (pagerState.currentPage) {
-                    0 -> viewModel.loadUserExercises(isUserRefresh = true)
-                    1 -> viewModel.loadCommunityExercises(isUserRefresh = true)
-                    else -> viewModel.loadRemoteExercises(isUserRefresh = true)
+                    0 -> viewModel.loadUserExercises()
+                    1 -> viewModel.loadCommunityExercises()
+                    else -> viewModel.loadRemoteExercises()
                 }
             },
             modifier = Modifier
@@ -208,83 +174,112 @@ fun ExercisesScreen(
                 verticalAlignment = Alignment.Top
             ) { page ->
                 when (page) {
-                    0 -> LocalExercisesList(
-                        localExercises = filteredLocalExercises,
-                        isSearchActive = uiState.isSearchActive,
-                        accentColor = accentColor,
-                        secondaryTextColor = secondaryTextColor,
-                        currentUserId = currentUserId,
-                        onNavigateToAddExercise = onNavigateToAddExercise,
-                        onNavigateToDetail = onNavigateToExerciseDetail,
-                        onNavigateToEdit = onNavigateToEditExercise,
-                        onDelete = { exercise ->
-                            exerciseToDelete = exercise
-                            showDeleteDialog = true
-                        }
-                    )
-
-                    1 -> CommunityExercisesList(
-                        exercises = filteredCommunityExercises,
+                    0 -> ExerciseList(
+                        exercises = filteredLocal,
                         isLoading = uiState.isLoading,
-                        isSearchActive = uiState.isSearchActive,
-                        accentColor = accentColor,
-                        secondaryTextColor = secondaryTextColor,
                         currentUserId = currentUserId,
-                        onNavigateToDetail = onNavigateToExerciseDetail,
-                        onNavigateToEdit = onNavigateToEditExercise,
+                        onDetail = onNavigateToExerciseDetail,
+                        onEdit = onNavigateToEditExercise,
                         onDelete = { exercise ->
                             exerciseToDelete = exercise
                             showDeleteDialog = true
                         }
                     )
 
-                    2 -> if (membership != null && membership != "gratuito") {
-                        RemoteExercisesList(
-                            exercises = filteredRemoteExercises,
-                            uiState = uiState,
-                            viewModel = viewModel,
-                            textColor = textColor,
-                            accentColor = accentColor,
-                            clearButtonColor = clearButtonColor,
-                            onNavigateToDetail = onNavigateToExerciseDetail
+                    1 -> ExerciseList(
+                        exercises = filteredCommunity,
+                        isLoading = uiState.isLoading,
+                        currentUserId = currentUserId,
+                        onDetail = onNavigateToExerciseDetail,
+                        onEdit = {},
+                        onDelete = null
+                    )
+
+                    2 -> if (!isPremium) {
+                        PremiumGateContent(
+                            onNavigateToPremium = onNavigateToPremium,
+                            modifier = Modifier.fillMaxSize()
                         )
                     } else {
-                        PremiumGateContent(onNavigateToPremium = onNavigateToPremium)
+                        Column(modifier = Modifier.fillMaxSize()) {
+                            ExerciseList(
+                                exercises = filteredRemote,
+                                isLoading = uiState.isLoading,
+                                currentUserId = currentUserId,
+                                onDetail = onNavigateToExerciseDetail,
+                                onEdit = {},
+                                onDelete = null,
+                                modifier = Modifier.weight(1f)
+                            )
+                            if (!uiState.isSearchActive && uiState.hasNextPage) {
+                                Button(
+                                    onClick = viewModel::loadMoreRemoteExercises,
+                                    enabled = !uiState.isLoadingMore && !uiState.isLoading,
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                                    colors = ButtonDefaults.buttonColors(containerColor = accentColor)
+                                ) {
+                                    if (uiState.isLoadingMore) {
+                                        CircularProgressIndicator(
+                                            modifier = Modifier
+                                                .size(18.dp)
+                                                .padding(end = 8.dp),
+                                            color = Color.White,
+                                            strokeWidth = 2.dp
+                                        )
+                                    }
+                                    Text("Cargar más", color = Color.White)
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+    }
 
-        if (showDeleteDialog && exerciseToDelete != null) {
-            AlertDialog(
-                onDismissRequest = {
-                    showDeleteDialog = false
-                    exerciseToDelete = null
-                },
-                title = { Text("Eliminar ejercicio") },
-                text = { Text("¿Estás seguro de que deseas eliminar \"${exerciseToDelete?.name}\"?") },
-                confirmButton = {
-                    Button(
-                        onClick = {
-                            exerciseToDelete?.id?.let { id -> viewModel.deleteExercise(id) }
-                            showDeleteDialog = false
-                            exerciseToDelete = null
-                        },
-                        colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
-                    ) {
-                        Text("Eliminar", color = Color.White)
-                    }
-                },
-                dismissButton = {
-                    TextButton(onClick = {
+    if (showDeleteDialog && exerciseToDelete != null) {
+        AlertDialog(
+            onDismissRequest = {
+                showDeleteDialog = false
+                exerciseToDelete = null
+            },
+            title = {
+                Text(
+                    text = "Eliminar ejercicio",
+                    fontWeight = FontWeight.Bold,
+                    color = textColor
+                )
+            },
+            text = {
+                Text(
+                    text = "¿Estás seguro de que deseas eliminar \"${exerciseToDelete?.name}\"? Esta acción no se puede deshacer.",
+                    color = secondaryTextColor
+                )
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        exerciseToDelete?.id?.let(viewModel::deleteExercise)
                         showDeleteDialog = false
                         exerciseToDelete = null
-                    }) {
-                        Text("Cancelar")
-                    }
+                    },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFEF4444))
+                ) {
+                    Text("Eliminar")
                 }
-            )
-        }
+            },
+            dismissButton = {
+                TextButton(onClick = {
+                    showDeleteDialog = false
+                    exerciseToDelete = null
+                }) {
+                    Text("Cancelar", color = secondaryTextColor)
+                }
+            },
+            containerColor = MaterialTheme.colorScheme.surfaceContainer
+        )
     }
 }
 
@@ -295,6 +290,7 @@ private fun ExercisesTopSection(
     textColor: Color,
     secondaryTextColor: Color,
     accentColor: Color,
+    surfaceColor: Color,
     isDarkTheme: Boolean,
     onOpenDrawer: () -> Unit,
     onNavigateToAddExercise: () -> Unit,
@@ -306,7 +302,7 @@ private fun ExercisesTopSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .background(MaterialTheme.colorScheme.surface)
+            .background(surfaceColor)
             .statusBarsPadding()
             .padding(bottom = 8.dp)
     ) {
@@ -325,9 +321,9 @@ private fun ExercisesTopSection(
             }
 
             Image(
-                painter = painterResource(id = R.drawable.logo_sinletras),
+                painter = painterResource(id = R.drawable.fitness_pro_icon_round),
                 contentDescription = "Logo FitnessPro",
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
@@ -376,7 +372,7 @@ private fun ExercisesTopSection(
                     .height(34.dp)
                     .padding(2.dp)
             ) {
-                CompactTab(
+                ExerciseCompactTab(
                     title = "Mis ejercicios",
                     selected = currentPage == 0,
                     accentColor = accentColor,
@@ -384,7 +380,7 @@ private fun ExercisesTopSection(
                     modifier = Modifier.weight(1f),
                     onClick = { onPageSelected(0) }
                 )
-                CompactTab(
+                ExerciseCompactTab(
                     title = "Comunidad",
                     selected = currentPage == 1,
                     accentColor = accentColor,
@@ -392,7 +388,7 @@ private fun ExercisesTopSection(
                     modifier = Modifier.weight(1f),
                     onClick = { onPageSelected(1) }
                 )
-                CompactTab(
+                ExerciseCompactTab(
                     title = "Premium",
                     selected = currentPage == 2,
                     accentColor = accentColor,
@@ -406,7 +402,7 @@ private fun ExercisesTopSection(
 }
 
 @Composable
-private fun CompactTab(
+private fun ExerciseCompactTab(
     title: String,
     selected: Boolean,
     accentColor: Color,
@@ -433,252 +429,53 @@ private fun CompactTab(
 }
 
 @Composable
-private fun LocalExercisesList(
-    localExercises: List<Exercise>,
-    isSearchActive: Boolean,
-    accentColor: Color,
-    secondaryTextColor: Color,
-    currentUserId: Int?,
-    onNavigateToAddExercise: () -> Unit,
-    onNavigateToDetail: (Int) -> Unit,
-    onNavigateToEdit: (Int) -> Unit,
-    onDelete: (Exercise) -> Unit
-) {
-    if (localExercises.isEmpty()) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(10.dp),
-                modifier = Modifier.padding(24.dp)
-            ) {
-                Text(
-                    text = if (isSearchActive) {
-                        "No se encontraron ejercicios"
-                    } else {
-                        "Aun no has creado ejercicios"
-                    },
-                    color = if (isSearchActive) accentColor else secondaryTextColor,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                if (!isSearchActive) {
-                    Text(
-                        text = "Empieza creando tu primer ejercicio personalizado.",
-                        color = secondaryTextColor
-                    )
-                    Button(
-                        onClick = onNavigateToAddExercise,
-                        colors = ButtonDefaults.buttonColors(containerColor = accentColor)
-                    ) {
-                        Text(text = "Crear ejercicio", color = Color.White)
-                    }
-                }
-            }
-        }
-    } else {
-        LazyColumn(
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            items(localExercises) { exercise ->
-                ExerciseCard(
-                    name = exercise.name,
-                    imageUrl = exercise.gifUrl,
-                    instructions = exercise.instructions,
-                    isLocal = true,
-                    exerciseType = exercise.exerciseType,
-                    difficulty = exercise.difficulty,
-                    currentUserId = currentUserId,
-                    exerciseUserId = exercise.userId,
-                    onClick = { exercise.id?.let { onNavigateToDetail(it) } },
-                    onEdit = { exercise.id?.let { onNavigateToEdit(it) } },
-                    onDelete = { onDelete(exercise) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CommunityExercisesList(
+private fun ExerciseList(
     exercises: List<Exercise>,
     isLoading: Boolean,
-    isSearchActive: Boolean,
-    accentColor: Color,
-    secondaryTextColor: Color,
     currentUserId: Int?,
-    onNavigateToDetail: (Int) -> Unit,
-    onNavigateToEdit: (Int) -> Unit,
-    onDelete: (Exercise) -> Unit
+    onDetail: (Int) -> Unit,
+    onEdit: (Int) -> Unit,
+    onDelete: ((Exercise) -> Unit)?,
+    modifier: Modifier = Modifier
 ) {
-    when {
-        isLoading -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                CircularProgressIndicator(color = accentColor)
-            }
+    if (isLoading && exercises.isEmpty()) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            CircularProgressIndicator()
         }
+        return
+    }
 
-        exercises.isEmpty() -> {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                Text(
-                    text = if (isSearchActive) {
-                        "No se encontraron ejercicios"
-                    } else {
-                        "No hay ejercicios de comunidad disponibles"
-                    },
-                    color = if (isSearchActive) accentColor else secondaryTextColor
-                )
-            }
+    if (exercises.isEmpty()) {
+        Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Text("No hay ejercicios para mostrar")
         }
+        return
+    }
 
-        else -> {
-            LazyColumn(
-                modifier = Modifier.fillMaxSize(),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                items(exercises) { exercise ->
-                    ExerciseCard(
-                        name = exercise.name,
-                        imageUrl = exercise.gifUrl,
-                        instructions = exercise.instructions,
-                        currentUserId = currentUserId,
-                        exerciseUserId = exercise.userId,
-                        onClick = { exercise.id?.let { onNavigateToDetail(it) } },
-                        onEdit = { exercise.id?.let { onNavigateToEdit(it) } },
-                        onDelete = { onDelete(exercise) }
-                    )
-                }
-            }
+    LazyColumn(
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(exercises) { exercise ->
+            ExerciseCard(
+                name = exercise.name,
+                imageUrl = exercise.gifUrl,
+                instructions = exercise.instructions,
+                isLocal = exercise.userId != null,
+                exerciseType = exercise.exerciseType,
+                difficulty = exercise.difficulty,
+                currentUserId = currentUserId,
+                exerciseUserId = exercise.userId,
+                onClick = { exercise.id?.let(onDetail) },
+                onEdit = { exercise.id?.let(onEdit) },
+                onDelete = onDelete?.let { { it(exercise) } }
+            )
         }
     }
 }
 
-@Composable
-private fun RemoteExercisesList(
-    exercises: List<Exercise>,
-    uiState: ExercisesUiState,
-    viewModel: ExerciseViewModel,
-    textColor: Color,
-    accentColor: Color,
-    clearButtonColor: Color,
-    onNavigateToDetail: (Int) -> Unit
-) {
-    Column(modifier = Modifier.fillMaxSize()) {
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 6.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Button(
-                    onClick = { viewModel.toggleFilter() },
-                    modifier = Modifier.weight(1f),
-                    colors = ButtonDefaults.buttonColors(containerColor = accentColor)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.FilterList,
-                        contentDescription = null,
-                        tint = Color.White
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Filtrar por parte", color = Color.White)
-                }
-
-                if (uiState.selectedBodyPart != null) {
-                    Spacer(Modifier.width(8.dp))
-                    Button(
-                        onClick = { viewModel.clearFilters() },
-                        colors = ButtonDefaults.buttonColors(containerColor = clearButtonColor)
-                    ) {
-                        Text("Limpiar", color = textColor)
-                    }
-                }
-            }
-
-            DropdownMenu(
-                expanded = uiState.isFilterExpanded,
-                onDismissRequest = { viewModel.toggleFilter() },
-                containerColor = MaterialTheme.colorScheme.surfaceContainer
-            ) {
-                bodyParts.forEach { bodyPart ->
-                    val selected = uiState.selectedBodyPart == bodyPart
-                    DropdownMenuItem(
-                        text = { Text(text = bodyPart, color = textColor) },
-                        trailingIcon = {
-                            if (selected) {
-                                Icon(
-                                    imageVector = Icons.Default.Check,
-                                    contentDescription = null,
-                                    tint = accentColor
-                                )
-                            }
-                        },
-                        onClick = {
-                            viewModel.onBodyPartChecked(bodyPart, !selected)
-                        }
-                    )
-                }
-
-                DropdownMenuItem(
-                    text = {
-                        Text(
-                            text = "Aplicar filtros",
-                            fontWeight = FontWeight.SemiBold,
-                            color = accentColor
-                        )
-                    },
-                    onClick = { viewModel.applyFilters() }
-                )
-            }
-        }
-
-        when {
-            uiState.isLoading -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    CircularProgressIndicator(color = accentColor)
-                }
-            }
-
-            exercises.isEmpty() -> {
-                Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(
-                        text = if (uiState.isSearchActive) {
-                            "No se encontraron ejercicios"
-                        } else {
-                            "No hay ejercicios remotos disponibles"
-                        },
-                        color = if (uiState.isSearchActive) accentColor else textColor.copy(alpha = 0.7f)
-                    )
-                }
-            }
-
-            else -> {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    items(exercises) { exercise ->
-                        ExerciseCard(
-                            name = exercise.name,
-                            imageUrl = exercise.gifUrl,
-                            instructions = exercise.instructions,
-                            onClick = { exercise.id?.let { onNavigateToDetail(it) } }
-                        )
-                    }
-                }
-            }
-        }
-    }
-}
-
-@Preview
-@Composable
-private fun ExercisesScreenPreview() {
-    Text(text = "Exercises Screen Preview")
+private fun List<Exercise>.filterByQuery(isSearchActive: Boolean, query: String): List<Exercise> {
+    if (!isSearchActive || query.isBlank()) return this
+    return filter { it.name.contains(query, ignoreCase = true) }
 }

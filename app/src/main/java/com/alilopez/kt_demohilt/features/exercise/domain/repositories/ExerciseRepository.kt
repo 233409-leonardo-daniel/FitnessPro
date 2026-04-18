@@ -2,12 +2,21 @@ package com.alilopez.kt_demohilt.features.exercise.domain.repositories
 
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.Exercise
 import com.alilopez.kt_demohilt.features.exercise.domain.entities.ExerciseFilter
+import com.alilopez.kt_demohilt.features.exercise.domain.entities.PaginatedExercises
 import kotlinx.coroutines.flow.Flow
 import java.io.File
 
 interface ExerciseRepository {
-    suspend fun getRemoteExercises(): List<Exercise>
-    suspend fun getRemoteExercisesByBodyPart(bodyPart: String): List<Exercise>
+    suspend fun getRemoteExercises(
+        limit: Int = 25,
+        offset: Int? = null
+    ): PaginatedExercises
+    
+    suspend fun getRemoteExercisesByBodyPart(
+        bodyPart: String,
+        limit: Int = 25,
+        offset: Int? = null
+    ): PaginatedExercises
     suspend fun searchLocalExercisesByName(name: String): List<Exercise>
     fun getLocalExercises(): Flow<List<Exercise>>
     suspend fun createLocalExercise(

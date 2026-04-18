@@ -2,9 +2,11 @@ package com.alilopez.kt_demohilt.features.recipeplans.presentation.viewmodels
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.alilopez.kt_demohilt.features.recipeplans.domain.entities.RecipePlan
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.CreateRecipePlanUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.DeleteRecipePlanUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.GetUserRecipePlansUseCase
+import com.alilopez.kt_demohilt.features.recipeplans.domain.usecases.RemoveLocalRecipePlanDownloadUseCase
 import com.alilopez.kt_demohilt.features.recipeplans.presentation.screens.RecipePlansUIState
 import com.alilopez.kt_demohilt.core.session.SessionManager
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -20,6 +22,7 @@ class RecipePlansViewModel @Inject constructor(
     private val getUserRecipePlansUseCase: GetUserRecipePlansUseCase,
     private val createRecipePlanUseCase: CreateRecipePlanUseCase,
     private val deleteRecipePlanUseCase: DeleteRecipePlanUseCase,
+    private val removeLocalRecipePlanDownloadUseCase: RemoveLocalRecipePlanDownloadUseCase,
     private val sessionManager: SessionManager
 ) : ViewModel() {
 
@@ -80,10 +83,17 @@ class RecipePlansViewModel @Inject constructor(
         }
     }
 
-    fun deletePlan(planId: Int) {
+    fun deletePlan(plan: RecipePlan) {
         viewModelScope.launch {
             _uiState.update { it.copy(isLoading = true) }
-            deleteRecipePlanUseCase(planId).fold(
+
+            val result = if (plan.isDownloaded) {
+                removeLocalRecipePlanDownloadUseCase(plan.id)
+            } else {
+                deleteRecipePlanUseCase(plan.id)
+            }
+
+            result.fold(
                 onSuccess = {
                     _uiState.update { it.copy(isLoading = false, planDeleted = true) }
                     loadRecipePlans()

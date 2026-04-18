@@ -319,9 +319,9 @@ private fun RecipesTopSection(
             }
 
             Image(
-                painter = painterResource(id = R.drawable.logo_sinletras),
+                painter = painterResource(id = R.drawable.fitness_pro_icon_round),
                 contentDescription = "Logo FitnessPro",
-                modifier = Modifier.size(28.dp)
+                modifier = Modifier.size(32.dp)
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(

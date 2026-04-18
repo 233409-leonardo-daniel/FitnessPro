@@ -8,5 +8,6 @@ data class RecipePlan(
     val description: String,
     val userId: Int,
     val isPrivate: Boolean,
-    val recipes: List<Recipe> = emptyList()
+    val recipes: List<Recipe> = emptyList(),
+    val isDownloaded: Boolean = false
 )

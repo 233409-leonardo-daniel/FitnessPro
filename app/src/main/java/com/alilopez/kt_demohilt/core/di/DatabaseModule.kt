@@ -6,6 +6,8 @@ import com.alilopez.kt_demohilt.core.database.AppDatabase
 import com.alilopez.kt_demohilt.core.database.dao.ExerciseDao
 import com.alilopez.kt_demohilt.core.database.dao.PostDao
 import com.alilopez.kt_demohilt.core.database.dao.RecipeDao
+import com.alilopez.kt_demohilt.core.database.dao.RecipePlanDao
+import com.alilopez.kt_demohilt.core.database.dao.WorkoutPlanDao
 
 import dagger.Module
 import dagger.Provides
@@ -26,13 +28,9 @@ object DatabaseModule {
             AppDatabase::class.java,
             "fitnesspro_db"
         )
-            .addMigrations(AppDatabase.MIGRATION_1_2)
-            .fallbackToDestructiveMigration()
+            .fallbackToDestructiveMigration() // Facilitamos el desarrollo con cambios de esquema
             .build()
     }
-
-    // Proveemos los DAOs individualmente
-    // Esto permite que una Feature pida solo el DAO que le interesa
 
     @Provides
     fun providePostDao(db: AppDatabase) : PostDao = db.postDao()
@@ -42,4 +40,10 @@ object DatabaseModule {
 
     @Provides
     fun provideRecipeDao(db: AppDatabase) : RecipeDao = db.recipeDao()
+
+    @Provides
+    fun provideRecipePlanDao(db: AppDatabase) : RecipePlanDao = db.recipePlanDao()
+
+    @Provides
+    fun provideWorkoutPlanDao(db: AppDatabase) : WorkoutPlanDao = db.workoutPlanDao()
 }

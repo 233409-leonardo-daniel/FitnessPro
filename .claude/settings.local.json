@@ -10,7 +10,11 @@
       "Bash(find . -name \"*.kt\" -type f -exec grep -l \"membership\\\\|gratuito\" {} \\\\;)",
       "Bash(xargs grep:*)",
       "Bash(grep -E \"\\\\.kt$\")",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "Bash(./gradlew assembleProdRelease)",
+      "Bash(python -c \"import json,sys; d=json.load\\(sys.stdin\\); [print\\(c.get\\('package_name'\\)\\) for c in d.get\\('client',[]\\)]\")",
+      "Bash(python -c \"import json; d=json.load\\(open\\('app/google-services.json'\\)\\); print\\(json.dumps\\(d.get\\('client',[{}]\\)[0].get\\('client_info',{}\\), indent=2\\)\\)\")",
+      "Bash(./gradlew compileProdDebugKotlin)"
     ]
   }
 }

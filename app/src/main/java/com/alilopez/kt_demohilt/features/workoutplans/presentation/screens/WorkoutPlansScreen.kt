@@ -1,20 +1,56 @@
 package com.alilopez.kt_demohilt.features.workoutplans.presentation.screens
 
 import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Menu
-import androidx.compose.material3.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.ExposedDropdownMenuBox
+import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.SwitchDefaults
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -22,6 +58,13 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.work.Constraints
+import androidx.work.Data
+import androidx.work.ExistingWorkPolicy
+import androidx.work.NetworkType
+import androidx.work.OneTimeWorkRequestBuilder
+import androidx.work.WorkManager
+import com.alilopez.kt_demohilt.features.workoutplans.data.workers.DownloadWorkoutPlanWorker
 import com.alilopez.kt_demohilt.features.workoutplans.domain.entities.WorkoutPlan
 import com.alilopez.kt_demohilt.features.workoutplans.presentation.viewmodels.WorkoutPlansViewModel
 
@@ -39,17 +82,54 @@ val exerciseTypes = listOf(
 @Composable
 fun WorkoutPlansScreen(
     onNavigateToDetail: (Int, String) -> Unit,
+    onNavigateToPremium: () -> Unit,
     onOpenDrawer: () -> Unit,
+    membership: String?,
+    userId: Int?,
     viewModel: WorkoutPlansViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val isDarkTheme = isSystemInDarkTheme()
+    val context = LocalContext.current
+    val isPremium = membership != null && membership != "gratuito"
 
     val backgroundColor = if (isDarkTheme) Color(0xFF0F172A) else Color(0xFFF8FAFC)
     val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
     val accentColor = Color(0xFF10B981)
 
     var showCreateDialog by remember { mutableStateOf(false) }
+
+    fun startDownload(plan: WorkoutPlan) {
+        if (!isPremium) {
+            onNavigateToPremium()
+            return
+        }
+
+        val constraints = Constraints.Builder()
+            .setRequiredNetworkType(NetworkType.UNMETERED)
+            .setRequiresBatteryNotLow(true)
+            .build()
+
+        val data = Data.Builder()
+            .putInt(DownloadWorkoutPlanWorker.KEY_PLAN_ID, plan.id)
+            .putString(DownloadWorkoutPlanWorker.KEY_PLAN_NAME, plan.name)
+            .putString(DownloadWorkoutPlanWorker.KEY_PLAN_DESC, plan.description)
+            .putString(DownloadWorkoutPlanWorker.KEY_PLAN_TYPE, plan.planType)
+            .putInt(DownloadWorkoutPlanWorker.KEY_USER_ID, userId ?: -1)
+            .build()
+
+        val downloadRequest = OneTimeWorkRequestBuilder<DownloadWorkoutPlanWorker>()
+            .setConstraints(constraints)
+            .setInputData(data)
+            .addTag("download_plan_${plan.id}")
+            .build()
+
+        WorkManager.getInstance(context).enqueueUniqueWork(
+            "download_workout_${plan.id}",
+            ExistingWorkPolicy.KEEP,
+            downloadRequest
+        )
+    }
 
     Scaffold(
         modifier = Modifier.fillMaxSize(),
@@ -79,9 +159,6 @@ fun WorkoutPlansScreen(
                 .padding(paddingValues)
         ) {
             when {
-                uiState.isLoading -> {
-                    CircularProgressIndicator(modifier = Modifier.align(Alignment.Center), color = accentColor)
-                }
                 uiState.errorMessage != null -> {
                     Text(
                         text = uiState.errorMessage ?: "Error desconocido",
@@ -90,7 +167,7 @@ fun WorkoutPlansScreen(
                         textAlign = TextAlign.Center
                     )
                 }
-                uiState.workoutPlans.isEmpty() -> {
+                !uiState.isLoading && uiState.workoutPlans.isEmpty() -> {
                     Column(
                         modifier = Modifier.align(Alignment.Center),
                         horizontalAlignment = Alignment.CenterHorizontally
@@ -108,8 +185,10 @@ fun WorkoutPlansScreen(
                         items(uiState.workoutPlans) { plan ->
                             WorkoutPlanItem(
                                 plan = plan,
+                                isPremium = isPremium,
                                 onClick = { onNavigateToDetail(plan.id, plan.name) },
-                                onDelete = { viewModel.deletePlan(plan.id) },
+                                onDelete = { viewModel.deletePlan(plan) },
+                                onDownload = { startDownload(plan) },
                                 isDarkTheme = isDarkTheme
                             )
                         }
@@ -133,8 +212,10 @@ fun WorkoutPlansScreen(
 @Composable
 fun WorkoutPlanItem(
     plan: WorkoutPlan,
+    isPremium: Boolean,
     onClick: () -> Unit,
     onDelete: () -> Unit,
+    onDownload: () -> Unit,
     isDarkTheme: Boolean
 ) {
     val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
@@ -177,6 +258,20 @@ fun WorkoutPlanItem(
                     Text(text = "• ${plan.exercises.size} ejercicios", fontSize = 12.sp, color = Color.Gray)
                 }
             }
+            
+            if (plan.isDownloaded && isPremium) {
+                Icon(
+                    Icons.Default.CheckCircle, 
+                    contentDescription = "Descargado", 
+                    tint = Color(0xFF10B981),
+                    modifier = Modifier.padding(12.dp)
+                )
+            } else {
+                IconButton(onClick = onDownload) {
+                    Icon(Icons.Default.Download, contentDescription = "Descargar", tint = Color(0xFF3B82F6))
+                }
+            }
+
             IconButton(onClick = onDelete) {
                 Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color(0xFFEF4444))
             }
@@ -196,24 +291,40 @@ fun CreatePlanDialog(
     var isPrivate by remember { mutableStateOf(true) }
     var expanded by remember { mutableStateOf(false) }
 
+    val accentColor = Color(0xFF10B981)
+    val isDarkTheme = isSystemInDarkTheme()
+    val cardBg = if (isDarkTheme) Color(0xFF1E293B) else Color.White
+    val textColor = if (isDarkTheme) Color.White else Color(0xFF0F172A)
+    val fieldColors = OutlinedTextFieldDefaults.colors(
+        focusedBorderColor = accentColor,
+        unfocusedBorderColor = Color.Gray.copy(alpha = 0.4f),
+        focusedTextColor = textColor,
+        unfocusedTextColor = textColor,
+        focusedLabelColor = accentColor,
+        cursorColor = accentColor
+    )
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("Nueva Rutina") },
+        containerColor = cardBg,
+        title = { Text("Nueva Rutina", fontWeight = FontWeight.Bold, color = textColor) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 OutlinedTextField(
                     value = name,
                     onValueChange = { name = it },
                     label = { Text("Nombre") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = fieldColors
                 )
                 OutlinedTextField(
                     value = desc,
                     onValueChange = { desc = it },
                     label = { Text("Descripción") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = fieldColors
                 )
-                
+
                 ExposedDropdownMenuBox(
                     expanded = expanded,
                     onExpandedChange = { expanded = !expanded }
@@ -224,7 +335,7 @@ fun CreatePlanDialog(
                         readOnly = true,
                         label = { Text("Tipo de Plan") },
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
-                        colors = ExposedDropdownMenuDefaults.outlinedTextFieldColors(),
+                        colors = fieldColors,
                         modifier = Modifier.menuAnchor().fillMaxWidth()
                     )
                     ExposedDropdownMenu(
@@ -248,11 +359,11 @@ fun CreatePlanDialog(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    Text("Plan Privado")
+                    Text("Plan Privado", color = textColor)
                     Switch(
                         checked = isPrivate,
                         onCheckedChange = { isPrivate = it },
-                        colors = SwitchDefaults.colors(checkedThumbColor = Color(0xFF10B981))
+                        colors = SwitchDefaults.colors(checkedThumbColor = accentColor)
                     )
                 }
             }
@@ -260,13 +371,14 @@ fun CreatePlanDialog(
         confirmButton = {
             Button(
                 onClick = { if (name.isNotBlank()) onConfirm(name, desc, selectedType, isPrivate) },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF10B981))
+                colors = ButtonDefaults.buttonColors(containerColor = accentColor),
+                enabled = name.isNotBlank()
             ) {
                 Text("Crear")
             }
         },
         dismissButton = {
-            TextButton(onClick = onDismiss) { Text("Cancelar") }
+            TextButton(onClick = onDismiss) { Text("Cancelar", color = Color.Gray) }
         }
     )
 }
